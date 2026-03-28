@@ -8,7 +8,7 @@
  */
 #ifndef NDEBUG
 
-#define DEBUG_PRINT(msg) printf("DEBUG: %s\n", msg);
+#define DEBUG_PRINT(msg) printf("DEBUG: %s\n", msg)
 
 #else
 

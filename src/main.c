@@ -21,6 +21,7 @@
 
 #include <argp.h>
 #include <getopt.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,37 +30,66 @@
 #include "optimization.h"
 #include "timer.h"
 #include "utilities.h"
+#include "utils.h"
 
-char *FileName;
-
-void readOpts(int argc, char **argv) {
-  char opt;
-
-  FileName = NULL;
-  while ((opt = getopt(argc, argv, "i:")) > 0)
-    switch (opt) {
-    case 'i': /* Instance file */
-      FileName = (char *)malloc(strlen(optarg) + 1);
-      strncpy(FileName, optarg, strlen(optarg));
-      break;
-    default:
-      fprintf(stderr, "Option %c not managed.\n", opt);
-    }
-
-  if (!FileName) {
-    printf("No instance file provided (use -i <instance_name>). Exiting.\n");
-    exit(1);
-  }
-}
+static const char doc[] = "LOP instance resolver";
+static const char args_doc[] = "";
 
 static struct argp_option options[] = {
-    {"verbose", 'v', 0, 0, "Returns verose output"},
-    {"output", 'o', 0, 0, "Returns output to file instead of standard input"},
-    {"instance", 'i', 0, 0, "Instance file to use"},
+    {"verbose", 'v', 0, 0, "Returns verbose output"},
+    {"output", 'o', "FILE", 0,
+     "Returns output to file instead of standard input"},
+    {"instance", 'i', "FILE", 0, "Instance file to use"},
     {0},
 };
 
+struct arguments {
+  char *pos_args[1]; // positional argumuments of the command line calla.
+  char *FileName;
+  char *out_file;
+  bool verbose;
+};
+
+static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+  struct arguments *arguments = state->input;
+
+  switch (key) {
+  case 'v':
+    arguments->verbose = true;
+    break;
+  case 'o':
+    arguments->out_file = arg;
+    break;
+  case 'i':
+    arguments->FileName = arg;
+    break;
+  case ARGP_KEY_ARG:
+    if (state->arg_num >=
+        sizeof(arguments->pos_args) / sizeof(arguments->pos_args[0])) {
+      argp_usage(state);
+    }
+    arguments->pos_args[state->arg_num] = arg;
+    break;
+  // case of fewer arguments where given than required.
+  case ARGP_KEY_END:
+    if (state->arg_num <
+        sizeof(arguments->pos_args) / sizeof(arguments->pos_args[0])) {
+      printf("No enought positional arguments.");
+      argp_usage(state);
+    }
+    break;
+  default:
+    return ARGP_ERR_UNKNOWN;
+  }
+  return 0;
+}
+
+static struct argp argp = {options, parse_opt, args_doc, doc};
+
 int main(int argc, char **argv) {
+
+  DEBUG_PRINT("Debug print compiled.\n");
+
   long int i, j;
   long int *currentSolution;
   int cost, newCost, temp, firstRandomPosition, secondRandomPosition;
@@ -68,22 +98,36 @@ int main(int argc, char **argv) {
   setbuf(stdout, NULL);
   setbuf(stderr, NULL);
 
+  struct arguments arguments;
+  arguments.verbose = false;
+  arguments.FileName = "instances/N-be75eec_150";
+  arguments.out_file = "data/last_results";
+
+  argp_parse(&argp, argc, argv, 0, 0, &arguments);
+
+  printf("verbose: %s\ninstance file: %s\noutput file: %s\npos arguments: %s\n",
+         arguments.verbose ? "yes" : "no", arguments.FileName,
+         arguments.out_file, arguments.pos_args[0]);
+
   if (argc < 2) {
     printf("No instance file provided (use -i <instance_name>). Exiting.\n");
     exit(1);
   }
 
+  DEBUG_PRINT("-----fin argp-----");
+
   /* Read parameters */
-  readOpts(argc, argv);
+  // readOpts(argc, argv);
 
   /* Read instance file */
-  CostMat = readInstance(FileName);
+  CostMat = readInstance(arguments.FileName);
   printf("Data have been read from instance file. Size of instance = %ld.\n\n",
          PSize);
 
   /* initialize random number generator, deterministically based on instance.
-   * To do this we simply set the seed to the sum of elements in the matrix, so
-   it is constant per-instance, but (most likely) varies between instances */
+   * To do this we simply set the seed to the sum of elements in the matrix,
+   so it is constant per-instance, but (most likely) varies between instances
+ */
   Seed = (long int)0;
   for (i = 0; i < PSize; ++i)
     for (j = 0; j < PSize; ++j)
@@ -110,7 +154,8 @@ int main(int argc, char **argv) {
   cost = computeCost(currentSolution);
   printf("Cost of this initial solution: %d\n\n", cost);
 
-  /* Example: apply an exchange operation of two elements at random position */
+  /* Example: apply an exchange operation of two elements at random position
+   */
   firstRandomPosition = randInt(0, PSize - 1);
   // Ensure second position is different from first one:
   secondRandomPosition = firstRandomPosition + randInt(1, (PSize - 2));
