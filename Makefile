@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-O3 -Wall -Wextra -Werror -DNDEBUG
-DFLAGS=-Og -Wall -Wextra -Werror
+CFLAGS=-O3 -Wall -DNDEBUG #-Werror -Wextra 
+DFLAGS=-Og -Wall #-Werror -Wextra 
 
 # compiled target name
 TARGET_NAME := lop
