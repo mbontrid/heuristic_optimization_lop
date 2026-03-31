@@ -20,33 +20,29 @@
 */
 
 #include <argp.h>
+// #include <limits>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "arg_parser/arg_parser.h"
 #include "instance.h"
 #include "optimization.h"
 #include "timer.h"
 #include "utilities.h"
 #include "utils.h"
 
-static const char doc[] = "LOP instance resolver";
-static const char args_doc[] = "";
-
 static struct argp_option options[] = {
     {"verbose", 'v', 0, 0, "Returns verbose output"},
     {"output", 'o', "FILE", 0,
      "Returns output to file instead of standard input"},
     {"instance", 'i', "FILE", 0, "Instance file to use"},
+    {"pivot", 'p', "CHOICE", 0, "Pivoting rule: first|best"},
+    {"neighborhood", 'n', "CHOICE", 0,
+     "Neighborhood strategy: transpose|exchange|insert"},
+    {"sol_start", 's', "CHOICE", 0, "Initial solution: random|c_and_w"},
     {0},
-};
-
-struct arguments {
-  char *pos_args[1]; // positional argumuments of the command line calla.
-  char *FileName;
-  char *out_file;
-  bool verbose;
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -60,8 +56,63 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     arguments->out_file = arg;
     break;
   case 'i':
-    arguments->FileName = arg;
+    arguments->instance_file = arg;
     break;
+  case 'p':
+    if (strcmp(arg, "first")) {
+      arguments->pivoting_rule = first;
+      arguments->fptr_pivoting_rule = pivot_first;
+      DEBUG_PRINT("pivoting rule set to first");
+      DEBUG_PRINT(arg);
+    } else if (strcmp(arg, "best")) {
+      arguments->pivoting_rule = best;
+      arguments->fptr_pivoting_rule = pivot_best;
+      DEBUG_PRINT("pivoting rule set to best");
+      DEBUG_PRINT(arg);
+    } else {
+      argp_error(state, "Invalid pivoting_rule option: %s", arg);
+      DEBUG_PRINT("pivoting choice no found");
+      DEBUG_PRINT(arg);
+    }
+    break;
+  case 'n':
+    if (strcmp(arg, "transpose")) {
+      arguments->neighborhood = transpose;
+      arguments->fptr_neighborhood = neighborhood_tranpose;
+      DEBUG_PRINT("neighborhood set to transpose");
+      DEBUG_PRINT(arg);
+    } else if (strcmp(arg, "exchange")) {
+      arguments->neighborhood = exchange;
+      arguments->fptr_neighborhood = neighborhood_exchange;
+      DEBUG_PRINT("neighborhood set to exchange");
+      DEBUG_PRINT(arg);
+    } else if (strcmp(arg, "insert")) {
+      arguments->neighborhood = insert;
+      arguments->fptr_neighborhood = neighborhood_insert;
+      DEBUG_PRINT("neighborhood set to insert");
+      DEBUG_PRINT(arg);
+    } else {
+      argp_error(state, "Invalid neighborhood option: %s", arg);
+      DEBUG_PRINT("neighborhood choice not found");
+      DEBUG_PRINT(arg);
+    }
+    break;
+  case 's':
+    if (strcmp(arg, "random")) {
+      arguments->sol_start = randome;
+      arguments->fptr_sol_start = sol_start_random;
+      DEBUG_PRINT("solution start set to random");
+      DEBUG_PRINT(arg);
+    } else if (strcmp(arg, "c_and_w")) {
+      arguments->sol_start = c_and_w;
+      arguments->fptr_sol_start = sol_start_c_and_w;
+      DEBUG_PRINT("solution start set to c_and_w");
+      DEBUG_PRINT(arg);
+    } else {
+      argp_error(state, "Invalid initial solution option: %s", arg);
+      DEBUG_PRINT("solution start choice not found");
+      DEBUG_PRINT(arg);
+    }
   case ARGP_KEY_ARG:
     if (state->arg_num >=
         sizeof(arguments->pos_args) / sizeof(arguments->pos_args[0])) {
@@ -87,7 +138,7 @@ static struct argp argp = {options, parse_opt, args_doc, doc};
 
 int main(int argc, char **argv) {
 
-  DEBUG_PRINT("Debug print compiled.\n");
+  DEBUG_PRINT("Debug print activated.\n");
 
   long int i, j;
   long int *currentSolution;
@@ -97,29 +148,33 @@ int main(int argc, char **argv) {
   setbuf(stdout, NULL);
   setbuf(stderr, NULL);
 
+  // ---argument parsing----
+
   struct arguments arguments;
   arguments.verbose = false;
-  arguments.FileName = "instances/N-be75eec_150";
+  arguments.instance_file = "instances/N-be75eec_150";
   arguments.out_file = "data/last_results";
+  arguments.pivoting_rule = first;
+  arguments.neighborhood = transpose;
+  arguments.sol_start = randome;
 
   argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
-  printf("verbose: %s\ninstance file: %s\noutput file: %s\npos arguments: %s\n",
-         arguments.verbose ? "yes" : "no", arguments.FileName,
-         arguments.out_file, arguments.pos_args[0]);
+  printf("verbose: %s\ninstance file: %s\noutput file: %s\npos arguments: "
+         "%s\npivoting rule: %u\nneighborhood: %u\ninitial solution: %u\n",
+         arguments.verbose ? "yes" : "no", arguments.instance_file,
+         arguments.out_file, arguments.pos_args[0], arguments.pivoting_rule,
+         arguments.neighborhood, arguments.sol_start);
 
   if (argc < 2) {
     printf("No instance file provided (use -i <instance_name>). Exiting.\n");
     exit(1);
   }
 
-  DEBUG_PRINT("-----fin argp-----");
-
-  /* Read parameters */
-  // readOpts(argc, argv);
+  //--- end args passing ----
 
   /* Read instance file */
-  CostMat = readInstance(arguments.FileName);
+  CostMat = readInstance(arguments.instance_file);
   printf("Data have been read from instance file. Size of instance = %ld.\n\n",
          PSize);
 

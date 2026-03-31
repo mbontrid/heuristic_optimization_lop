@@ -23,7 +23,17 @@
 
 extern long int **CostMat;
 
-long long int computeCost ( long int *lo );
+long long int computeCost(long int *lo);
 void createRandomSolution(long int *s);
+
+int pivot_first(int, int);
+int pivot_best(int, int);
+
+int neighborhood_tranpose(int, int);
+int neighborhood_exchange(int, int);
+int neighborhood_insert(int, int);
+
+int sol_start_random(int, int);
+int sol_start_c_and_w(int, int);
 
 #endif

@@ -23,8 +23,8 @@
 #include <stdlib.h>
 #include <values.h>
 
-#include "optimization.h" 
 #include "instance.h"
+#include "optimization.h"
 #include "utilities.h"
 
 #ifdef __MINGW32__
@@ -34,30 +34,36 @@
 #define MAX_FLOAT MAXFLOAT
 #endif
 
-
 long int **CostMat;
 
+long long int computeCost(long int *s) {
+  int h, k;
+  long long int sum;
 
-long long int computeCost (long int *s ) {
-    int h,k;
-    long long int sum;
-    
-    /* Diagonal value are not considered */
-    for (sum = 0, h = 0; h < PSize; h++ ) 
-	for ( k = h + 1; k < PSize; k++ )
-	    sum += CostMat[s[h]][s[k]];
-    return(sum);
+  /* Diagonal value are not considered */
+  for (sum = 0, h = 0; h < PSize; h++)
+    for (k = h + 1; k < PSize; k++)
+      sum += CostMat[s[h]][s[k]];
+  return (sum);
 }
-
 
 void createRandomSolution(long int *s) {
-    int j; 
-    long int *random;
+  int j;
+  long int *random;
 
-    random = generate_random_vector(PSize);
-    for ( j = 0 ; j < PSize ; j++ ) {
-      s[j] = random[j];
-    }
-    free ( random );
+  random = generate_random_vector(PSize);
+  for (j = 0; j < PSize; j++) {
+    s[j] = random[j];
+  }
+  free(random);
 }
 
+int pivot_first(int a, int b) { return 0; }
+int pivot_best(int a, int b) { return 0; }
+
+int neighborhood_tranpose(int a, int b) { return 0; }
+int neighborhood_exchange(int a, int b) { return 0; }
+int neighborhood_insert(int a, int b) { return 0; }
+
+int sol_start_random(int a, int b) { return 0; }
+int sol_start_c_and_w(int a, int b) { return 0; }
