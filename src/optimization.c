@@ -72,8 +72,24 @@ int neighborhood_tranpose(int a, int b, long int **matrix) {
   DEBUG_PRINT("executing neighborhood_tranpose");
   return 0;
 }
+
 int neighborhood_exchange(int a, int b, long int **matrix) {
   DEBUG_PRINT("executing neighborhood_exchange");
+  // long int Psize = sizeof(matrix);
+  t_sizemat sol[PSize];
+  uint n_exchange = 0;
+  DPRINTF("PSize: %ld\n", PSize);
+  // t_sizemat PSize = PSize;
+  for (t_sizemat i = 0; i < PSize; i++) {
+    sol[i] = i;
+  }
+  for (t_sizemat i = 0; i < PSize; i++) {
+    for (t_sizemat j = i + 1; j < PSize; j++) {
+      ++n_exchange;
+      DPRINTF("exchange: (%ld , %ld)\n", i, j);
+    }
+  }
+  DPRINTF("total number of exchange: %u\n", n_exchange);
   return 0;
 }
 int neighborhood_insert(int a, int b, long int **matrix) {

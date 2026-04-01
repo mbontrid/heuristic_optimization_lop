@@ -21,6 +21,9 @@
 #ifndef _INSTANCE_H_
 #define _INSTANCE_H_
 
+typedef long int t_sizemat;
+typedef long int t_mat_cell;
+
 long int **readInstance(const char *filename);
 
 extern long int PSize;

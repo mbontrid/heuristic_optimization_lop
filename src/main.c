@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "arg_parser/arg_parser.h"
+#include "arg_parser.h"
 #include "instance.h"
 #include "optimization.h"
 #include "timer.h"
@@ -104,16 +104,18 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
       DEBUG_PRINT("solution start choice not found");
     }
   case ARGP_KEY_ARG:
-    if (state->arg_num >=
-        sizeof(arguments->pos_args) / sizeof(arguments->pos_args[0])) {
+    if (arguments->is_pos_arg &&
+        state->arg_num >=
+            sizeof(arguments->pos_args) / sizeof(arguments->pos_args[0])) {
       argp_usage(state);
     }
     arguments->pos_args[state->arg_num] = arg;
     break;
   // case of fewer arguments where given than required.
   case ARGP_KEY_END:
-    if (state->arg_num <
-        sizeof(arguments->pos_args) / sizeof(arguments->pos_args[0])) {
+    if (arguments->is_pos_arg &&
+        state->arg_num <
+            sizeof(arguments->pos_args) / sizeof(arguments->pos_args[0])) {
       printf("No enought positional arguments.");
       argp_usage(state);
     }
@@ -159,17 +161,14 @@ int main(int argc, char **argv) {
          arguments.out_file, arguments.pos_args[0], arguments.pivoting_rule,
          arguments.neighborhood, arguments.sol_start);
 
-  if (argc < 2) {
-    printf("No instance file provided (use -i <instance_name>). Exiting.\n");
-    exit(1);
-  }
-
   //--- end args passing ----
 
   /* Read instance file */
   CostMat = readInstance(arguments.instance_file);
   printf("Data have been read from instance file. Size of instance = %ld.\n\n",
          PSize);
+
+  arguments.fptr_neighborhood(0, 0, CostMat);
 
   /* initialize random number generator, deterministically based on instance.
    * To do this we simply set the seed to the sum of elements in the matrix,

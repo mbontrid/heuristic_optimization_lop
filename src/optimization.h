@@ -21,6 +21,7 @@
 #ifndef _LO_H_
 #define _LO_H_
 
+#include "instance.h"
 extern long int **CostMat;
 
 long long int computeCost(long int *lo);

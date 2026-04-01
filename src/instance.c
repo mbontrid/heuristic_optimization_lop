@@ -30,7 +30,7 @@
 
 #define BUFSIZE 1024
 
-long int PSize;
+t_sizemat PSize;
 
 /* Read a file instance, returning the data matrix.
    At the moment works with LOLIB instances */
@@ -39,7 +39,7 @@ long int **readInstance(const char *filename) {
   char buffer[BUFSIZE + 1];
   long int l, i, j, t;
   char *k;
-  long int **r;
+  t_mat_cell **r;
 
   buffer[BUFSIZE] = '\0';
 

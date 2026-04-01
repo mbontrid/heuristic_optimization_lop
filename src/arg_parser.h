@@ -1,6 +1,9 @@
 #ifndef _ARG_PARSER_H_
 #define _ARG_PARSER_H_
 
+#include "optimization.h"
+#include "utils.h"
+
 enum pivoting_rule {
   first,
   best,
@@ -18,6 +21,7 @@ enum sol_start {
 };
 
 struct arguments {
+  bool is_pos_arg;
   char *pos_args[1]; // positional argumuments of the command line calla.
   char *instance_file;
   char *out_file;
@@ -27,9 +31,9 @@ struct arguments {
   enum neighborhood neighborhood;
   enum sol_start sol_start;
 
-  int (*fptr_pivoting_rule)(int, int);
-  int (*fptr_neighborhood)(int, int);
-  int (*fptr_sol_start)(int, int);
+  t_fptr_pivot_rule fptr_pivoting_rule;
+  t_fptr_neighborhood fptr_neighborhood;
+  t_fptr_sol_start fptr_sol_start;
 };
 
 static const char doc[] = "LOP instance resolver";
