@@ -7,23 +7,24 @@ TARGET_NAME := lop
 
 
 # define executable directory
-TARGET_DIR			:=	build
+TARGET_DIR			:=	bin
 # define output directory
-OBJECT_DIR			:=	bin
+OBJECT_DIR			:=	build
 # define source directory 
 SOURCE_DIR			:=	src
 # define include directory
 INCLUDE_DIR			:=	include
 
-#directory tree for bin directory.
-DIRS = $(shell find src -type d | sed 's/src/./g')
+
+#directory tree for OBJECT_DIR directory.
+DIRS = $(shell find ${SOURCE_DIR} -type d | sed 's/${SOURCE_DIR}/./g')
 
 
-#src/.../%.c -> bin/.../$.o
-G_OBJS = $(patsubst src/%.c,bin/%.o,$(shell find src -type f -name "*.c"))
+#${SOURCE_DIR}/.../%.c -> ${OBJECT_DIR}/.../$.o
+G_OBJS = $(patsubst ${SOURCE_DIR}/%.c,${OBJECT_DIR}/%.o,$(shell find ${SOURCE_DIR} -type f -name "*.c"))
 
-#src/.../%.c -> bin/.../$_debug.o
-G_DOBJS = $(patsubst src/%.c,bin/%_debug.o,$(shell find src -type f -name "*.c"))
+#${SOURCE_DIR}/.../%.c -> ${OBJECT_DIR}/.../$_debug.o
+G_DOBJS = $(patsubst ${SOURCE_DIR}/%.c,${OBJECT_DIR}/%_debug.o,$(shell find ${SOURCE_DIR} -type f -name "*.c"))
 
 # compile target
 lop: $(G_OBJS) buildrepo
@@ -41,11 +42,11 @@ default: all
 
 
 # compile objects
-bin/%.o: src/%.c buildrepo
+${OBJECT_DIR}/%.o: ${SOURCE_DIR}/%.c buildrepo
 	$(CC) $(CFLAGS) -c $< -I ${INCLUDE_DIR}  -o $@
 
 # build objects with debug flags
-bin/%_debug.o: src/%.c buildrepo
+${OBJECT_DIR}/%_debug.o: ${SOURCE_DIR}/%.c buildrepo
 	$(CC) $(DFLAGS) -c $< -I ${INCLUDE_DIR}  -o $@
 
 
@@ -53,13 +54,13 @@ bin/%_debug.o: src/%.c buildrepo
 .PHONY:buildrepo
 buildrepo:
 	mkdir -p $(TARGET_DIR) $(OBJECT_DIR) $(INCLUDE_DIR)
-	for dir in $(DIRS); do mkdir -p bin/$$dir; done
+	for dir in $(DIRS); do mkdir -p ${OBJECT_DIR}/$$dir; done
 
 
 .PHONY: clean
 clean:
-	rm bin -Rf
+	rm ${OBJECT_DIR} -Rf
 
 .PHONY: cleaner
 cleaner: clean
-	rm build -Rf
+	rm ${TARGET_DIR} -Rf

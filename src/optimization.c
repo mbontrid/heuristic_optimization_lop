@@ -26,6 +26,7 @@
 #include "instance.h"
 #include "optimization.h"
 #include "utilities.h"
+#include "utils.h"
 
 #ifdef __MINGW32__
 #include <float.h>
@@ -58,12 +59,33 @@ void createRandomSolution(long int *s) {
   free(random);
 }
 
-int pivot_first(int a, int b) { return 0; }
-int pivot_best(int a, int b) { return 0; }
+int pivot_first(int a, int b) {
+  DEBUG_PRINT("executing pivot_first");
+  return 0;
+}
+int pivot_best(int a, int b) {
+  DEBUG_PRINT("executing pivot_best");
+  return 0;
+}
 
-int neighborhood_tranpose(int a, int b) { return 0; }
-int neighborhood_exchange(int a, int b) { return 0; }
-int neighborhood_insert(int a, int b) { return 0; }
+int neighborhood_tranpose(int a, int b) {
+  DEBUG_PRINT("executing neighborhood_tranpose");
+  return 0;
+}
+int neighborhood_exchange(int a, int b) {
+  DEBUG_PRINT("executing neighborhood_exchange");
+  return 0;
+}
+int neighborhood_insert(int a, int b) {
+  DEBUG_PRINT("executing neighborhood_insert");
+  return 0;
+}
 
-int sol_start_random(int a, int b) { return 0; }
-int sol_start_c_and_w(int a, int b) { return 0; }
+int sol_start_random(int a, int b) {
+  DEBUG_PRINT("executing sol_start_random");
+  return 0;
+}
+int sol_start_c_and_w(int a, int b) {
+  DEBUG_PRINT("executing sol_start_c_and_w");
+  return 0;
+}

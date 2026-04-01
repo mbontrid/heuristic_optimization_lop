@@ -59,59 +59,49 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     arguments->instance_file = arg;
     break;
   case 'p':
-    if (strcmp(arg, "first")) {
+    if (strcmp(arg, "first") == 0) {
       arguments->pivoting_rule = first;
       arguments->fptr_pivoting_rule = pivot_first;
       DEBUG_PRINT("pivoting rule set to first");
-      DEBUG_PRINT(arg);
-    } else if (strcmp(arg, "best")) {
+    } else if (strcmp(arg, "best") == 0) {
       arguments->pivoting_rule = best;
       arguments->fptr_pivoting_rule = pivot_best;
       DEBUG_PRINT("pivoting rule set to best");
-      DEBUG_PRINT(arg);
     } else {
       argp_error(state, "Invalid pivoting_rule option: %s", arg);
       DEBUG_PRINT("pivoting choice no found");
-      DEBUG_PRINT(arg);
     }
     break;
   case 'n':
-    if (strcmp(arg, "transpose")) {
+    if (strcmp(arg, "transpose") == 0) {
       arguments->neighborhood = transpose;
       arguments->fptr_neighborhood = neighborhood_tranpose;
       DEBUG_PRINT("neighborhood set to transpose");
-      DEBUG_PRINT(arg);
-    } else if (strcmp(arg, "exchange")) {
+    } else if (strcmp(arg, "exchange") == 0) {
       arguments->neighborhood = exchange;
       arguments->fptr_neighborhood = neighborhood_exchange;
       DEBUG_PRINT("neighborhood set to exchange");
-      DEBUG_PRINT(arg);
-    } else if (strcmp(arg, "insert")) {
+    } else if (strcmp(arg, "insert") == 0) {
       arguments->neighborhood = insert;
       arguments->fptr_neighborhood = neighborhood_insert;
       DEBUG_PRINT("neighborhood set to insert");
-      DEBUG_PRINT(arg);
     } else {
       argp_error(state, "Invalid neighborhood option: %s", arg);
       DEBUG_PRINT("neighborhood choice not found");
-      DEBUG_PRINT(arg);
     }
     break;
   case 's':
-    if (strcmp(arg, "random")) {
+    if (strcmp(arg, "random") == 0) {
       arguments->sol_start = randome;
       arguments->fptr_sol_start = sol_start_random;
       DEBUG_PRINT("solution start set to random");
-      DEBUG_PRINT(arg);
-    } else if (strcmp(arg, "c_and_w")) {
+    } else if (strcmp(arg, "c_and_w") == 0) {
       arguments->sol_start = c_and_w;
       arguments->fptr_sol_start = sol_start_c_and_w;
       DEBUG_PRINT("solution start set to c_and_w");
-      DEBUG_PRINT(arg);
     } else {
       argp_error(state, "Invalid initial solution option: %s", arg);
       DEBUG_PRINT("solution start choice not found");
-      DEBUG_PRINT(arg);
     }
   case ARGP_KEY_ARG:
     if (state->arg_num >=
@@ -157,6 +147,9 @@ int main(int argc, char **argv) {
   arguments.pivoting_rule = first;
   arguments.neighborhood = transpose;
   arguments.sol_start = randome;
+  arguments.fptr_pivoting_rule = pivot_first;
+  arguments.fptr_neighborhood = neighborhood_tranpose;
+  arguments.fptr_sol_start = sol_start_random;
 
   argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
