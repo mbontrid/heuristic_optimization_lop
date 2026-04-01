@@ -59,24 +59,24 @@ void createRandomSolution(long int *s) {
   free(random);
 }
 
-int pivot_first(int a, int b) {
+int pivot_first(long int **matrix) {
   DEBUG_PRINT("executing pivot_first");
   return 0;
 }
-int pivot_best(int a, int b) {
+int pivot_best(long int **matrix) {
   DEBUG_PRINT("executing pivot_best");
   return 0;
 }
 
-int neighborhood_tranpose(int a, int b) {
+int neighborhood_tranpose(int a, int b, long int **matrix) {
   DEBUG_PRINT("executing neighborhood_tranpose");
   return 0;
 }
-int neighborhood_exchange(int a, int b) {
+int neighborhood_exchange(int a, int b, long int **matrix) {
   DEBUG_PRINT("executing neighborhood_exchange");
   return 0;
 }
-int neighborhood_insert(int a, int b) {
+int neighborhood_insert(int a, int b, long int **matrix) {
   DEBUG_PRINT("executing neighborhood_insert");
   return 0;
 }

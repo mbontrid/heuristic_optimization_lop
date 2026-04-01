@@ -26,12 +26,12 @@ extern long int **CostMat;
 long long int computeCost(long int *lo);
 void createRandomSolution(long int *s);
 
-int pivot_first(int, int);
-int pivot_best(int, int);
+int pivot_first(long int **matrix);
+int pivot_best(long int **matrix);
 
-int neighborhood_tranpose(int, int);
-int neighborhood_exchange(int, int);
-int neighborhood_insert(int, int);
+int neighborhood_tranpose(int a, int b, long int **matrix);
+int neighborhood_exchange(int a, int b, long int **matrix);
+int neighborhood_insert(int a, int b, long int **matrix);
 
 int sol_start_random(int, int);
 int sol_start_c_and_w(int, int);
