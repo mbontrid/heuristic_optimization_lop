@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <values.h>
 
 #include "instance.h"
@@ -70,30 +71,55 @@ int pivot_best(long int **matrix) {
 
 int neighborhood_tranpose(int a, int b, long int **matrix) {
   DEBUG_PRINT("executing neighborhood_tranpose");
+  uint n_transpose = 0;
+  for (t_sizemat i = 0; i < PSize - 1; i++) {
+    ++n_transpose;
+    DPRINTF("transpose: (%ld , %ld)\n", i, i + 1);
+  }
+  DPRINTF("for %ld row; total number of transpose: %u \n", PSize, n_transpose);
   return 0;
 }
 
 int neighborhood_exchange(int a, int b, long int **matrix) {
   DEBUG_PRINT("executing neighborhood_exchange");
-  // long int Psize = sizeof(matrix);
-  t_sizemat sol[PSize];
   uint n_exchange = 0;
-  DPRINTF("PSize: %ld\n", PSize);
   // t_sizemat PSize = PSize;
-  for (t_sizemat i = 0; i < PSize; i++) {
-    sol[i] = i;
-  }
   for (t_sizemat i = 0; i < PSize; i++) {
     for (t_sizemat j = i + 1; j < PSize; j++) {
       ++n_exchange;
       DPRINTF("exchange: (%ld , %ld)\n", i, j);
     }
   }
-  DPRINTF("total number of exchange: %u\n", n_exchange);
+  DPRINTF("for %ld row; total number of exchange: %u\n", PSize, n_exchange);
   return 0;
 }
 int neighborhood_insert(int a, int b, long int **matrix) {
   DEBUG_PRINT("executing neighborhood_insert");
+  t_sizemat PSize = 6;
+  for (t_sizemat i = 0; i < PSize; i++) {
+    for (t_sizemat j = 0; j < PSize; j++) {
+      if (i != j || i == j + 1) {
+        t_sizemat inserts[PSize];
+        for (t_sizemat x = 0; x < PSize; x++) {
+          if (i < j && x < j) {
+            inserts[x] = x + 1;
+          } else if (i > j && x > j) {
+            inserts[x] = x - 1;
+          } else if (x == j) {
+            inserts[x] = i;
+          } else {
+            inserts[x] = x;
+          }
+        }
+#ifndef NDEBUG
+        for (t_sizemat x = 0; x < PSize; x++) {
+          printf("%ld ", inserts[x]);
+        }
+        printf("\n");
+#endif
+      }
+    }
+  }
   return 0;
 }
 
