@@ -8,4 +8,10 @@
 
 #pagebreak()
 
+= Hello
+Number of neighborhood with transpose.
+$"transposes" = n!/((n-2)!2!)$
+$"exchange" = n$
+$"insertion" = 
+
 

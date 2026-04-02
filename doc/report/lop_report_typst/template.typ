@@ -102,7 +102,7 @@
 
   align(center + horizon)[
     #line(length: 100%, stroke: 2pt)
-    #text(size: 34pt)[Ray Tracing Gaussian]
+    #text(size: 34pt)[Heuristic optimization: LOP]
     #line(length: 100%, stroke: 2pt)
   ]
 
