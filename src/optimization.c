@@ -93,17 +93,31 @@ int neighborhood_exchange(int a, int b, long int **matrix) {
   DPRINTF("for %ld row; total number of exchange: %u\n", PSize, n_exchange);
   return 0;
 }
-int neighborhood_insert(int a, int b, long int **matrix) {
-  DEBUG_PRINT("executing neighborhood_insert");
-  t_sizemat PSize = 6;
+
+ulong get_n_insert(uint size) {
+  if (size < 2) {
+    return 0;
+  } else if (size == 2) {
+    return 3;
+  }
+  DPRINTF("get_n_insert: for a %u array, there is %u insert\n", size,
+          ((size - 1) * (size - 1)));
+  return (size - 1) * (size - 1);
+}
+
+ulong get_inserti(t_sizemat **insertions, uint size) {
+  ulong n_insertions = get_n_insert(size);
+  insertions = malloc(n_insertions * size * sizeof(t_sizemat));
+
+  DPRINTF("executing neighborhood_insert for %lu insertions", n_insertions);
   for (t_sizemat i = 0; i < PSize; i++) {
     for (t_sizemat j = 0; j < PSize; j++) {
-      if (i != j || i == j + 1) {
+      if (i != j && i != j + 1) {
         t_sizemat inserts[PSize];
         for (t_sizemat x = 0; x < PSize; x++) {
-          if (i < j && x < j) {
+          if (i < j && x >= i && x < j) {
             inserts[x] = x + 1;
-          } else if (i > j && x > j) {
+          } else if (i > j && x > j && x <= i) {
             inserts[x] = x - 1;
           } else if (x == j) {
             inserts[x] = i;
@@ -115,11 +129,44 @@ int neighborhood_insert(int a, int b, long int **matrix) {
         for (t_sizemat x = 0; x < PSize; x++) {
           printf("%ld ", inserts[x]);
         }
-        printf("\n");
+        printf(" for i=%ld, j=%ld\n", i, j);
 #endif
       }
     }
   }
+  return n_insertions;
+}
+
+int neighborhood_insert(int a, int b, long int **matrix) {
+  DEBUG_PRINT("executing neighborhood_insert");
+  t_sizemat PSize = 8;
+  ulong n_insert = 0;
+  for (t_sizemat i = 0; i < PSize; i++) {
+    for (t_sizemat j = 0; j < PSize; j++) {
+      if (i != j && i != j + 1) {
+        t_sizemat inserts[PSize];
+        for (t_sizemat x = 0; x < PSize; x++) {
+          if (i < j && x >= i && x < j) {
+            inserts[x] = x + 1;
+          } else if (i > j && x > j && x <= i) {
+            inserts[x] = x - 1;
+          } else if (x == j) {
+            inserts[x] = i;
+          } else {
+            inserts[x] = x;
+          }
+        }
+#ifndef NDEBUG
+        for (t_sizemat x = 0; x < PSize; x++) {
+          printf("%ld ", inserts[x]);
+        }
+        printf(" for i=%ld, j=%ld\n", i, j);
+#endif
+        n_insert++;
+      }
+    }
+  }
+  printf("number of insertion: %ld\n", get_n_insert(PSize));
   return 0;
 }
 
