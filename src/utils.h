@@ -15,7 +15,7 @@ typedef int (*t_fptr_sol_start)(int, int);
 #define DEBUG_PRINT(msg) printf("DEBUG: %s\n", msg);
 
 #define DPRINTF(...)                                                           \
-  printf("DEBUG: ");                                                           \
+  printf("DEBUG: %s: ", __func__);                                             \
   printf(__VA_ARGS__);
 
 #else

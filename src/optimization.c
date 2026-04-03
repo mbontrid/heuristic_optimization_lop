@@ -94,7 +94,7 @@ int neighborhood_exchange(int a, int b, long int **matrix) {
   return 0;
 }
 
-ulong get_n_insert(uint size) {
+ulong get_n_inserts(uint size) {
   if (size < 2) {
     return 0;
   } else if (size == 2) {
@@ -102,71 +102,59 @@ ulong get_n_insert(uint size) {
   }
   DPRINTF("get_n_insert: for a %u array, there is %u insert\n", size,
           ((size - 1) * (size - 1)));
+
   return (size - 1) * (size - 1);
 }
 
-ulong get_inserti(t_sizemat **insertions, uint size) {
-  ulong n_insertions = get_n_insert(size);
-  insertions = malloc(n_insertions * size * sizeof(t_sizemat));
+void get_inserts(t_sizemat *insertions, t_sizemat n_collumns, ulong n_rows) {
 
-  DPRINTF("executing neighborhood_insert for %lu insertions", n_insertions);
-  for (t_sizemat i = 0; i < PSize; i++) {
-    for (t_sizemat j = 0; j < PSize; j++) {
+  DPRINTF("%s: executing for %ld collumns and %ld rows=\n", __func__,
+          n_collumns, n_rows);
+
+  ulong row = 0;
+
+  // which number has to move
+  for (t_sizemat i = 0; i < n_collumns; i++) {
+    // to which number i has to move
+    for (t_sizemat j = 0; j < n_collumns; j++) {
+      // avoid duplicates
       if (i != j && i != j + 1) {
-        t_sizemat inserts[PSize];
-        for (t_sizemat x = 0; x < PSize; x++) {
+        // go through each number of a row
+        for (t_sizemat x = 0; x < n_collumns; x++) {
+          // "move"" number to the left
           if (i < j && x >= i && x < j) {
-            inserts[x] = x + 1;
-          } else if (i > j && x > j && x <= i) {
-            inserts[x] = x - 1;
-          } else if (x == j) {
-            inserts[x] = i;
+            insertions[n_collumns * row + x] = x + 1;
+          } else if (i > j && x > j && x <= i) { // "move" number to the right
+            insertions[n_collumns * row + x] = x - 1;
+          } else if (x == j) { // put i to j
+            insertions[n_collumns * row + x] = i;
           } else {
-            inserts[x] = x;
+            insertions[n_collumns * row + x] = x;
           }
         }
 #ifndef NDEBUG
-        for (t_sizemat x = 0; x < PSize; x++) {
-          printf("%ld ", inserts[x]);
+        for (t_sizemat x = 0; x < n_collumns; x++) {
+          printf("%ld ", insertions[n_collumns * i + x]);
         }
         printf(" for i=%ld, j=%ld\n", i, j);
 #endif
+        row++;
       }
     }
   }
-  return n_insertions;
 }
 
 int neighborhood_insert(int a, int b, long int **matrix) {
   DEBUG_PRINT("executing neighborhood_insert");
-  t_sizemat PSize = 8;
-  ulong n_insert = 0;
-  for (t_sizemat i = 0; i < PSize; i++) {
-    for (t_sizemat j = 0; j < PSize; j++) {
-      if (i != j && i != j + 1) {
-        t_sizemat inserts[PSize];
-        for (t_sizemat x = 0; x < PSize; x++) {
-          if (i < j && x >= i && x < j) {
-            inserts[x] = x + 1;
-          } else if (i > j && x > j && x <= i) {
-            inserts[x] = x - 1;
-          } else if (x == j) {
-            inserts[x] = i;
-          } else {
-            inserts[x] = x;
-          }
-        }
-#ifndef NDEBUG
-        for (t_sizemat x = 0; x < PSize; x++) {
-          printf("%ld ", inserts[x]);
-        }
-        printf(" for i=%ld, j=%ld\n", i, j);
-#endif
-        n_insert++;
-      }
-    }
-  }
-  printf("number of insertion: %ld\n", get_n_insert(PSize));
+
+  // allocate malloc for the number of insertions possible.
+  t_sizemat n_collumns = PSize;
+  ulong n_rows = get_n_inserts(n_collumns);
+  t_sizemat *insertions = malloc(n_rows * n_collumns * sizeof(t_sizemat));
+
+  get_inserts(insertions, n_collumns, n_rows);
+  printf("for %ld collumns; total number of insert: %lu\n", n_collumns, n_rows);
+
   return 0;
 }
 
