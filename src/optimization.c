@@ -27,7 +27,6 @@
 #include "instance.h"
 #include "optimization.h"
 #include "utilities.h"
-#include "utils.h"
 
 #ifdef __MINGW32__
 #include <float.h>
@@ -61,22 +60,55 @@ void createRandomSolution(long int *s) {
 }
 
 int pivot_first(long int **matrix) {
-  DEBUG_PRINT("executing pivot_first");
+  DPRINTF("executing pivot_first\n");
   return 0;
 }
 int pivot_best(long int **matrix) {
-  DEBUG_PRINT("executing pivot_best");
+  DPRINTF("executing pivot_best\n");
   return 0;
 }
 
-int neighborhood_tranpose(int a, int b, long int **matrix) {
-  DEBUG_PRINT("executing neighborhood_tranpose");
-  uint n_transpose = 0;
-  for (t_sizemat i = 0; i < PSize - 1; i++) {
-    ++n_transpose;
-    DPRINTF("transpose: (%ld , %ld)\n", i, i + 1);
+ulong get_n_transpose(uint size) {
+
+  if (size < 2) {
+    return 0;
   }
-  DPRINTF("for %ld row; total number of transpose: %u \n", PSize, n_transpose);
+  DPRINTF("get_n_transpose: for a %u array, there is %u transpose\n", size,
+          (size));
+  return size;
+}
+
+void get_transpose(t_sizemat *transposes, t_sizemat n_collumns, ulong n_rows) {
+
+  for (ulong i = 0; i < n_rows; i++) {
+    for (t_sizemat j = 0; j < n_collumns; j++) {
+      transposes[n_collumns * i + j] = j;
+    }
+    t_sizemat temp = transposes[n_collumns * i + i];
+    transposes[n_collumns * i + i] = transposes[n_collumns * i + i + 1];
+    transposes[n_collumns * i + (i + 1) % n_collumns] = temp;
+  }
+
+#ifndef NDEBUG
+  for (ulong i = 0; i < n_rows; i++) {
+    for (t_sizemat j = 0; j < n_collumns; j++) {
+      printf("%ld ", transposes[n_collumns * i + j]);
+    }
+    printf("\n");
+  }
+#endif
+}
+
+int neighborhood_tranpose(int a, int b, long int **matrix) {
+  DPRINTF("executing neighborhood_tranpose\n");
+  DPRINTF("allocating memory for transposes possibilities\n");
+  t_sizemat n_collumns = 10;
+  ulong n_rows = get_n_transpose(n_collumns);
+  t_sizemat *transposes = malloc(n_rows * n_collumns * sizeof(t_sizemat));
+  DPRINTF("%lu transoposes possibilities allocated\n", n_rows);
+
+  get_transpose(transposes, n_collumns, n_rows);
+
   return 0;
 }
 
@@ -166,3 +198,6 @@ int sol_start_c_and_w(int a, int b) {
   DEBUG_PRINT("executing sol_start_c_and_w");
   return 0;
 }
+
+void lop(t_fptr_sol_start fptr_sol_start, t_fptr_pivot_rule fptr_pivot_rule,
+         t_fptr_neighborhood fptr_neighborhood) {}

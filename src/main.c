@@ -31,7 +31,6 @@
 #include "optimization.h"
 #include "timer.h"
 #include "utilities.h"
-#include "utils.h"
 
 static struct argp_option options[] = {
     {"verbose", 'v', 0, 0, "Returns verbose output"},
