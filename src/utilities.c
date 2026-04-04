@@ -20,6 +20,7 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <values.h>
 
 #include "instance.h"
 #include "utilities.h"
@@ -95,4 +96,13 @@ long int *generate_random_vector(long int dim)
   }
 
   return random_vector;
+}
+
+unsigned int factorial(unsigned int N) {
+  unsigned int fact = 1, i;
+
+  for (i = 1; i <= N; i++) {
+    fact *= i;
+  }
+  return fact;
 }

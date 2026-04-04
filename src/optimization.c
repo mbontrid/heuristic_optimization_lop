@@ -39,7 +39,7 @@ long int **CostMat;
 
 long long int computeCost(long int *s) {
   int h, k;
-  long long int sum;
+  long long int sum = 0;
 
   /* Diagonal value are not considered */
   for (sum = 0, h = 0; h < PSize; h++)
@@ -112,17 +112,51 @@ int neighborhood_tranpose(int a, int b, long int **matrix) {
   return 0;
 }
 
-int neighborhood_exchange(int a, int b, long int **matrix) {
-  DEBUG_PRINT("executing neighborhood_exchange");
-  uint n_exchange = 0;
-  // t_sizemat PSize = PSize;
-  for (t_sizemat i = 0; i < PSize; i++) {
-    for (t_sizemat j = i + 1; j < PSize; j++) {
-      ++n_exchange;
-      DPRINTF("exchange: (%ld , %ld)\n", i, j);
+uint get_n_exchange(t_sizemat size) {
+  if (size < 2) {
+    return 0;
+  }
+  return size * (size - 1) / 2;
+}
+
+void get_exchange(t_sizemat *exchanges, t_sizemat n_collumns, uint n_rows) {
+
+  for (ulong i = 0; i < n_rows; i++) {
+    for (t_sizemat j = 0; j < n_collumns; j++) {
+      exchanges[n_collumns * i + j] = j;
     }
   }
-  DPRINTF("for %ld row; total number of exchange: %u\n", PSize, n_exchange);
+
+  uint row = 0;
+  for (t_sizemat i = 0; i < n_collumns - 1; i++) {
+    for (t_sizemat j = i + 1; j < n_collumns; j++) {
+      t_sizemat temp = exchanges[n_collumns * row + i];
+      exchanges[n_collumns * row + i] = exchanges[n_collumns * row + j];
+      exchanges[n_collumns * row + j] = temp;
+      row++;
+    }
+  }
+
+#ifndef NDEBUG
+  DPRINTF("executing for %ld collumns and %ud rows=\n", n_collumns, n_rows);
+  for (ulong i = 0; i < n_rows; i++) {
+    for (t_sizemat j = 0; j < n_collumns; j++) {
+      printf("%ld ", exchanges[n_collumns * i + j]);
+    }
+    printf("\n");
+  }
+#endif
+}
+
+int neighborhood_exchange(int a, int b, long int **matrix) {
+  DEBUG_PRINT("executing neighborhood_exchange");
+  t_sizemat n_collumns = 5;
+  ulong n_rows = get_n_exchange(n_collumns);
+  t_sizemat *exchanges = malloc(n_rows * n_collumns * sizeof(t_sizemat));
+  DPRINTF("%lu exchanges possibilities allocated\n", n_rows);
+
+  get_exchange(exchanges, n_collumns, n_rows);
+
   return 0;
 }
 

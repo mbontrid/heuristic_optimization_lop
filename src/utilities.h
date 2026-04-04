@@ -37,6 +37,8 @@ extern int randInt(int minimum, int maximum);
 
 extern long int *generate_random_vector(long int dim);
 
+unsigned int factorial(unsigned int N);
+
 /* constants for a pseudo-random number generator, taken from
    Numerical Recipes in C book --- never trust the standard C random
    number generator */
