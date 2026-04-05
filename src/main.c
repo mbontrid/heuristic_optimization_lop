@@ -167,8 +167,6 @@ int main(int argc, char **argv) {
   printf("Data have been read from instance file. Size of instance = %ld.\n\n",
          PSize);
 
-  arguments.fptr_neighborhood(0, 0, CostMat);
-
   /* initialize random number generator, deterministically based on instance.
    * To do this we simply set the seed to the sum of elements in the matrix,
    so it is constant per-instance, but (most likely) varies between instances
@@ -178,6 +176,10 @@ int main(int argc, char **argv) {
     for (j = 0; j < PSize; ++j)
       Seed += (long int)CostMat[i][j];
   printf("Seed used to initialize RNG: %ld.\n\n", Seed);
+
+  DPRINTF("debug of neighborhood and sol_start\n");
+  arguments.fptr_neighborhood(0, 0, CostMat);
+  arguments.fptr_sol_start(CostMat, 10);
 
   /* starts time measurement */
   start_timers();

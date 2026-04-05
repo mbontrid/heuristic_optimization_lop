@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include <values.h>
 
-#include "instance.h"
 #include "utilities.h"
 
 long int Seed;
@@ -59,6 +58,7 @@ double ran01(long *idum) {
   if (*idum < 0)
     *idum += IM;
   ans = AM * (*idum);
+  // DPRINTF(" : %f\n", ans);
   return ans;
 }
 
@@ -69,14 +69,23 @@ int randInt(int minimum, int maximum) {
   return ((int)(ran01(&Seed) * (maximum - minimum + 1)) + minimum);
 }
 
-long int *generate_random_vector(long int dim)
+t_sizemat *generate_inc_vector(t_sizemat size) {
+  t_sizemat *new_vector = malloc(size * sizeof(size));
+
+  for (t_sizemat i = 0; i < size; i++) {
+    new_vector[i] = i;
+  }
+  return new_vector;
+}
+
+t_sizemat *generate_random_vector(long int dim)
 /* Generates a random vector, quick and dirty */
 {
-  long int *random_vector;
+  t_sizemat *random_vector;
   int i, help, node, tot_assigned = 0;
   double rnd;
 
-  random_vector = (long int *)malloc(dim * sizeof(long int));
+  random_vector = malloc(dim * sizeof(t_sizemat));
 
   if (!random_vector) {
     fatal("Error on random_vector malloc\n");
@@ -93,9 +102,31 @@ long int *generate_random_vector(long int dim)
     random_vector[i] = random_vector[i + node];
     random_vector[i + node] = help;
     tot_assigned++;
+    // #ifndef NDEBUG
+    //     DPRINTF("Construction of randome vector at step %i: ", i);
+    //     for (t_sizemat j = 0; j < dim; j++) {
+    //       printf("%ld ", random_vector[j]);
+    //     }
+    //     printf("\n");
+    // #endif
   }
 
+#ifndef NDEBUG
+  DPRINTF("random_vector : ");
+  for (t_sizemat i = 0; i < dim; i++) {
+    printf("%ld ", random_vector[i]);
+  }
+  printf("\n");
+#endif
+
   return random_vector;
+}
+
+void pint_array(t_sizemat n_collumns, t_mat_cell *array) {
+  for (t_sizemat i = 0; i < n_collumns; i++) {
+    printf("%lu ", array[i]);
+  }
+  printf("\n");
 }
 
 unsigned int factorial(unsigned int N) {

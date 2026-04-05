@@ -63,6 +63,7 @@ int pivot_first(long int **matrix) {
   DPRINTF("executing pivot_first\n");
   return 0;
 }
+
 int pivot_best(long int **matrix) {
   DPRINTF("executing pivot_best\n");
   return 0;
@@ -224,13 +225,68 @@ int neighborhood_insert(int a, int b, long int **matrix) {
   return 0;
 }
 
-int sol_start_random(int a, int b) {
+t_sizemat *sol_start_random(t_mat_cell **mat, t_sizemat n_collumns) {
   DEBUG_PRINT("executing sol_start_random");
-  return 0;
+
+  t_sizemat *new_random_vector = generate_random_vector(n_collumns);
+
+#ifndef NDEBUG
+  DPRINTF("random generated starting solution vector\n")
+  for (t_sizemat i = 0; i < n_collumns; i++) {
+    printf("%lu ", new_random_vector[i]);
+  }
+  printf("\n");
+#endif
+
+  return new_random_vector;
 }
-int sol_start_c_and_w(int a, int b) {
-  DEBUG_PRINT("executing sol_start_c_and_w");
-  return 0;
+
+/**
+ * @brief Chenery and Watanabe (CW) heuristic.
+ *
+ * @param mat Cost matrix.
+ * @param n_collumns Dimension of the square matrix
+ * @return A array of the CW ordering.
+ */
+t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_collumns) {
+  DEBUG_PRINT("executing sol_start_c_and_w\n");
+
+  /* Make a array of sum of another array like :
+   * 0 1 2 3 4 5 6 7 8 9
+   * after sum :
+   * 0 1 3 6 10 17 25 34
+   * */
+  t_mat_cell *sum_row_2d = malloc(n_collumns * n_collumns * sizeof(t_mat_cell));
+  for (t_sizemat i = 0; i < n_collumns; i++) {
+    sum_row_2d[n_collumns * i] = mat[i][0];
+    for (t_sizemat j = 1; j < n_collumns; j++) {
+      sum_row_2d[n_collumns * i + j] =
+          sum_row_2d[n_collumns * i + j - 1] + mat[i][j];
+    }
+  }
+
+  t_sizemat *new_best_start_1d = generate_inc_vector(n_collumns);
+
+  for (t_sizemat i = 0; i < n_collumns; i++) {
+    t_sizemat best_idx = 0;
+    t_mat_cell best = 0;
+    for (t_sizemat j = i; j < n_collumns; j++) {
+      t_sizemat sum_row_idx = new_best_start_1d[j];
+      t_mat_cell last_sum =
+          sum_row_2d[n_collumns * sum_row_idx + n_collumns - 1];
+      t_mat_cell current = last_sum - sum_row_2d[n_collumns * sum_row_idx + i];
+      if (current > best) {
+        best_idx = new_best_start_1d[j];
+        best = current;
+      }
+    }
+    t_sizemat tmp = new_best_start_1d[i];
+    new_best_start_1d[i] = best_idx;
+    new_best_start_1d[best_idx] = tmp;
+  }
+
+  free(sum_row_2d);
+  return new_best_start_1d;
 }
 
 void lop(t_fptr_sol_start fptr_sol_start, t_fptr_pivot_rule fptr_pivot_rule,

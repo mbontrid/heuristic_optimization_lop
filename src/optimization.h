@@ -21,7 +21,7 @@
 #ifndef _LO_H_
 #define _LO_H_
 
-#include "instance.h"
+#include "utilities.h"
 extern long int **CostMat;
 
 long long int computeCost(long int *lo);
@@ -34,7 +34,7 @@ int neighborhood_tranpose(int a, int b, long int **matrix);
 int neighborhood_exchange(int a, int b, long int **matrix);
 int neighborhood_insert(int a, int b, long int **matrix);
 
-int sol_start_random(int, int);
-int sol_start_c_and_w(int, int);
+t_sizemat *sol_start_random(t_mat_cell **mat, t_sizemat n_collumns);
+t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_collumns);
 
 #endif
