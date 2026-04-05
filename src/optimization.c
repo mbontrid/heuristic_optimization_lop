@@ -265,25 +265,47 @@ t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_collumns) {
     }
   }
 
+#ifndef NDEBUG
+  DPRINTF("cost matrix:\n");
+  print_array_2d2(mat, n_collumns, n_collumns);
+  DPRINTF("Prefix sum of matrix:\n");
+  print_array_2d(sum_row_2d, n_collumns, n_collumns);
+#endif
+
   t_sizemat *new_best_start_1d = generate_inc_vector(n_collumns);
 
   for (t_sizemat i = 0; i < n_collumns; i++) {
     t_sizemat best_idx = 0;
     t_mat_cell best = 0;
+
     for (t_sizemat j = i; j < n_collumns; j++) {
       t_sizemat sum_row_idx = new_best_start_1d[j];
+
       t_mat_cell last_sum =
           sum_row_2d[n_collumns * sum_row_idx + n_collumns - 1];
-      t_mat_cell current = last_sum - sum_row_2d[n_collumns * sum_row_idx + i];
+      t_mat_cell i_sum = sum_row_2d[n_collumns * sum_row_idx + i];
+
+      t_mat_cell current = last_sum - i_sum;
+
       if (current > best) {
         best_idx = new_best_start_1d[j];
         best = current;
       }
     }
+    DPRINTF("best at %ld : %lu for value %lu\n", i, best_idx, best);
     t_sizemat tmp = new_best_start_1d[i];
     new_best_start_1d[i] = best_idx;
     new_best_start_1d[best_idx] = tmp;
+    DPRINTF("new_best_start_1d: ");
+#ifndef NDEBUG
+    print_array_1d(new_best_start_1d, n_collumns);
+#endif
   }
+
+#ifndef NDEBUG
+  DPRINTF("C_and_W solution\n");
+  print_array_1d(new_best_start_1d, n_collumns);
+#endif
 
   free(sum_row_2d);
   return new_best_start_1d;
