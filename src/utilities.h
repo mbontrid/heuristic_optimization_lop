@@ -42,6 +42,12 @@ t_sizemat *generate_inc_vector(t_sizemat size);
 
 extern long int *generate_random_vector(long int dim);
 
+void print_array_1d(t_mat_cell *array, t_sizemat n_collumns);
+void print_array_2d(t_mat_cell *array_2d, t_sizemat n_rows,
+                    t_sizemat n_collumns);
+void print_array_2d2(t_mat_cell **array_2d, t_sizemat n_rows,
+                     t_sizemat n_collumns);
+
 unsigned int factorial(unsigned int N);
 
 /* constants for a pseudo-random number generator, taken from

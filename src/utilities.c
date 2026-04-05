@@ -122,11 +122,33 @@ t_sizemat *generate_random_vector(long int dim)
   return random_vector;
 }
 
-void pint_array(t_sizemat n_collumns, t_mat_cell *array) {
+void print_array_1d(t_mat_cell *array, t_sizemat n_collumns) {
   for (t_sizemat i = 0; i < n_collumns; i++) {
     printf("%lu ", array[i]);
   }
   printf("\n");
+}
+
+void print_array_2d(t_mat_cell *array_2d, t_sizemat n_rows,
+                    t_sizemat n_collumns) {
+  for (t_sizemat i = 0; i < n_rows; i++) {
+    for (t_sizemat j = 0; j < n_collumns; j++) {
+      t_mat_cell value = array_2d[n_collumns * i + j];
+      printf("%ld ", value);
+    }
+    printf("\n");
+  }
+}
+
+void print_array_2d2(t_mat_cell **array_2d, t_sizemat n_rows,
+                     t_sizemat n_collumns) {
+  for (t_sizemat i = 0; i < n_rows; i++) {
+    for (t_sizemat j = 0; j < n_collumns; j++) {
+      t_mat_cell value = array_2d[i][j];
+      printf("%ld ", value);
+    }
+    printf("\n");
+  }
 }
 
 unsigned int factorial(unsigned int N) {
