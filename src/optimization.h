@@ -27,6 +27,9 @@ extern long int **CostMat;
 long long int computeCost(long int *lo);
 void createRandomSolution(long int *s);
 
+t_mat_cell *prefix_sum_per_row_2d(t_mat_cell **mat, t_sizemat n_rows,
+                                  t_sizemat n_collumns);
+
 int pivot_first(long int **matrix);
 int pivot_best(long int **matrix);
 

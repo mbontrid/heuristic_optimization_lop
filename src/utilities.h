@@ -81,11 +81,15 @@ typedef t_sizemat *(*t_fptr_sol_start)(t_mat_cell **CostMat, t_sizemat size);
   printf("DEBUG: %s: ", __func__);                                             \
   printf(__VA_ARGS__);
 
+#define DNPRINTF(...) printf(__VA_ARGS__);
+
 #else
 
 #define DEBUG_PRINT(msg)
 
 #define DPRINTF(...)
+
+#define DNDPRINTF(...)
 
 #endif
 

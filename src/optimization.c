@@ -241,15 +241,8 @@ t_sizemat *sol_start_random(t_mat_cell **mat, t_sizemat n_collumns) {
   return new_random_vector;
 }
 
-/**
- * @brief Chenery and Watanabe (CW) heuristic.
- *
- * @param mat Cost matrix.
- * @param n_collumns Dimension of the square matrix
- * @return A array of the CW ordering.
- */
-t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_collumns) {
-  DEBUG_PRINT("executing sol_start_c_and_w\n");
+t_mat_cell *prefix_sum_per_row_2d(t_mat_cell **mat, t_sizemat n_rows,
+                                  t_sizemat n_collumns) {
 
   /* Make a array of sum of another array like :
    * 0 1 2 3 4 5 6 7 8 9
@@ -265,6 +258,21 @@ t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_collumns) {
     }
   }
 
+  return sum_row_2d;
+}
+
+/**
+ * @brief Chenery and Watanabe (CW) heuristic.
+ *
+ * @param mat Cost matrix.
+ * @param n_collumns Dimension of the square matrix
+ * @return A array of the CW ordering.
+ */
+t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_collumns) {
+  DEBUG_PRINT("executing sol_start_c_and_w\n");
+
+  t_mat_cell *sum_row_2d = prefix_sum_per_row_2d(mat, n_collumns, n_collumns);
+
 #ifndef NDEBUG
   DPRINTF("cost matrix:\n");
   print_array_2d2(mat, n_collumns, n_collumns);
@@ -275,27 +283,35 @@ t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_collumns) {
   t_sizemat *new_best_start_1d = generate_inc_vector(n_collumns);
 
   for (t_sizemat i = 0; i < n_collumns; i++) {
-    t_sizemat best_idx = 0;
+    t_sizemat best_pos = i;
     t_mat_cell best = 0;
-
+    DPRINTF("sum for i=%ld : ", i);
     for (t_sizemat j = i; j < n_collumns; j++) {
       t_sizemat sum_row_idx = new_best_start_1d[j];
 
+      // current = mat[i][last] - mat[i][i]
       t_mat_cell last_sum =
           sum_row_2d[n_collumns * sum_row_idx + n_collumns - 1];
       t_mat_cell i_sum = sum_row_2d[n_collumns * sum_row_idx + i];
 
       t_mat_cell current = last_sum - i_sum;
 
-      if (current > best) {
-        best_idx = new_best_start_1d[j];
+#ifndef NDEBUG
+      printf("%ld ", current);
+#endif
+
+      if (current >= best) {
+        best_pos = j;
         best = current;
       }
     }
-    DPRINTF("best at %ld : %lu for value %lu\n", i, best_idx, best);
+    DNPRINTF("\n");
+    DPRINTF("best at %ld : %lu for value %lu\n", i, best_pos, best);
+
     t_sizemat tmp = new_best_start_1d[i];
-    new_best_start_1d[i] = best_idx;
-    new_best_start_1d[best_idx] = tmp;
+    new_best_start_1d[i] = new_best_start_1d[best_pos];
+    new_best_start_1d[best_pos] = tmp;
+
     DPRINTF("new_best_start_1d: ");
 #ifndef NDEBUG
     print_array_1d(new_best_start_1d, n_collumns);
