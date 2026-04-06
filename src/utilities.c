@@ -122,18 +122,18 @@ t_sizemat *generate_random_vector(long int dim)
   return random_vector;
 }
 
-void print_array_1d(t_mat_cell *array, t_sizemat n_collumns) {
-  for (t_sizemat i = 0; i < n_collumns; i++) {
+void print_array_1d(t_mat_cell *array, t_sizemat n_columns) {
+  for (t_sizemat i = 0; i < n_columns; i++) {
     printf("%lu ", array[i]);
   }
   printf("\n");
 }
 
 void print_array_2d(t_mat_cell *array_2d, t_sizemat n_rows,
-                    t_sizemat n_collumns) {
+                    t_sizemat n_columns) {
   for (t_sizemat i = 0; i < n_rows; i++) {
-    for (t_sizemat j = 0; j < n_collumns; j++) {
-      t_mat_cell value = array_2d[n_collumns * i + j];
+    for (t_sizemat j = 0; j < n_columns; j++) {
+      t_mat_cell value = array_2d[n_columns * i + j];
       printf("%ld ", value);
     }
     printf("\n");
@@ -141,9 +141,9 @@ void print_array_2d(t_mat_cell *array_2d, t_sizemat n_rows,
 }
 
 void print_array_2d2(t_mat_cell **array_2d, t_sizemat n_rows,
-                     t_sizemat n_collumns) {
+                     t_sizemat n_columns) {
   for (t_sizemat i = 0; i < n_rows; i++) {
-    for (t_sizemat j = 0; j < n_collumns; j++) {
+    for (t_sizemat j = 0; j < n_columns; j++) {
       t_mat_cell value = array_2d[i][j];
       printf("%ld ", value);
     }

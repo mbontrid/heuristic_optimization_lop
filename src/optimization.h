@@ -24,8 +24,14 @@
 #include "utilities.h"
 #include <stdlib.h>
 
+struct neighb {
+  t_sizemat *neighborhood_modif_2d;
+  t_sizemat n_rows;
+  t_sizemat n_columns;
+};
+
 typedef int (*t_fptr_pivot_rule)(long int **matrix);
-typedef int (*t_fptr_neighborhood)(int a, int b, long int **matrix);
+typedef struct neighb (*t_fptr_neighborhood)(t_sizemat n_columns);
 typedef t_sizemat *(*t_fptr_sol_start)(t_mat_cell **CostMat, t_sizemat size);
 
 extern long int **CostMat;
@@ -39,34 +45,42 @@ void createRandomSolution(long int *s);
  *
  * @param mat Matrix from which to compute the prefix sum on each row.
  * @param n_rows dimension of mat
- * @param n_collumns dimension of mat
+ * @param n_columns dimension of mat
  * @return A new 2d matrix pointer.
  */
 t_mat_cell *prefix_sum_per_row_2d(t_mat_cell **mat, t_sizemat n_rows,
-                                  t_sizemat n_collumns);
+                                  t_sizemat n_columns);
 
 ulong get_n_transpose(uint size);
-void get_transpose(t_sizemat *transposes, t_sizemat n_collumns, ulong n_rows);
-int neighborhood_tranpose(int a, int b, long int **matrix);
+/**
+ * @brief get_all_possible transposes in a vector of size n_columns
+ *
+ * @param transposes 2d Vector in which all possible transposes will be filled
+ * at each row.
+ * @param n_columns size of vector to transpose.
+ * @param n_rows number of possible transposes.
+ */
+void get_transpose(t_sizemat *transposes, t_sizemat n_columns, ulong n_rows);
+struct neighb neighborhood_tranpose(t_sizemat n_columns);
 
 uint get_n_exchange(t_sizemat size);
-void get_exchange(t_sizemat *exchanges, t_sizemat n_collumns, uint n_rows);
-int neighborhood_exchange(int a, int b, long int **matrix);
+void get_exchange(t_sizemat *exchanges, t_sizemat n_columns, uint n_rows);
+struct neighb neighborhood_exchange(t_sizemat n_columns);
 
 ulong get_n_inserts(uint size);
-void get_inserts(t_sizemat *insertions, t_sizemat n_collumns, ulong n_rows);
-int neighborhood_insert(int a, int b, long int **matrix);
+void get_inserts(t_sizemat *insertions, t_sizemat n_columns, ulong n_rows);
+struct neighb neighborhood_insert(t_sizemat n_columns);
 
-t_sizemat *sol_start_random(t_mat_cell **mat, t_sizemat n_collumns);
+t_sizemat *sol_start_random(t_mat_cell **mat, t_sizemat n_columns);
 
 /**
  * @brief Chenery and Watanabe (CW) greedy heuristic.
  *
  * @param mat Cost matrix.
- * @param n_collumns Dimension of the square matrix
+ * @param n_columns Dimension of the square matrix
  * @return A array of the CW ordering.
  */
-t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_collumns);
+t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_columns);
 
 int pivot_first(long int **matrix);
 int pivot_best(long int **matrix);

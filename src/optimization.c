@@ -60,14 +60,14 @@ void createRandomSolution(long int *s) {
 }
 
 t_mat_cell *prefix_sum_per_row_2d(t_mat_cell **mat, t_sizemat n_rows,
-                                  t_sizemat n_collumns) {
+                                  t_sizemat n_columns) {
 
-  t_mat_cell *sum_row_2d = malloc(n_collumns * n_collumns * sizeof(t_mat_cell));
-  for (t_sizemat i = 0; i < n_collumns; i++) {
-    sum_row_2d[n_collumns * i] = mat[i][0];
-    for (t_sizemat j = 1; j < n_collumns; j++) {
-      sum_row_2d[n_collumns * i + j] =
-          sum_row_2d[n_collumns * i + j - 1] + mat[i][j];
+  t_mat_cell *sum_row_2d = malloc(n_columns * n_columns * sizeof(t_mat_cell));
+  for (t_sizemat i = 0; i < n_columns; i++) {
+    sum_row_2d[n_columns * i] = mat[i][0];
+    for (t_sizemat j = 1; j < n_columns; j++) {
+      sum_row_2d[n_columns * i + j] =
+          sum_row_2d[n_columns * i + j - 1] + mat[i][j];
     }
   }
 
@@ -84,38 +84,41 @@ ulong get_n_transpose(uint size) {
   return size;
 }
 
-void get_transpose(t_sizemat *transposes, t_sizemat n_collumns, ulong n_rows) {
+void get_transpose(t_sizemat *transposes, t_sizemat n_columns, ulong n_rows) {
 
   for (ulong i = 0; i < n_rows; i++) {
-    for (t_sizemat j = 0; j < n_collumns; j++) {
-      transposes[n_collumns * i + j] = j;
+    for (t_sizemat j = 0; j < n_columns; j++) {
+      transposes[n_columns * i + j] = j;
     }
-    t_sizemat temp = transposes[n_collumns * i + i];
-    transposes[n_collumns * i + i] = transposes[n_collumns * i + i + 1];
-    transposes[n_collumns * i + (i + 1) % n_collumns] = temp;
+    t_sizemat temp = transposes[n_columns * i + i];
+    transposes[n_columns * i + i] = transposes[n_columns * i + i + 1];
+    transposes[n_columns * i + (i + 1) % n_columns] = temp;
   }
 
 #ifndef NDEBUG
   for (ulong i = 0; i < n_rows; i++) {
-    for (t_sizemat j = 0; j < n_collumns; j++) {
-      printf("%ld ", transposes[n_collumns * i + j]);
+    for (t_sizemat j = 0; j < n_columns; j++) {
+      printf("%ld ", transposes[n_columns * i + j]);
     }
     printf("\n");
   }
 #endif
 }
 
-int neighborhood_tranpose(int a, int b, long int **matrix) {
+struct neighb neighborhood_tranpose(t_sizemat n_columns) {
   DPRINTF("executing neighborhood_tranpose\n");
   DPRINTF("allocating memory for transposes possibilities\n");
-  t_sizemat n_collumns = 10;
-  ulong n_rows = get_n_transpose(n_collumns);
-  t_sizemat *transposes = malloc(n_rows * n_collumns * sizeof(t_sizemat));
+  ulong n_rows = get_n_transpose(n_columns);
+  t_sizemat *transposes = malloc(n_rows * n_columns * sizeof(t_sizemat));
   DPRINTF("%lu transoposes possibilities allocated\n", n_rows);
 
-  get_transpose(transposes, n_collumns, n_rows);
+  get_transpose(transposes, n_columns, n_rows);
 
-  return 0;
+  struct neighb neighb;
+  neighb.neighborhood_modif_2d = transposes;
+  neighb.n_rows = n_rows;
+  neighb.n_columns = n_columns;
+  return neighb;
 }
 
 uint get_n_exchange(t_sizemat size) {
@@ -125,45 +128,49 @@ uint get_n_exchange(t_sizemat size) {
   return size * (size - 1) / 2;
 }
 
-void get_exchange(t_sizemat *exchanges, t_sizemat n_collumns, uint n_rows) {
+void get_exchange(t_sizemat *exchanges, t_sizemat n_columns, uint n_rows) {
 
   for (ulong i = 0; i < n_rows; i++) {
-    for (t_sizemat j = 0; j < n_collumns; j++) {
-      exchanges[n_collumns * i + j] = j;
+    for (t_sizemat j = 0; j < n_columns; j++) {
+      exchanges[n_columns * i + j] = j;
     }
   }
 
   uint row = 0;
-  for (t_sizemat i = 0; i < n_collumns - 1; i++) {
-    for (t_sizemat j = i + 1; j < n_collumns; j++) {
-      t_sizemat temp = exchanges[n_collumns * row + i];
-      exchanges[n_collumns * row + i] = exchanges[n_collumns * row + j];
-      exchanges[n_collumns * row + j] = temp;
+  for (t_sizemat i = 0; i < n_columns - 1; i++) {
+    for (t_sizemat j = i + 1; j < n_columns; j++) {
+      t_sizemat temp = exchanges[n_columns * row + i];
+      exchanges[n_columns * row + i] = exchanges[n_columns * row + j];
+      exchanges[n_columns * row + j] = temp;
       row++;
     }
   }
 
 #ifndef NDEBUG
-  DPRINTF("executing for %ld collumns and %ud rows=\n", n_collumns, n_rows);
+  DPRINTF("executing for %ld collumns and %ud rows=\n", n_columns, n_rows);
   for (ulong i = 0; i < n_rows; i++) {
-    for (t_sizemat j = 0; j < n_collumns; j++) {
-      printf("%ld ", exchanges[n_collumns * i + j]);
+    for (t_sizemat j = 0; j < n_columns; j++) {
+      printf("%ld ", exchanges[n_columns * i + j]);
     }
     printf("\n");
   }
 #endif
 }
 
-int neighborhood_exchange(int a, int b, long int **matrix) {
+struct neighb neighborhood_exchange(t_sizemat n_columns) {
   DEBUG_PRINT("executing neighborhood_exchange");
-  t_sizemat n_collumns = 5;
-  ulong n_rows = get_n_exchange(n_collumns);
-  t_sizemat *exchanges = malloc(n_rows * n_collumns * sizeof(t_sizemat));
+  ulong n_rows = get_n_exchange(n_columns);
+  t_sizemat *exchanges = malloc(n_rows * n_columns * sizeof(t_sizemat));
   DPRINTF("%lu exchanges possibilities allocated\n", n_rows);
 
-  get_exchange(exchanges, n_collumns, n_rows);
+  get_exchange(exchanges, n_columns, n_rows);
 
-  return 0;
+  struct neighb neighb;
+  neighb.neighborhood_modif_2d = exchanges;
+  neighb.n_rows = n_rows;
+  neighb.n_columns = n_columns;
+
+  return neighb;
 }
 
 ulong get_n_inserts(uint size) {
@@ -178,35 +185,35 @@ ulong get_n_inserts(uint size) {
   return (size - 1) * (size - 1);
 }
 
-void get_inserts(t_sizemat *insertions, t_sizemat n_collumns, ulong n_rows) {
+void get_inserts(t_sizemat *insertions, t_sizemat n_columns, ulong n_rows) {
 
-  DPRINTF("%s: executing for %ld collumns and %ld rows=\n", __func__,
-          n_collumns, n_rows);
+  DPRINTF("%s: executing for %ld collumns and %ld rows=\n", __func__, n_columns,
+          n_rows);
 
   ulong row = 0;
 
   // which number has to move
-  for (t_sizemat i = 0; i < n_collumns; i++) {
+  for (t_sizemat i = 0; i < n_columns; i++) {
     // to which number i has to move
-    for (t_sizemat j = 0; j < n_collumns; j++) {
+    for (t_sizemat j = 0; j < n_columns; j++) {
       // avoid duplicates
       if (i != j && i != j + 1) {
         // go through each number of a row
-        for (t_sizemat x = 0; x < n_collumns; x++) {
+        for (t_sizemat x = 0; x < n_columns; x++) {
           // "move"" number to the left
           if (i < j && x >= i && x < j) {
-            insertions[n_collumns * row + x] = x + 1;
+            insertions[n_columns * row + x] = x + 1;
           } else if (i > j && x > j && x <= i) { // "move" number to the right
-            insertions[n_collumns * row + x] = x - 1;
+            insertions[n_columns * row + x] = x - 1;
           } else if (x == j) { // put i to j
-            insertions[n_collumns * row + x] = i;
+            insertions[n_columns * row + x] = i;
           } else {
-            insertions[n_collumns * row + x] = x;
+            insertions[n_columns * row + x] = x;
           }
         }
 #ifndef NDEBUG
-        for (t_sizemat x = 0; x < n_collumns; x++) {
-          printf("%ld ", insertions[n_collumns * i + x]);
+        for (t_sizemat x = 0; x < n_columns; x++) {
+          printf("%ld ", insertions[n_columns * i + x]);
         }
         printf(" for i=%ld, j=%ld\n", i, j);
 #endif
@@ -216,28 +223,31 @@ void get_inserts(t_sizemat *insertions, t_sizemat n_collumns, ulong n_rows) {
   }
 }
 
-int neighborhood_insert(int a, int b, long int **matrix) {
+struct neighb neighborhood_insert(t_sizemat n_columns) {
   DEBUG_PRINT("executing neighborhood_insert");
 
   // allocate malloc for the number of insertions possible.
-  t_sizemat n_collumns = PSize;
-  ulong n_rows = get_n_inserts(n_collumns);
-  t_sizemat *insertions = malloc(n_rows * n_collumns * sizeof(t_sizemat));
+  ulong n_rows = get_n_inserts(n_columns);
+  t_sizemat *insertions = malloc(n_rows * n_columns * sizeof(t_sizemat));
 
-  get_inserts(insertions, n_collumns, n_rows);
-  printf("for %ld collumns; total number of insert: %lu\n", n_collumns, n_rows);
+  get_inserts(insertions, n_columns, n_rows);
+  printf("for %ld collumns; total number of insert: %lu\n", n_columns, n_rows);
 
-  return 0;
+  struct neighb neighb;
+  neighb.neighborhood_modif_2d = insertions;
+  neighb.n_rows = n_rows;
+  neighb.n_columns = n_columns;
+  return neighb;
 }
 
-t_sizemat *sol_start_random(t_mat_cell **mat, t_sizemat n_collumns) {
+t_sizemat *sol_start_random(t_mat_cell **mat, t_sizemat n_columns) {
   DEBUG_PRINT("executing sol_start_random");
 
-  t_sizemat *new_random_vector = generate_random_vector(n_collumns);
+  t_sizemat *new_random_vector = generate_random_vector(n_columns);
 
 #ifndef NDEBUG
   DPRINTF("random generated starting solution vector\n")
-  for (t_sizemat i = 0; i < n_collumns; i++) {
+  for (t_sizemat i = 0; i < n_columns; i++) {
     printf("%lu ", new_random_vector[i]);
   }
   printf("\n");
@@ -246,31 +256,30 @@ t_sizemat *sol_start_random(t_mat_cell **mat, t_sizemat n_collumns) {
   return new_random_vector;
 }
 
-t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_collumns) {
+t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_columns) {
   DEBUG_PRINT("executing sol_start_c_and_w\n");
 
-  t_mat_cell *sum_row_2d = prefix_sum_per_row_2d(mat, n_collumns, n_collumns);
+  t_mat_cell *sum_row_2d = prefix_sum_per_row_2d(mat, n_columns, n_columns);
 
 #ifndef NDEBUG
   DPRINTF("cost matrix:\n");
-  print_array_2d2(mat, n_collumns, n_collumns);
+  print_array_2d2(mat, n_columns, n_columns);
   DPRINTF("Prefix sum of matrix:\n");
-  print_array_2d(sum_row_2d, n_collumns, n_collumns);
+  print_array_2d(sum_row_2d, n_columns, n_columns);
 #endif
 
-  t_sizemat *new_best_start_1d = generate_inc_vector(n_collumns);
+  t_sizemat *new_best_start_1d = generate_inc_vector(n_columns);
 
-  for (t_sizemat i = 0; i < n_collumns; i++) {
+  for (t_sizemat i = 0; i < n_columns; i++) {
     t_sizemat best_pos = i;
     t_mat_cell best = 0;
     DPRINTF("sum for i=%ld : ", i);
-    for (t_sizemat j = i; j < n_collumns; j++) {
+    for (t_sizemat j = i; j < n_columns; j++) {
       t_sizemat sum_row_idx = new_best_start_1d[j];
 
       // current = mat[i][last] - mat[i][i]
-      t_mat_cell last_sum =
-          sum_row_2d[n_collumns * sum_row_idx + n_collumns - 1];
-      t_mat_cell i_sum = sum_row_2d[n_collumns * sum_row_idx + i];
+      t_mat_cell last_sum = sum_row_2d[n_columns * sum_row_idx + n_columns - 1];
+      t_mat_cell i_sum = sum_row_2d[n_columns * sum_row_idx + i];
 
       t_mat_cell current = last_sum - i_sum;
 
@@ -292,13 +301,13 @@ t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_collumns) {
 
     DPRINTF("new_best_start_1d: ");
 #ifndef NDEBUG
-    print_array_1d(new_best_start_1d, n_collumns);
+    print_array_1d(new_best_start_1d, n_columns);
 #endif
   }
 
 #ifndef NDEBUG
   DPRINTF("C_and_W solution\n");
-  print_array_1d(new_best_start_1d, n_collumns);
+  print_array_1d(new_best_start_1d, n_columns);
 #endif
 
   free(sum_row_2d);
@@ -321,7 +330,23 @@ void lop(t_fptr_sol_start fptr_sol_start, t_fptr_pivot_rule fptr_pivot_rule,
   t_mat_cell **cost_mat = CostMat;
   t_sizemat cost_mat_dim = PSize;
 
-  t_mat_cell *sol_1d = fptr_sol_start(cost_mat, cost_mat_dim);
+  t_sizemat *sol_1d = fptr_sol_start(cost_mat, cost_mat_dim);
+
+  struct neighb neigh_pot = fptr_neighborhood(cost_mat_dim);
+
+  unsigned long cost = computeCost(sol_1d);
+  unsigned long new_cost = 0;
+
+  while (cost >= new_cost) {
+
+    t_sizemat *neighbs =
+        malloc(neigh_pot.n_rows * neigh_pot.n_columns * sizeof(t_sizemat));
+    for (t_sizemat i = 0; i < neigh_pot.n_rows; i++) {
+      for (t_sizemat j = 0; i < neigh_pot.n_columns; j++) {
+        neighbs[neigh_pot.n_columns * i + j] = 0;
+      }
+    }
+  }
 
   // t_sizemat *neigh_raw_2d = fptr_neighborhood(cost_mat);
 }
