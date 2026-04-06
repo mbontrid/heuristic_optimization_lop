@@ -22,8 +22,11 @@
 #define _LO_H_
 
 #include "utilities.h"
-
 #include <stdlib.h>
+
+typedef int (*t_fptr_pivot_rule)(long int **matrix);
+typedef int (*t_fptr_neighborhood)(int a, int b, long int **matrix);
+typedef t_sizemat *(*t_fptr_sol_start)(t_mat_cell **CostMat, t_sizemat size);
 
 extern long int **CostMat;
 

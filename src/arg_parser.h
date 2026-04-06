@@ -2,7 +2,7 @@
 #define _ARG_PARSER_H_
 
 #include "optimization.h"
-#include "utilities.h"
+#include <stdbool.h>
 
 enum pivoting_rule {
   first,

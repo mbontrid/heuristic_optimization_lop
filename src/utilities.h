@@ -66,10 +66,6 @@ unsigned int factorial(unsigned int N);
 
 extern long int Seed; /* seed for the random number generator */
 
-typedef int (*t_fptr_pivot_rule)(long int **matrix);
-typedef int (*t_fptr_neighborhood)(int a, int b, long int **matrix);
-typedef t_sizemat *(*t_fptr_sol_start)(t_mat_cell **CostMat, t_sizemat size);
-
 /* inline function compiled only if NDEBUG is not defined.
  * Each inline definition has to have a empty definiation in the else branch.
  */

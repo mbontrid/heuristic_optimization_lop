@@ -47,5 +47,7 @@ To use with default parameters:
 Use example :
 
 ```bash
-./bin/lop_debug -i instances/N-test_10 -p first -n exchange -s c_and_w
+./build/bin/lop -i ./instances/N-test_10 -s c_and_w -n exchange -p best
 ```
+
+## Documentation
