@@ -178,8 +178,9 @@ int main(int argc, char **argv) {
   printf("Seed used to initialize RNG: %ld.\n\n", Seed);
 
   DPRINTF("debug of neighborhood and sol_start\n");
-  arguments.fptr_neighborhood(0, 0, CostMat);
-  arguments.fptr_sol_start(CostMat, PSize);
+
+  lop(arguments.fptr_sol_start, arguments.fptr_pivoting_rule,
+      arguments.fptr_neighborhood);
 
   /* starts time measurement */
   start_timers();
