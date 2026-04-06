@@ -89,7 +89,7 @@ typedef t_sizemat *(*t_fptr_sol_start)(t_mat_cell **CostMat, t_sizemat size);
 
 #define DPRINTF(...)
 
-#define DNDPRINTF(...)
+#define DNPRINTF(...)
 
 #endif
 
