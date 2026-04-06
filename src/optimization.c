@@ -59,14 +59,19 @@ void createRandomSolution(long int *s) {
   free(random);
 }
 
-int pivot_first(long int **matrix) {
-  DPRINTF("executing pivot_first\n");
-  return 0;
-}
+t_mat_cell *prefix_sum_per_row_2d(t_mat_cell **mat, t_sizemat n_rows,
+                                  t_sizemat n_collumns) {
 
-int pivot_best(long int **matrix) {
-  DPRINTF("executing pivot_best\n");
-  return 0;
+  t_mat_cell *sum_row_2d = malloc(n_collumns * n_collumns * sizeof(t_mat_cell));
+  for (t_sizemat i = 0; i < n_collumns; i++) {
+    sum_row_2d[n_collumns * i] = mat[i][0];
+    for (t_sizemat j = 1; j < n_collumns; j++) {
+      sum_row_2d[n_collumns * i + j] =
+          sum_row_2d[n_collumns * i + j - 1] + mat[i][j];
+    }
+  }
+
+  return sum_row_2d;
 }
 
 ulong get_n_transpose(uint size) {
@@ -241,33 +246,6 @@ t_sizemat *sol_start_random(t_mat_cell **mat, t_sizemat n_collumns) {
   return new_random_vector;
 }
 
-t_mat_cell *prefix_sum_per_row_2d(t_mat_cell **mat, t_sizemat n_rows,
-                                  t_sizemat n_collumns) {
-
-  /* Make a array of sum of another array like :
-   * 0 1 2 3 4 5 6 7 8 9
-   * after sum :
-   * 0 1 3 6 10 17 25 34
-   * */
-  t_mat_cell *sum_row_2d = malloc(n_collumns * n_collumns * sizeof(t_mat_cell));
-  for (t_sizemat i = 0; i < n_collumns; i++) {
-    sum_row_2d[n_collumns * i] = mat[i][0];
-    for (t_sizemat j = 1; j < n_collumns; j++) {
-      sum_row_2d[n_collumns * i + j] =
-          sum_row_2d[n_collumns * i + j - 1] + mat[i][j];
-    }
-  }
-
-  return sum_row_2d;
-}
-
-/**
- * @brief Chenery and Watanabe (CW) heuristic.
- *
- * @param mat Cost matrix.
- * @param n_collumns Dimension of the square matrix
- * @return A array of the CW ordering.
- */
 t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_collumns) {
   DEBUG_PRINT("executing sol_start_c_and_w\n");
 
@@ -300,7 +278,7 @@ t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_collumns) {
       printf("%ld ", current);
 #endif
 
-      if (current >= best) {
+      if (current > best) {
         best_pos = j;
         best = current;
       }
@@ -327,5 +305,23 @@ t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_collumns) {
   return new_best_start_1d;
 }
 
+int pivot_first(long int **matrix) {
+  DPRINTF("executing pivot_first\n");
+  return 0;
+}
+
+int pivot_best(long int **matrix) {
+  DPRINTF("executing pivot_best\n");
+  return 0;
+}
+
 void lop(t_fptr_sol_start fptr_sol_start, t_fptr_pivot_rule fptr_pivot_rule,
-         t_fptr_neighborhood fptr_neighborhood) {}
+         t_fptr_neighborhood fptr_neighborhood) {
+
+  t_mat_cell **cost_mat = CostMat;
+  t_sizemat cost_mat_dim = PSize;
+
+  t_mat_cell *sol_1d = fptr_sol_start(cost_mat, cost_mat_dim);
+
+  // t_sizemat *neigh_raw_2d = fptr_neighborhood(cost_mat);
+}

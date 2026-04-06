@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
 
   DPRINTF("debug of neighborhood and sol_start\n");
   arguments.fptr_neighborhood(0, 0, CostMat);
-  arguments.fptr_sol_start(CostMat, 10);
+  arguments.fptr_sol_start(CostMat, PSize);
 
   /* starts time measurement */
   start_timers();
