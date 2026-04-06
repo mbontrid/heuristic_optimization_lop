@@ -314,14 +314,21 @@ t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_columns) {
   return new_best_start_1d;
 }
 
-int pivot_first(long int **matrix) {
-  DPRINTF("executing pivot_first\n");
-  return 0;
+void neighb_modif(t_sizemat *new_sol_1d, const t_sizemat *sol_1d,
+                  const t_sizemat *neighb_pot_1d, t_sizemat n_columns) {
+  for (t_sizemat i = 0; i < n_columns; i++) {
+    new_sol_1d[i] = sol_1d[neighb_pot_1d[i]];
+  }
 }
 
-int pivot_best(long int **matrix) {
+void pivot_first(unsigned long *cost, t_sizemat *new_sol_1d, t_sizemat *sol_1d,
+                 struct neighb *neigh_pot, t_mat_cell **matrix) {
+  DPRINTF("executing pivot_first\n");
+}
+
+void pivot_best(unsigned long *cost, t_sizemat *new_sol_1d, t_sizemat *sol_1d,
+                struct neighb *neigh_pot, t_mat_cell **matrix) {
   DPRINTF("executing pivot_best\n");
-  return 0;
 }
 
 void lop(t_fptr_sol_start fptr_sol_start, t_fptr_pivot_rule fptr_pivot_rule,
@@ -335,18 +342,18 @@ void lop(t_fptr_sol_start fptr_sol_start, t_fptr_pivot_rule fptr_pivot_rule,
   struct neighb neigh_pot = fptr_neighborhood(cost_mat_dim);
 
   unsigned long cost = computeCost(sol_1d);
-  unsigned long new_cost = 0;
+  unsigned long new_cost = cost;
+  t_sizemat *new_sol_1d = malloc(cost_mat_dim * sizeof(t_sizemat));
+  memcpy(new_sol_1d, sol_1d, cost_mat_dim * sizeof(t_sizemat));
 
-  while (cost >= new_cost) {
+  while (cost <= new_cost) {
 
-    t_sizemat *neighbs =
-        malloc(neigh_pot.n_rows * neigh_pot.n_columns * sizeof(t_sizemat));
-    for (t_sizemat i = 0; i < neigh_pot.n_rows; i++) {
-      for (t_sizemat j = 0; i < neigh_pot.n_columns; j++) {
-        neighbs[neigh_pot.n_columns * i + j] = 0;
-      }
-    }
+    cost = new_cost;
+    memcpy(sol_1d, new_sol_1d, cost_mat_dim * sizeof(t_sizemat));
+
+    fptr_pivot_rule(&new_cost, new_sol_1d, sol_1d, &neigh_pot, cost_mat);
+    break;
   }
-
-  // t_sizemat *neigh_raw_2d = fptr_neighborhood(cost_mat);
+  free(new_sol_1d);
+  free(neigh_pot.neighborhood_modif_2d);
 }

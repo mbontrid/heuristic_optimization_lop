@@ -30,7 +30,9 @@ struct neighb {
   t_sizemat n_columns;
 };
 
-typedef int (*t_fptr_pivot_rule)(long int **matrix);
+typedef void (*t_fptr_pivot_rule)(unsigned long *cost, t_sizemat *new_sol_1d,
+                                  t_sizemat *sol_1d, struct neighb *neigh_pot,
+                                  t_mat_cell **matrix);
 typedef struct neighb (*t_fptr_neighborhood)(t_sizemat n_columns);
 typedef t_sizemat *(*t_fptr_sol_start)(t_mat_cell **CostMat, t_sizemat size);
 
@@ -82,8 +84,13 @@ t_sizemat *sol_start_random(t_mat_cell **mat, t_sizemat n_columns);
  */
 t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_columns);
 
-int pivot_first(long int **matrix);
-int pivot_best(long int **matrix);
+void neighb_modif(t_sizemat *new_sol_1d, const t_sizemat *sol_1d,
+                  const t_sizemat *neighb_pot_1d, t_sizemat n_columns);
+
+void pivot_first(unsigned long *cost, t_sizemat *new_sol_1d, t_sizemat *sol_1d,
+                 struct neighb *neigh_pot, t_mat_cell **matrix);
+void pivot_best(unsigned long *cost, t_sizemat *new_sol_1d, t_sizemat *sol_1d,
+                struct neighb *neigh_pot, t_mat_cell **matrix);
 
 void lop(t_fptr_sol_start fptr_sol_start, t_fptr_pivot_rule fptr_pivot_rule,
          t_fptr_neighborhood fptr_neighborhood);
