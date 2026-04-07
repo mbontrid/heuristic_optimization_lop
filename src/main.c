@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
   DEBUG_PRINT("Debug print activated.\n");
 
   long int i, j;
-  long int *currentSolution;
+  t_sizemat *currentSolution;
   int cost, newCost, temp, firstRandomPosition, secondRandomPosition;
 
   /* Do not buffer output */
@@ -164,7 +164,7 @@ int main(int argc, char **argv) {
 
   /* Read instance file */
   CostMat = readInstance(arguments.instance_file);
-  printf("Data have been read from instance file. Size of instance = %ld.\n\n",
+  printf("Data have been read from instance file. Size of instance = %u.\n\n",
          PSize);
 
   /* initialize random number generator, deterministically based on instance.
@@ -186,7 +186,7 @@ int main(int argc, char **argv) {
   start_timers();
 
   /* A solution is just a vector of int with the same size as the instance */
-  currentSolution = (long int *)malloc(PSize * sizeof(long int));
+  currentSolution = (t_sizemat *)malloc(PSize * sizeof(long int));
 
   /* Create an initial random solution.
      The only constraint is that it should always be a permutation */
@@ -195,7 +195,7 @@ int main(int argc, char **argv) {
   /* Print solution */
   printf("Initial solution:\n");
   for (j = 0; j < PSize; j++)
-    printf(" %ld", currentSolution[j]);
+    printf(" %u", currentSolution[j]);
   printf("\n");
 
   /* Compute cost of solution and print it */
@@ -219,7 +219,7 @@ int main(int argc, char **argv) {
 
   printf("Solution after exchange:\n");
   for (j = 0; j < PSize; j++)
-    printf(" %ld", currentSolution[j]);
+    printf(" %u", currentSolution[j]);
   printf("\n");
 
   /* Recompute cost of solution after the exchange move */

@@ -26,10 +26,11 @@
 #define E_START 0
 #define E_END 1
 
-typedef long int t_sizemat;
-typedef long int t_mat_cell;
+typedef unsigned int t_sizemat;
+typedef unsigned int t_mat_cell;
+typedef unsigned int t_cost;
 
-long int **createMatrix(long int i);
+t_mat_cell **createMatrix(t_sizemat i);
 int rand0N(int limit);
 
 extern void fatal(char *s);
@@ -40,7 +41,7 @@ extern int randInt(int minimum, int maximum);
 
 t_sizemat *generate_inc_vector(t_sizemat size);
 
-extern long int *generate_random_vector(long int dim);
+extern t_sizemat *generate_random_vector(t_sizemat dim);
 
 void print_array_1d(t_mat_cell *array, t_sizemat n_columns);
 void print_array_2d(t_mat_cell *array_2d, t_sizemat n_rows,

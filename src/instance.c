@@ -34,7 +34,7 @@ t_sizemat PSize;
 
 /* Read a file instance, returning the data matrix.
    At the moment works with LOLIB instances */
-long int **readInstance(const char *filename) {
+t_sizemat **readInstance(const char *filename) {
   FILE *f;
   char buffer[BUFSIZE + 1];
   long int l, i, j, t;

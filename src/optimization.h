@@ -36,10 +36,10 @@ typedef void (*t_fptr_pivot_rule)(unsigned long *cost, t_sizemat *new_sol_1d,
 typedef struct neighb (*t_fptr_neighborhood)(t_sizemat n_columns);
 typedef t_sizemat *(*t_fptr_sol_start)(t_mat_cell **CostMat, t_sizemat size);
 
-extern long int **CostMat;
+extern t_mat_cell **CostMat;
 
-long long int computeCost(long int *lo);
-void createRandomSolution(long int *s);
+t_cost computeCost(t_sizemat *lo);
+void createRandomSolution(t_sizemat *s);
 
 /**
  * @brief Compute the prefix sum of each row of a matrix independently.

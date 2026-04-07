@@ -23,7 +23,7 @@
 
 #include "utilities.h"
 
-long int **readInstance(const char *filename);
+t_mat_cell **readInstance(const char *filename);
 
 extern t_sizemat PSize;
 

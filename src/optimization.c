@@ -36,9 +36,9 @@
 #define MAX_FLOAT MAXFLOAT
 #endif
 
-long int **CostMat;
+t_mat_cell **CostMat;
 
-long long int computeCost(long int *s) {
+t_cost computeCost(t_sizemat *s) {
   int h, k;
   long long int sum = 0;
 
@@ -49,9 +49,9 @@ long long int computeCost(long int *s) {
   return (sum);
 }
 
-void createRandomSolution(long int *s) {
+void createRandomSolution(t_sizemat *s) {
   int j;
-  long int *random;
+  t_sizemat *random;
 
   random = generate_random_vector(PSize);
   for (j = 0; j < PSize; j++) {
@@ -232,7 +232,7 @@ struct neighb neighborhood_insert(t_sizemat n_columns) {
   t_sizemat *insertions = malloc(n_rows * n_columns * sizeof(t_sizemat));
 
   get_inserts(insertions, n_columns, n_rows);
-  printf("for %ld collumns; total number of insert: %lu\n", n_columns, n_rows);
+  printf("for %u collumns; total number of insert: %lu\n", n_columns, n_rows);
 
   struct neighb neighb;
   neighb.neighborhood_modif_2d = insertions;
@@ -359,28 +359,32 @@ void lop(t_fptr_sol_start fptr_sol_start, t_fptr_pivot_rule fptr_pivot_rule,
   t_mat_cell **cost_mat = CostMat;
   t_sizemat cost_mat_dim = PSize;
 
+  // initial solution
   t_sizemat *sol_1d = fptr_sol_start(cost_mat, cost_mat_dim);
 
-  struct neighb neigh_pot = fptr_neighborhood(cost_mat_dim);
+  // all possible modif to neighborhood
+  struct neighb neigh_modif = fptr_neighborhood(cost_mat_dim);
 
-  unsigned long cost = computeCost(sol_1d);
+  t_cost cost = computeCost(sol_1d);
   unsigned long new_cost = cost + 1;
   t_sizemat *new_sol_1d = malloc(cost_mat_dim * sizeof(t_sizemat));
   memcpy(new_sol_1d, sol_1d, cost_mat_dim * sizeof(t_sizemat));
 
-  while (cost < new_cost) {
+  while (cost <= new_cost) {
     DPRINTF("lop while : cost=%lu and new_cost=%lu\n", cost, new_cost);
 
+    DPRINTF("best sol: ");
+    print_array_1d(new_sol_1d, cost_mat_dim);
+
+    // TODO: cost and new_cost can have the same value. alows it but verify that
+    // there is no comming back.
     cost = new_cost;
     memcpy(sol_1d, new_sol_1d, cost_mat_dim * sizeof(t_sizemat));
 
-    fptr_pivot_rule(&new_cost, new_sol_1d, sol_1d, &neigh_pot, cost_mat);
+    fptr_pivot_rule(&new_cost, new_sol_1d, sol_1d, &neigh_modif, cost_mat);
     DPRINTF("lop while after pivot: cost=%lu and new_cost=%lu\n", cost,
             new_cost);
-
-    DPRINTF("new sol: ");
-    print_array_1d(new_sol_1d, cost_mat_dim);
   }
   free(new_sol_1d);
-  free(neigh_pot.neighborhood_modif_2d);
+  free(neigh_modif.neighborhood_modif_2d);
 }

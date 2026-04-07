@@ -26,13 +26,13 @@
 
 long int Seed;
 
-long int **createMatrix(long int dim) {
+t_mat_cell **createMatrix(t_sizemat dim) {
 
   int k;
-  long int **result = (long int **)calloc(dim, sizeof(long int *));
+  t_mat_cell **result = (t_mat_cell **)calloc(dim, sizeof(long int *));
 
   for (k = 0; k < dim; ++k) {
-    result[k] = (long int *)calloc(dim, sizeof(long int));
+    result[k] = (t_mat_cell *)calloc(dim, sizeof(long int));
   }
 
   return result;
@@ -78,7 +78,7 @@ t_sizemat *generate_inc_vector(t_sizemat size) {
   return new_vector;
 }
 
-t_sizemat *generate_random_vector(long int dim)
+t_sizemat *generate_random_vector(t_sizemat dim)
 /* Generates a random vector, quick and dirty */
 {
   t_sizemat *random_vector;
@@ -124,7 +124,7 @@ t_sizemat *generate_random_vector(long int dim)
 
 void print_array_1d(t_mat_cell *array, t_sizemat n_columns) {
   for (t_sizemat i = 0; i < n_columns; i++) {
-    printf("%lu ", array[i]);
+    printf("%u ", array[i]);
   }
   printf("\n");
 }
@@ -134,7 +134,7 @@ void print_array_2d(t_mat_cell *array_2d, t_sizemat n_rows,
   for (t_sizemat i = 0; i < n_rows; i++) {
     for (t_sizemat j = 0; j < n_columns; j++) {
       t_mat_cell value = array_2d[n_columns * i + j];
-      printf("%ld ", value);
+      printf("%u ", value);
     }
     printf("\n");
   }
@@ -145,7 +145,7 @@ void print_array_2d2(t_mat_cell **array_2d, t_sizemat n_rows,
   for (t_sizemat i = 0; i < n_rows; i++) {
     for (t_sizemat j = 0; j < n_columns; j++) {
       t_mat_cell value = array_2d[i][j];
-      printf("%ld ", value);
+      printf("%u ", value);
     }
     printf("\n");
   }
