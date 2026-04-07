@@ -19,6 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -329,10 +330,31 @@ void pivot_first(unsigned long *cost, t_sizemat *new_sol_1d, t_sizemat *sol_1d,
 void pivot_best(unsigned long *cost, t_sizemat *new_sol_1d, t_sizemat *sol_1d,
                 struct neighb *neigh_pot, t_mat_cell **matrix) {
   DPRINTF("executing pivot_best\n");
+
+  t_sizemat n_columns = neigh_pot->n_columns;
+  *cost = 0;
+  t_sizemat *best_neighb_modif;
+  for (t_sizemat i = 0; i < neigh_pot->n_rows; i++) {
+
+    t_sizemat *neighb_modi =
+        &neigh_pot->neighborhood_modif_2d[neigh_pot->n_columns * i];
+
+    neighb_modif(new_sol_1d, sol_1d, neighb_modi, n_columns);
+
+    ulong new_cost = computeCost(new_sol_1d);
+
+    if (new_cost >= *cost) {
+      *cost = new_cost;
+      best_neighb_modif = neighb_modi;
+    }
+  }
+
+  neighb_modif(new_sol_1d, sol_1d, best_neighb_modif, n_columns);
 }
 
 void lop(t_fptr_sol_start fptr_sol_start, t_fptr_pivot_rule fptr_pivot_rule,
          t_fptr_neighborhood fptr_neighborhood) {
+  DPRINTF("executing lop\n");
 
   t_mat_cell **cost_mat = CostMat;
   t_sizemat cost_mat_dim = PSize;
@@ -342,17 +364,22 @@ void lop(t_fptr_sol_start fptr_sol_start, t_fptr_pivot_rule fptr_pivot_rule,
   struct neighb neigh_pot = fptr_neighborhood(cost_mat_dim);
 
   unsigned long cost = computeCost(sol_1d);
-  unsigned long new_cost = cost;
+  unsigned long new_cost = cost + 1;
   t_sizemat *new_sol_1d = malloc(cost_mat_dim * sizeof(t_sizemat));
   memcpy(new_sol_1d, sol_1d, cost_mat_dim * sizeof(t_sizemat));
 
-  while (cost <= new_cost) {
+  while (cost < new_cost) {
+    DPRINTF("lop while : cost=%lu and new_cost=%lu\n", cost, new_cost);
 
     cost = new_cost;
     memcpy(sol_1d, new_sol_1d, cost_mat_dim * sizeof(t_sizemat));
 
     fptr_pivot_rule(&new_cost, new_sol_1d, sol_1d, &neigh_pot, cost_mat);
-    break;
+    DPRINTF("lop while after pivot: cost=%lu and new_cost=%lu\n", cost,
+            new_cost);
+
+    DPRINTF("new sol: ");
+    print_array_1d(new_sol_1d, cost_mat_dim);
   }
   free(new_sol_1d);
   free(neigh_pot.neighborhood_modif_2d);
