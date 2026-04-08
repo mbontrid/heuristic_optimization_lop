@@ -21,6 +21,7 @@
 #ifndef _UTILITIES_H_
 #define _UTILITIES_H_
 
+#include <stdbool.h>
 #define PREV 0
 #define NEXT 1
 #define E_START 0
@@ -40,8 +41,10 @@ extern double ran01(long *idum);
 extern int randInt(int minimum, int maximum);
 
 t_sizemat *generate_inc_vector(t_sizemat size);
-
 extern t_sizemat *generate_random_vector(t_sizemat dim);
+
+bool array_equal(const t_sizemat *const array_1d_1,
+                 const t_sizemat *const array_1d_2, t_sizemat size);
 
 void print_array_1d(t_mat_cell *array, t_sizemat n_columns);
 void print_array_2d(t_mat_cell *array_2d, t_sizemat n_rows,

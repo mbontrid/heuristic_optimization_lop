@@ -17,17 +17,6 @@ To clean the repo from all builds.
 rm -rf build/
 ```
 
-#### development
-
-The debug target has flag and verbose compiled with it.
-
-```bash
-#On the first compilation and each folder modification and file addition.
-cmake -S. -Bbuild
-# to compile the debug target
-cmake --build build --target lop_debug
-```
-
 ## Run
 
 The binary (after compilation) is located in `./build/bin/`.
@@ -48,6 +37,26 @@ Use example :
 
 ```bash
 ./build/bin/lop -i ./instances/N-test_10 -s c_and_w -n exchange -p best
+```
+
+## development
+
+The debug target has flag and verbose compiled with it `(-Og)`. It is far more verbose and asserts are evaluated.
+
+Build debug target:
+
+```bash
+#On the first compilation and each folder modification and file addition.
+cmake -S. -Bbuild
+# to compile the debug target
+cmake --build build --target lop_debug
+```
+
+To run the debug:
+
+```bash
+./build/bin/lop_debug -i ./instances/N-be75eec_150 -s c_and_w -n insert -p best
+
 ```
 
 ## Documentation

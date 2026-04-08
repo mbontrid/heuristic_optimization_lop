@@ -18,6 +18,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <values.h>
@@ -120,6 +121,16 @@ t_sizemat *generate_random_vector(t_sizemat dim)
 #endif
 
   return random_vector;
+}
+
+bool array_equal(const t_sizemat *const array_1d_1,
+                 const t_sizemat *const array_1d_2, t_sizemat size) {
+  for (t_sizemat i = 0; i < size; i++) {
+    if (array_1d_1[i] != array_1d_2[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 void print_array_1d(t_mat_cell *array, t_sizemat n_columns) {

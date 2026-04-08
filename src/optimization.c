@@ -213,10 +213,12 @@ void get_inserts(t_sizemat *insertions, t_sizemat n_columns, ulong n_rows) {
           }
         }
 #ifndef NDEBUG
-        for (t_sizemat x = 0; x < n_columns; x++) {
-          printf("%ld ", insertions[n_columns * i + x]);
+        if (n_columns < 100) {
+          for (t_sizemat x = 0; x < n_columns; x++) {
+            printf("%ld ", insertions[n_columns * i + x]);
+          }
+          printf(" for i=%ld, j=%ld\n", i, j);
         }
-        printf(" for i=%ld, j=%ld\n", i, j);
 #endif
         row++;
       }
@@ -322,12 +324,12 @@ void neighb_modif(t_sizemat *new_sol_1d, const t_sizemat *sol_1d,
   }
 }
 
-void pivot_first(unsigned long *cost, t_sizemat *new_sol_1d, t_sizemat *sol_1d,
+void pivot_first(t_cost *cost, t_sizemat *new_sol_1d, t_sizemat *sol_1d,
                  struct neighb *neigh_pot, t_mat_cell **matrix) {
   DPRINTF("executing pivot_first\n");
 }
 
-void pivot_best(unsigned long *cost, t_sizemat *new_sol_1d, t_sizemat *sol_1d,
+void pivot_best(t_cost *cost, t_sizemat *new_sol_1d, t_sizemat *sol_1d,
                 struct neighb *neigh_pot, t_mat_cell **matrix) {
   DPRINTF("executing pivot_best\n");
 
@@ -366,11 +368,12 @@ void lop(t_fptr_sol_start fptr_sol_start, t_fptr_pivot_rule fptr_pivot_rule,
   struct neighb neigh_modif = fptr_neighborhood(cost_mat_dim);
 
   t_cost cost = computeCost(sol_1d);
-  unsigned long new_cost = cost + 1;
+  t_cost new_cost = cost;
   t_sizemat *new_sol_1d = malloc(cost_mat_dim * sizeof(t_sizemat));
-  memcpy(new_sol_1d, sol_1d, cost_mat_dim * sizeof(t_sizemat));
+  // memcpy(new_sol_1d, sol_1d, cost_mat_dim * sizeof(t_sizemat));
 
-  while (cost <= new_cost) {
+  while (cost < new_cost ||
+         (cost == new_cost && !array_equal(new_sol_1d, sol_1d, cost_mat_dim))) {
     DPRINTF("lop while : cost=%lu and new_cost=%lu\n", cost, new_cost);
 
     DPRINTF("best sol: ");
