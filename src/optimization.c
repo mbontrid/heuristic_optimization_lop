@@ -59,10 +59,12 @@ t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, t_sizemat n_rows,
 
   t_mat_cell *sum_row_2d = malloc(n_columns * n_columns * sizeof(t_mat_cell));
   for (t_sizemat i = 0; i < n_rows; i++) {
-    sum_row_2d[n_columns * i] = mat[n_rows * i];
+    sum_row_2d[n_columns * i] = mat[n_columns * i];
     for (t_sizemat j = 1; j < n_columns; j++) {
+      assert(MAX_COST_CELL -
+             sum_row_2d[n_columns * i + j - 1 >= mat[n_columns * i + j]]);
       sum_row_2d[n_columns * i + j] =
-          sum_row_2d[n_columns * i + j - 1] + mat[n_rows * i + j];
+          sum_row_2d[n_columns * i + j - 1] + mat[n_columns * i + j];
     }
   }
 
@@ -300,16 +302,31 @@ void neighb_modif(t_sizemat *new_sol_1d, const t_sizemat *sol_1d,
   }
 }
 
-void pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost *cost,
-                 struct matrix nighb_deltas, struct matrix cost_matrix) {
+t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
+                   struct matrix neighb_deltas, struct matrix cost_matrix) {
   DPRINTF("executing pivot_first\n");
+
+  for (t_sizemat i = 0; i < neighb_deltas.n_rows; i++) {
+    t_sizemat *neighb_delta =
+        &neighb_deltas.mat_2d[neighb_deltas.n_columns * i];
+
+    neighb_modif(new_sol_1d, sol_1d, neighb_delta, neighb_deltas.n_columns);
+
+    t_cost new_cost =
+        computeCost(cost_matrix.mat_2d, new_sol_1d, cost_matrix.n_columns);
+    if (new_cost > cost) {
+      cost = new_cost;
+      break;
+    }
+  }
+  return cost;
 }
 
-void pivot_best(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost *cost,
-                struct matrix neighb_deltas, struct matrix cost_matrix) {
+t_cost pivot_best(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
+                  struct matrix neighb_deltas, struct matrix cost_matrix) {
   DPRINTF("executing pivot_best\n");
 
-  *cost = 0;
+  cost = 0;
   memcpy(new_sol_1d, sol_1d, cost_matrix.n_columns);
   t_sizemat *best_neighb_modif = &neighb_deltas.mat_2d[neighb_deltas.n_columns];
 
@@ -328,17 +345,16 @@ void pivot_best(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost *cost,
     t_cost new_cost =
         computeCost(cost_matrix.mat_2d, new_sol_1d, cost_matrix.n_columns);
 
-    if (new_cost >= *cost) {
+    if (new_cost >= cost) {
       DPRINTF("Found better cost: old cost : %u | new cost : %u\n", *cost,
               new_cost);
-      *cost = new_cost;
+      cost = new_cost;
       best_neighb_modif = neighb_delta;
     }
   }
 
-  neighb_modif(new_sol_1d, sol_1d, neighb_deltas.mat_2d,
-               neighb_deltas.n_columns);
   neighb_modif(new_sol_1d, sol_1d, best_neighb_modif, neighb_deltas.n_columns);
+  return cost;
 }
 
 void lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
@@ -366,17 +382,21 @@ void lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
 
   while (cost < new_cost ||
          (cost == new_cost && !array_equal(new_sol_1d, sol_1d, cost_mat_dim))) {
+
+#ifndef NDEBUG
     DPRINTF("lop while : cost=%u and new_cost=%u\n", cost, new_cost);
 
     DPRINTF("best sol: ");
     print_array_1d(new_sol_1d, cost_mat_dim);
+#endif
 
     // TODO: cost and new_cost can have the same value. alows it but verify that
     // there is no comming back.
     cost = new_cost;
     memcpy(sol_1d, new_sol_1d, cost_mat_dim * sizeof(t_sizemat));
 
-    fptr_pivot_rule(sol_1d, new_sol_1d, &new_cost, neigh_deltas, cost_mat);
+    new_cost =
+        fptr_pivot_rule(sol_1d, new_sol_1d, cost, neigh_deltas, cost_mat);
     DPRINTF("lop while after pivot: cost=%u and new_cost=%u\n", cost, new_cost);
   }
   free(new_sol_1d);

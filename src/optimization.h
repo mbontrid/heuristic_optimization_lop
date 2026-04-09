@@ -31,10 +31,10 @@ struct matrix {
 
 typedef t_sizemat *(*t_fptr_neighborhood)(t_sizemat *const n_rows,
                                           const t_sizemat n_columns);
-typedef void (*t_fptr_pivot_rule)(const t_sizemat *sol_1d,
-                                  t_sizemat *new_sol_1d, t_cost *cost,
-                                  struct matrix nighb_deltas,
-                                  struct matrix cost_matrix);
+typedef t_cost (*t_fptr_pivot_rule)(const t_sizemat *sol_1d,
+                                    t_sizemat *new_sol_1d, t_cost cost,
+                                    struct matrix nighb_deltas,
+                                    struct matrix cost_matrix);
 typedef t_sizemat *(*t_fptr_sol_start)(t_mat_cell *CostMat, t_sizemat size);
 
 extern t_mat_cell **cost_mat_2d;
@@ -87,11 +87,11 @@ t_sizemat *sol_start_random(t_mat_cell *mat, t_sizemat n_columns);
  */
 t_sizemat *sol_start_c_and_w(t_mat_cell *mat, t_sizemat n_columns);
 
-void pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost *cost,
-                 struct matrix nighb_deltas, struct matrix cost_matrix);
+t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
+                   struct matrix nighb_deltas, struct matrix cost_matrix);
 
-void pivot_best(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost *cost,
-                struct matrix nighb_deltas, struct matrix cost_matrix);
+t_cost pivot_best(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
+                  struct matrix nighb_deltas, struct matrix cost_matrix);
 
 void lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
          t_fptr_sol_start fptr_sol_start, t_fptr_pivot_rule fptr_pivot_rule,
