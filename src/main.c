@@ -74,15 +74,15 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
   case 'n':
     if (strcmp(arg, "transpose") == 0) {
       arguments->neighborhood = transpose;
-      arguments->fptr_neighborhood = neighborhood_tranpose;
+      arguments->fptr_neighborhood = neighb_transpose_deltas;
       DEBUG_PRINT("neighborhood set to transpose");
     } else if (strcmp(arg, "exchange") == 0) {
       arguments->neighborhood = exchange;
-      arguments->fptr_neighborhood = neighborhood_exchange;
+      arguments->fptr_neighborhood = neighb_exchange_deltas;
       DEBUG_PRINT("neighborhood set to exchange");
     } else if (strcmp(arg, "insert") == 0) {
       arguments->neighborhood = insert;
-      arguments->fptr_neighborhood = neighborhood_insert;
+      arguments->fptr_neighborhood = neighb_insert_deltas;
       DEBUG_PRINT("neighborhood set to insert");
     } else {
       argp_error(state, "Invalid neighborhood option: %s", arg);
@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
   arguments.neighborhood = transpose;
   arguments.sol_start = randome;
   arguments.fptr_pivoting_rule = pivot_first;
-  arguments.fptr_neighborhood = neighborhood_tranpose;
+  arguments.fptr_neighborhood = neighb_transpose_deltas;
   arguments.fptr_sol_start = sol_start_random;
 
   argp_parse(&argp, argc, argv, 0, 0, &arguments);
@@ -163,52 +163,49 @@ int main(int argc, char **argv) {
   //--- end args passing ----
 
   /* Read instance file */
-  CostMat = readInstance(arguments.instance_file);
+  t_sizemat cost_mat_size = 0;
+  t_mat_cell *const cost_mat_2d =
+      readInstance(arguments.instance_file, &cost_mat_size);
   printf("Data have been read from instance file. Size of instance = %u.\n\n",
-         PSize);
+         cost_mat_size);
 
   /* initialize random number generator, deterministically based on instance.
    * To do this we simply set the seed to the sum of elements in the matrix,
    so it is constant per-instance, but (most likely) varies between instances
  */
   Seed = (long int)0;
-  for (i = 0; i < PSize; ++i)
-    for (j = 0; j < PSize; ++j)
-      Seed += (long int)CostMat[i][j];
+  for (i = 0; i < cost_mat_size; ++i)
+    for (j = 0; j < cost_mat_size; ++j)
+      Seed += (long int)cost_mat_2d[cost_mat_size * i + j];
   printf("Seed used to initialize RNG: %ld.\n\n", Seed);
 
   DPRINTF("debug of neighborhood and sol_start\n");
 
-  lop(arguments.fptr_sol_start, arguments.fptr_pivoting_rule,
-      arguments.fptr_neighborhood);
+  lop(cost_mat_2d, cost_mat_size, arguments.fptr_sol_start,
+      arguments.fptr_pivoting_rule, arguments.fptr_neighborhood);
 
   /* starts time measurement */
   start_timers();
 
-  /* A solution is just a vector of int with the same size as the instance */
-  currentSolution = (t_sizemat *)malloc(PSize * sizeof(long int));
-
-  /* Create an initial random solution.
-     The only constraint is that it should always be a permutation */
-  createRandomSolution(currentSolution);
+  currentSolution = generate_random_vector(cost_mat_size);
 
   /* Print solution */
   printf("Initial solution:\n");
-  for (j = 0; j < PSize; j++)
+  for (j = 0; j < cost_mat_size; j++)
     printf(" %u", currentSolution[j]);
   printf("\n");
 
   /* Compute cost of solution and print it */
-  cost = computeCost(currentSolution);
+  cost = computeCost(cost_mat_2d, currentSolution, cost_mat_size);
   printf("Cost of this initial solution: %d\n\n", cost);
 
   /* Example: apply an exchange operation of two elements at random position
    */
-  firstRandomPosition = randInt(0, PSize - 1);
+  firstRandomPosition = randInt(0, cost_mat_size - 1);
   // Ensure second position is different from first one:
-  secondRandomPosition = firstRandomPosition + randInt(1, (PSize - 2));
-  if (secondRandomPosition >= PSize)
-    secondRandomPosition -= PSize;
+  secondRandomPosition = firstRandomPosition + randInt(1, (cost_mat_size - 2));
+  if (secondRandomPosition >= cost_mat_size)
+    secondRandomPosition -= cost_mat_size;
 
   printf("Two positions exchanged: %d and %d. ", firstRandomPosition,
          secondRandomPosition);
@@ -218,14 +215,14 @@ int main(int argc, char **argv) {
   currentSolution[secondRandomPosition] = temp;
 
   printf("Solution after exchange:\n");
-  for (j = 0; j < PSize; j++)
+  for (j = 0; j < cost_mat_size; j++)
     printf(" %u", currentSolution[j]);
   printf("\n");
 
   /* Recompute cost of solution after the exchange move */
   /* There are some more efficient way to do this, instead of recomputing
    * everything... */
-  newCost = computeCost(currentSolution);
+  newCost = computeCost(cost_mat_2d, currentSolution, cost_mat_size);
   printf("Cost of this solution after applying the exchange move: %d\n",
          newCost);
 

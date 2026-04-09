@@ -23,8 +23,6 @@
 
 #include "utilities.h"
 
-t_mat_cell **readInstance(const char *filename);
-
-extern t_sizemat PSize;
+t_mat_cell *readInstance(const char *filename, t_sizemat *const size);
 
 #endif

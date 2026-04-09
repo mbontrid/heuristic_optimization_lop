@@ -21,6 +21,7 @@
 #ifndef _UTILITIES_H_
 #define _UTILITIES_H_
 
+#include <limits.h>
 #include <stdbool.h>
 #define PREV 0
 #define NEXT 1
@@ -31,7 +32,9 @@ typedef unsigned int t_sizemat;
 typedef unsigned int t_mat_cell;
 typedef unsigned int t_cost;
 
-t_mat_cell **createMatrix(t_sizemat i);
+#define MAX_COST UINT_MAX
+
+t_mat_cell **createMatrixx(t_sizemat i);
 int rand0N(int limit);
 
 extern void fatal(char *s);

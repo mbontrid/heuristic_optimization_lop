@@ -30,16 +30,14 @@
 
 #define BUFSIZE 1024
 
-t_sizemat PSize;
-
 /* Read a file instance, returning the data matrix.
    At the moment works with LOLIB instances */
-t_sizemat **readInstance(const char *filename) {
+t_sizemat *readInstance(const char *filename, t_sizemat *const size) {
   FILE *f;
   char buffer[BUFSIZE + 1];
   long int l, i, j, t;
   char *k;
-  t_mat_cell **r;
+  t_mat_cell *r;
 
   buffer[BUFSIZE] = '\0';
 
@@ -76,14 +74,14 @@ t_sizemat **readInstance(const char *filename) {
     printf("%ld (%ld) [%s]", i, l - 1, buffer);
     fatal("readInstance: Size expected but not found.");
   }
-  PSize = atoi(&buffer[i]);
+  *size = atoi(&buffer[i]);
 
-  r = createMatrix(PSize);
+  r = malloc(*size * *size * sizeof(t_mat_cell));
 
   i = 0;
   j = 0;
 
-  while (i < PSize) {
+  while (i < *size) {
     fgets(buffer, BUFSIZE, f);
     l = strlen(buffer);
     if (!l)
@@ -99,10 +97,10 @@ t_sizemat **readInstance(const char *filename) {
       if (((*k >= '0') && (*k <= '9')) || (*k == '-')) {
         if (!t) {
           t = TRUE;
-          r[i][j] = atoi(k);
-          if ((++j) == PSize) {
+          r[*size * i + j] = atoi(k);
+          if ((++j) == *size) {
             j = 0;
-            if ((++i) == PSize)
+            if ((++i) == *size)
               break;
           }
         }

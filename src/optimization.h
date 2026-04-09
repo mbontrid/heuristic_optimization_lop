@@ -22,24 +22,25 @@
 #define _LO_H_
 
 #include "utilities.h"
-#include <stdlib.h>
 
-struct neighb {
-  t_sizemat *neighborhood_modif_2d;
+struct matrix {
+  t_sizemat *mat_2d;
   t_sizemat n_rows;
   t_sizemat n_columns;
 };
 
-typedef void (*t_fptr_pivot_rule)(t_cost *cost, t_sizemat *new_sol_1d,
-                                  t_sizemat *sol_1d, struct neighb *neigh_pot,
-                                  t_mat_cell **matrix);
-typedef struct neighb (*t_fptr_neighborhood)(t_sizemat n_columns);
-typedef t_sizemat *(*t_fptr_sol_start)(t_mat_cell **CostMat, t_sizemat size);
+typedef t_sizemat *(*t_fptr_neighborhood)(t_sizemat *const n_rows,
+                                          const t_sizemat n_columns);
+typedef void (*t_fptr_pivot_rule)(const t_sizemat *sol_1d,
+                                  t_sizemat *new_sol_1d, t_cost *cost,
+                                  struct matrix nighb_deltas,
+                                  struct matrix cost_matrix);
+typedef t_sizemat *(*t_fptr_sol_start)(t_mat_cell *CostMat, t_sizemat size);
 
-extern t_mat_cell **CostMat;
+extern t_mat_cell **cost_mat_2d;
 
-t_cost computeCost(t_sizemat *lo);
-void createRandomSolution(t_sizemat *s);
+t_cost computeCost(const t_mat_cell *const cost_mat, t_sizemat *lo,
+                   t_sizemat size);
 
 /**
  * @brief Compute the prefix sum of each row of a matrix independently.
@@ -50,10 +51,13 @@ void createRandomSolution(t_sizemat *s);
  * @param n_columns dimension of mat
  * @return A new 2d matrix pointer.
  */
-t_mat_cell *prefix_sum_per_row_2d(t_mat_cell **mat, t_sizemat n_rows,
+t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, t_sizemat n_rows,
                                   t_sizemat n_columns);
 
-ulong get_n_transpose(uint size);
+t_sizemat get_n_transpose(t_sizemat size);
+t_sizemat get_n_inserts(t_sizemat size);
+t_sizemat get_n_exchange(t_sizemat size);
+
 /**
  * @brief get_all_possible transposes in a vector of size n_columns
  *
@@ -62,18 +66,17 @@ ulong get_n_transpose(uint size);
  * @param n_columns size of vector to transpose.
  * @param n_rows number of possible transposes.
  */
-void get_transpose(t_sizemat *transposes, t_sizemat n_columns, ulong n_rows);
-struct neighb neighborhood_tranpose(t_sizemat n_columns);
+t_sizemat *neighb_transpose_deltas(t_sizemat *const n_rows,
+                                   const t_sizemat n_columns);
+t_sizemat *neighb_exchange_deltas(t_sizemat *const n_rows,
+                                  const t_sizemat n_columns);
+t_sizemat *neighb_insert_deltas(t_sizemat *const n_rows,
+                                const t_sizemat n_columns);
 
-uint get_n_exchange(t_sizemat size);
-void get_exchange(t_sizemat *exchanges, t_sizemat n_columns, uint n_rows);
-struct neighb neighborhood_exchange(t_sizemat n_columns);
+void neighb_modif(t_sizemat *new_sol_1d, const t_sizemat *sol_1d,
+                  const t_sizemat *neighb_delta_1d, t_sizemat n_columns);
 
-ulong get_n_inserts(uint size);
-void get_inserts(t_sizemat *insertions, t_sizemat n_columns, ulong n_rows);
-struct neighb neighborhood_insert(t_sizemat n_columns);
-
-t_sizemat *sol_start_random(t_mat_cell **mat, t_sizemat n_columns);
+t_sizemat *sol_start_random(t_mat_cell *mat, t_sizemat n_columns);
 
 /**
  * @brief Chenery and Watanabe (CW) greedy heuristic.
@@ -82,17 +85,16 @@ t_sizemat *sol_start_random(t_mat_cell **mat, t_sizemat n_columns);
  * @param n_columns Dimension of the square matrix
  * @return A array of the CW ordering.
  */
-t_sizemat *sol_start_c_and_w(t_mat_cell **mat, t_sizemat n_columns);
+t_sizemat *sol_start_c_and_w(t_mat_cell *mat, t_sizemat n_columns);
 
-void neighb_modif(t_sizemat *new_sol_1d, const t_sizemat *sol_1d,
-                  const t_sizemat *neighb_pot_1d, t_sizemat n_columns);
+void pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost *cost,
+                 struct matrix nighb_deltas, struct matrix cost_matrix);
 
-void pivot_first(t_cost *cost, t_sizemat *new_sol_1d, t_sizemat *sol_1d,
-                 struct neighb *neigh_pot, t_mat_cell **matrix);
-void pivot_best(t_cost *cost, t_sizemat *new_sol_1d, t_sizemat *sol_1d,
-                struct neighb *neigh_pot, t_mat_cell **matrix);
+void pivot_best(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost *cost,
+                struct matrix nighb_deltas, struct matrix cost_matrix);
 
-void lop(t_fptr_sol_start fptr_sol_start, t_fptr_pivot_rule fptr_pivot_rule,
+void lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
+         t_fptr_sol_start fptr_sol_start, t_fptr_pivot_rule fptr_pivot_rule,
          t_fptr_neighborhood fptr_neighborhood);
 
 #endif

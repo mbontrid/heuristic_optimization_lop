@@ -27,7 +27,7 @@
 
 long int Seed;
 
-t_mat_cell **createMatrix(t_sizemat dim) {
+t_mat_cell **createMatrixx(t_sizemat dim) {
 
   int k;
   t_mat_cell **result = (t_mat_cell **)calloc(dim, sizeof(long int *));
@@ -115,7 +115,7 @@ t_sizemat *generate_random_vector(t_sizemat dim)
 #ifndef NDEBUG
   DPRINTF("random_vector : ");
   for (t_sizemat i = 0; i < dim; i++) {
-    printf("%ld ", random_vector[i]);
+    printf("%u ", random_vector[i]);
   }
   printf("\n");
 #endif
