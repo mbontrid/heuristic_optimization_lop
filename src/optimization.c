@@ -242,37 +242,30 @@ t_sizemat *sol_start_random(t_mat_cell *mat, t_sizemat n_columns) {
   return new_random_vector;
 }
 
-t_sizemat *false_c_and_w(t_mat_cell *cost_mat_1d, t_sizemat n_columns); // TODO
-
-t_sizemat *c_and_w(t_mat_cell *cost_mat_1d, t_sizemat n_columns) {
-
-  for (t_sizemat)
-}
-
-t_sizemat *sol_start_c_and_w(t_mat_cell *mat, t_sizemat n_columns) {
+t_sizemat *false_c_and_w(t_mat_cell *cost_mat_2d, t_sizemat size) {
   DEBUG_PRINT("executing sol_start_c_and_w\n");
 
-  t_mat_cell *sum_row_2d = prefix_sum_per_row_2d(mat, n_columns, n_columns);
+  t_mat_cell *sum_row_2d = prefix_sum_per_row_2d(cost_mat_2d, size, size);
 
 #ifndef NDEBUG
   DPRINTF("cost matrix:\n");
-  print_array_2d(mat, n_columns, n_columns);
+  print_array_2d(cost_mat_2d, size, size);
   DPRINTF("Prefix sum of matrix:\n");
-  print_array_2d(sum_row_2d, n_columns, n_columns);
+  print_array_2d(sum_row_2d, size, size);
 #endif
 
-  t_sizemat *new_best_start_1d = generate_inc_vector(n_columns);
+  t_sizemat *new_best_start_1d = generate_inc_vector(size);
 
-  for (t_sizemat i = 0; i < n_columns; i++) {
+  for (t_sizemat i = 0; i < size; i++) {
     t_sizemat best_pos = i;
     t_mat_cell best = 0;
     DPRINTF("sum for i=%u : ", i);
-    for (t_sizemat j = i; j < n_columns; j++) {
+    for (t_sizemat j = i; j < size; j++) {
       t_sizemat sum_row_idx = new_best_start_1d[j];
 
-      // current = mat[i][last] - mat[i][i]
-      t_mat_cell last_sum = sum_row_2d[n_columns * sum_row_idx + n_columns - 1];
-      t_mat_cell i_sum = sum_row_2d[n_columns * sum_row_idx + i];
+      // current = cost_mat_2d[i][last] - cost_mat_2d[i][i]
+      t_mat_cell last_sum = sum_row_2d[size * sum_row_idx + size - 1];
+      t_mat_cell i_sum = sum_row_2d[size * sum_row_idx + i];
 
       t_mat_cell current = last_sum - i_sum;
 
@@ -290,17 +283,74 @@ t_sizemat *sol_start_c_and_w(t_mat_cell *mat, t_sizemat n_columns) {
 
     DPRINTF("new_best_start_1d: ");
 #ifndef NDEBUG
-    print_array_1d(new_best_start_1d, n_columns);
+    print_array_1d(new_best_start_1d, size);
 #endif
   }
 
 #ifndef NDEBUG
   DPRINTF("C_and_W solution\n");
-  print_array_1d(new_best_start_1d, n_columns);
+  print_array_1d(new_best_start_1d, size);
 #endif
 
   free(sum_row_2d);
   return new_best_start_1d;
+}
+
+t_sizemat *cw(const t_mat_cell *const restrict cost_mat_2d, t_sizemat size) {
+  DPRINTF("executting cw\n");
+
+  t_cost *const restrict r_1d = calloc(size, sizeof(t_cost));
+  t_cost *const restrict c_1d = calloc(size, sizeof(t_cost));
+  Item *const restrict s_1d = malloc(size * sizeof(Item));
+
+  t_sizemat *restrict sol_1d = malloc(size * sizeof(t_sizemat));
+
+/*
+ * r[i] = sum j w_ij (i=/=j)
+ * c[i] = sum j w_ji (i=/=j)
+ * s[i] = r[i] - c[i]
+ */
+#pragma omp simd
+  for (t_sizemat x = 0; x < size * size; x++) {
+    t_sizemat i = x / size;
+    t_sizemat j = x % size;
+    assert(MAX_COST_CELL - cost_mat_2d[size * i + j] >= r_1d[i]);
+    r_1d[i] += cost_mat_2d[size * i + j];
+    assert(MAX_COST_CELL - cost_mat_2d[size * j + i] >= c_1d[i]);
+    c_1d[i] += cost_mat_2d[size * j + i];
+  }
+
+#pragma omp simd
+  for (t_sizemat i = 0; i < size; i++) {
+    s_1d[i].value = r_1d[i] - c_1d[i] - 2 * cost_mat_2d[size * i + i];
+    assert(s_1d[i].index <= size);
+    s_1d[i].index = i;
+  }
+
+  qsort(s_1d, size, sizeof(Item), cmp_desc);
+
+#pragma omp simd
+  for (t_sizemat i = 0; i < size; i++) {
+    sol_1d[i] = s_1d[i].index;
+  }
+
+  DPRINTF("cw done, sol= ");
+#ifndef NDEBUG
+  print_array_1d(sol_1d, size);
+#endif
+
+  free(r_1d);
+  free(c_1d);
+  free(s_1d);
+  return sol_1d;
+}
+
+t_sizemat *sol_start_c_and_w(t_mat_cell *cost_mat_2d, t_sizemat size) {
+  DEBUG_PRINT("executing sol_start_c_and_w\n");
+  // t_sizemat* sol = false_c_and_w(cost_mat_2d, size);
+  t_sizemat *sol_1d = cw(cost_mat_2d, size);
+
+  return sol_1d;
 }
 
 void array_apply_shuffle(t_sizemat *const modified,

@@ -98,8 +98,16 @@ t_sizemat *sol_start_random(t_mat_cell *mat, t_sizemat n_columns);
  * @return A array of the CW ordering.
  */
 t_sizemat *sol_start_c_and_w(t_mat_cell *cost_mat_1d, t_sizemat n_columns);
-t_sizemat *false_c_and_w(t_mat_cell *cost_mat_1d, t_sizemat n_columns);
-t_sizemat *c_and_w(t_mat_cell *cost_mat_1d, t_sizemat n_columns);
+/**
+ * @brief false implementation of CW. Efficient, but false. It takes only the
+ * row changes but lop has symetrical indices.
+ *
+ * @param cost_mat_2d cost matrix 2d flattened to 1d.
+ * @param n_columns size of the solution.
+ * @return a false CW ordering array
+ */
+t_sizemat *false_c_and_w(t_mat_cell *cost_mat_2d, t_sizemat size);
+t_sizemat *cw(const t_mat_cell *restrict const cost_mat_2d, t_sizemat size);
 
 t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
                    struct matrix nighb_deltas, struct matrix cost_matrix);
