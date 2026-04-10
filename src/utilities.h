@@ -34,6 +34,7 @@ typedef unsigned int t_cost;
 
 #define MAX_COST UINT_MAX
 #define MAX_COST_CELL UINT_MAX
+#define MAX_SIZEMAT UINT_MAX
 
 t_mat_cell **createMatrixx(t_sizemat i);
 int rand0N(int limit);

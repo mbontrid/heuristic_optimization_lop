@@ -106,7 +106,7 @@ t_sizemat *generate_random_vector(t_sizemat dim)
     // #ifndef NDEBUG
     //     DPRINTF("Construction of randome vector at step %i: ", i);
     //     for (t_sizemat j = 0; j < dim; j++) {
-    //       printf("%ld ", random_vector[j]);
+    //       printf("%du ", random_vector[j]);
     //     }
     //     printf("\n");
     // #endif
@@ -115,7 +115,7 @@ t_sizemat *generate_random_vector(t_sizemat dim)
 #ifndef NDEBUG
   DPRINTF("random_vector : ");
   for (t_sizemat i = 0; i < dim; i++) {
-    printf("%ld ", random_vector[i]);
+    printf("%d ", random_vector[i]);
   }
   printf("\n");
 #endif
