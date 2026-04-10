@@ -36,6 +36,11 @@ typedef unsigned int t_cost;
 #define MAX_COST_CELL UINT_MAX
 #define MAX_SIZEMAT UINT_MAX
 
+typedef struct {
+  int index;
+  double value;
+} Item;
+
 t_mat_cell **createMatrixx(t_sizemat i);
 int rand0N(int limit);
 
@@ -58,6 +63,9 @@ void print_array_2d2(t_mat_cell **array_2d, t_sizemat n_rows,
                      t_sizemat n_columns);
 
 unsigned int factorial(unsigned int N);
+
+// Comparator for descending order
+int cmp_desc(const void *a, const void *b);
 
 /* constants for a pseudo-random number generator, taken from
    Numerical Recipes in C book --- never trust the standard C random

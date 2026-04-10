@@ -170,3 +170,12 @@ unsigned int factorial(unsigned int N) {
   }
   return fact;
 }
+
+int cmp_desc(const void *a, const void *b) {
+  double diff = ((Item *)b)->value - ((Item *)a)->value;
+  if (diff > 0)
+    return 1;
+  if (diff < 0)
+    return -1;
+  return 0;
+}
