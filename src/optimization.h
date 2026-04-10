@@ -73,8 +73,20 @@ t_sizemat *neighb_exchange_deltas(t_sizemat *const n_rows,
 t_sizemat *neighb_insert_deltas(t_sizemat *const n_rows,
                                 const t_sizemat n_columns);
 
-void neighb_modif(t_sizemat *new_sol_1d, const t_sizemat *sol_1d,
-                  const t_sizemat *neighb_delta_1d, t_sizemat n_columns);
+/**
+ * @brief reorder an array based on the indice of another array. The resulting
+ * array and the shuffle array have to of the same size.
+ *
+ * @param modified [TODO:parameter]
+ * @param shuffle [TODO:parameter]
+ * @param to_shuffle [TODO:parameter]
+ * @param n_rows [TODO:parameter]
+ * @param n_columns [TODO:parameter]
+ */
+void array_apply_shuffle(t_sizemat *const modified,
+                         const t_sizemat *const shuffle,
+                         const t_sizemat *const to_shuffle,
+                         const t_sizemat n_rows, const t_sizemat n_columns);
 
 t_sizemat *sol_start_random(t_mat_cell *mat, t_sizemat n_columns);
 
@@ -85,7 +97,9 @@ t_sizemat *sol_start_random(t_mat_cell *mat, t_sizemat n_columns);
  * @param n_columns Dimension of the square matrix
  * @return A array of the CW ordering.
  */
-t_sizemat *sol_start_c_and_w(t_mat_cell *mat, t_sizemat n_columns);
+t_sizemat *sol_start_c_and_w(t_mat_cell *cost_mat_1d, t_sizemat n_columns);
+t_sizemat *false_c_and_w(t_mat_cell *cost_mat_1d, t_sizemat n_columns);
+t_sizemat *c_and_w(t_mat_cell *cost_mat_1d, t_sizemat n_columns);
 
 t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
                    struct matrix nighb_deltas, struct matrix cost_matrix);
