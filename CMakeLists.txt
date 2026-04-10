@@ -14,12 +14,15 @@ include_directories(src)
 
 # Base/Release target with maximum optimization and -DNDEBUG
 add_executable(lop ${SOURCES})
-target_compile_options(lop PRIVATE -O3 -Wall -fopenmp-simd -march=native)
+find_package(OpenMP REQUIRED)
+target_link_libraries(lop PRIVATE OpenMP::OpenMP_C)
+target_compile_options(lop PRIVATE -Ofast -Wall -fopenmp-simd -march=native)
+# target_compile_options(lop PRIVATE -Ofast -Wall -fopenmp -march=native -fopt-info-vec-missed -fopt-info-vec)
 target_compile_definitions(lop PRIVATE NDEBUG)
 
 # Debug target with -Og and no -DNDEBUG
 add_executable(lop_debug ${SOURCES})
-target_compile_options(lop_debug PRIVATE -Og -Wall -fopenmp-simd -march=native -fopt-info-vec-missed -fopt-info-vec)
+target_compile_options(lop_debug PRIVATE -Og -Wall)
 
 # Set output directory
 set_target_properties(lop lop_debug PROPERTIES
