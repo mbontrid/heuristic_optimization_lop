@@ -83,12 +83,6 @@ int cmp_desc(const void *a, const void *b);
 
 extern long int Seed; /* seed for the random number generator */
 
-#define PVERB(...)                                                             \
-  if (is_verbose()) {                                                          \
-    printf("verbose: %s", __func__);                                           \
-    printf(__VA_ARGS__);                                                       \
-  }
-
 /* inline function compiled only if NDEBUG is not defined.
  * Each inline definition has to have a empty definiation in the else branch.
  */

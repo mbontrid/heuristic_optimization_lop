@@ -41,8 +41,8 @@
 
 extern struct arguments arguments;
 
-t_cost computeCost(const t_mat_cell *const cost_mat_2d, t_sizemat *lo,
-                   t_sizemat size) {
+t_cost computeCost(const t_mat_cell *const cost_mat_2d,
+                   const t_sizemat *const lo, t_sizemat size) {
   // #ifndef NDEBUG
   //   DPRINTF("executing computeCost with vector: \n");
   //   print_array_1d(lo, size);
@@ -59,6 +59,18 @@ t_cost computeCost(const t_mat_cell *const cost_mat_2d, t_sizemat *lo,
     }
   // DPRINTF("cost calculated : %d\n", sum);
   return (sum);
+}
+
+t_cost get_cost_diff(const t_mat_cell *const cost_mat_2d,
+                     const t_sizemat *const sol,
+                     const t_sizemat *const neighb_delta,
+                     const t_sizemat size) {
+  return 0;
+}
+
+t_cost get_cost(const t_mat_cell *const cost_mat_2d, const t_sizemat *const sol,
+                const t_sizemat *const neighb_delta, const t_sizemat size) {
+  return computeCost(cost_mat_2d, sol, size);
 }
 
 t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, t_sizemat n_rows,
@@ -357,14 +369,14 @@ t_sizemat *sol_start_c_and_w(t_mat_cell *cost_mat_2d, t_sizemat size) {
   return sol_1d;
 }
 
-void array_apply_shuffle(t_sizemat *const modified,
+void array_apply_shuffle(t_sizemat *const result,
                          const t_sizemat *const shuffle,
                          const t_sizemat *const to_shuffle,
                          const t_sizemat size) {
 #pragma omp simd
   for (t_sizemat i = 0; i < size; i++) {
     // DPRINTF("shuffle=%d | to_shuffle=%d\n", shuffle[i], to_shuffle[i]);
-    modified[shuffle[i]] = to_shuffle[i];
+    result[shuffle[i]] = to_shuffle[i];
   }
 }
 
@@ -372,10 +384,6 @@ t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
                    struct matrix neighb_deltas, struct matrix cost_matrix) {
   DPRINTF("executing pivot_first\n");
 
-#ifndef NDEBUG
-  DPRINTF(" pivot first to apply on sol :\n");
-  print_array_1d(sol_1d, cost_matrix.n_columns);
-#endif
   for (t_sizemat i = 0; i < neighb_deltas.n_rows; i++) {
     const t_sizemat *const neighb_delta =
         &neighb_deltas.mat_2d[neighb_deltas.n_columns * i];
@@ -393,11 +401,11 @@ t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
     //     print_array_1d(new_sol_1d, neighb_deltas.n_columns);
     // #endif
 
-    t_cost new_cost =
-        computeCost(cost_matrix.mat_2d, new_sol_1d, cost_matrix.n_columns);
+    t_cost new_cost = get_cost(cost_matrix.mat_2d, new_sol_1d, neighb_delta,
+                               neighb_deltas.n_columns);
 
     if (new_cost > cost) {
-      // DPRINTF("new best cost found : %d (old cost: %d", new_cost, cost);
+      DPRINTF("new best cost found : %d (old cost: %d", new_cost, cost);
       cost = new_cost;
       break;
     }
@@ -411,36 +419,36 @@ t_cost pivot_best(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
 
   cost = 0;
   memcpy(new_sol_1d, sol_1d, cost_matrix.n_columns);
-  t_sizemat *best_neighb_modif = &neighb_deltas.mat_2d[neighb_deltas.n_columns];
+  t_sizemat *best_neighb_delta = neighb_deltas.mat_2d;
 
   for (t_sizemat i = 0; i < neighb_deltas.n_rows; i++) {
 
     t_sizemat *neighb_delta =
         &neighb_deltas.mat_2d[neighb_deltas.n_columns * i];
 
-#ifndef NDEBUG
     DPRINTF("testing neibgh_deltas : ");
+#ifndef NDEBUG
     print_array_1d(neighb_delta, neighb_deltas.n_columns);
 #endif
 
     array_apply_shuffle(new_sol_1d, neighb_delta, sol_1d,
                         neighb_deltas.n_columns);
-    t_cost new_cost =
-        computeCost(cost_matrix.mat_2d, new_sol_1d, cost_matrix.n_columns);
+    t_cost new_cost = get_cost(cost_matrix.mat_2d, new_sol_1d, neighb_delta,
+                               neighb_deltas.n_columns);
 
-    if (new_cost >= cost) {
+    if (new_cost > cost) {
       DPRINTF("Found better cost: old cost : %u | new cost : %u\n", cost,
               new_cost);
       cost = new_cost;
-      best_neighb_modif = neighb_delta;
+      best_neighb_delta = neighb_delta;
     }
   }
 
-  array_apply_shuffle(new_sol_1d, best_neighb_modif, sol_1d,
+  array_apply_shuffle(new_sol_1d, best_neighb_delta, sol_1d,
                       neighb_deltas.n_columns);
 
 #ifndef NDEBUG
-  DPRINTF("solution found with pivot best with %d cost : ", cost);
+  DPRINTF("best pivot found with %d cost : ", cost);
   print_array_1d(new_sol_1d, neighb_deltas.n_columns);
 #endif
 
@@ -453,6 +461,7 @@ t_sizemat *lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
                t_fptr_neighborhood fptr_neighborhood) {
   DPRINTF("executing lop\n");
 
+  // put matrixes in a struct
   struct matrix cost_mat;
   cost_mat.mat_2d = cost_mat_2d;
   cost_mat.n_columns = cost_mat_dim;
@@ -470,19 +479,18 @@ t_sizemat *lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
   DPRINTF("lop got a starting solution : \n");
   print_array_1d(sol_1d, cost_mat_dim);
 #endif
+
+  // new solution after each pivot.
   t_sizemat *new_sol_1d = malloc(cost_mat.n_columns * sizeof(t_sizemat));
   memcpy(new_sol_1d, sol_1d, cost_mat_dim * sizeof(t_sizemat));
 
   t_cost cost = computeCost(cost_mat_2d, sol_1d, cost_mat_dim);
-  DPRINTF("original cost : %d cost\n", cost);
   t_cost new_cost = cost;
+  DPRINTF("original cost : %d cost\n", cost);
 
   bool is_improve = true;
+  while (is_improve) {
 
-  while (is_improve ||
-         (cost == new_cost && !array_equal(new_sol_1d, sol_1d, cost_mat_dim))) {
-
-    DPRINTF("lop while : cost=%d and new_cost=%d\n", cost, new_cost);
 #ifndef NDEBUG
     DPRINTF("best sol: ");
     print_array_1d(new_sol_1d, cost_mat_dim);
@@ -494,9 +502,12 @@ t_sizemat *lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
     new_cost =
         fptr_pivot_rule(sol_1d, new_sol_1d, cost, neigh_deltas, cost_mat);
 
-    PVERB("cost=%d | new_cost=%d\n", cost, new_cost);
     is_improve = cost < new_cost;
+    // cost < new_cost ||
+    // (cost == new_cost && !array_equal(new_sol_1d, sol_1d, cost_mat_dim));
+    PVERB("cost=%d | new_cost=%d\n", cost, new_cost);
   }
+  PVERB("lop best cost found: %u", cost);
   free(new_sol_1d);
   free(neigh_deltas.mat_2d);
   return sol_1d;

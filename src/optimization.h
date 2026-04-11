@@ -39,8 +39,15 @@ typedef t_sizemat *(*t_fptr_sol_start)(t_mat_cell *CostMat, t_sizemat size);
 
 extern t_mat_cell **cost_mat_2d;
 
-t_cost computeCost(const t_mat_cell *const cost_mat, t_sizemat *lo,
+t_cost computeCost(const t_mat_cell *const cost_mat, const t_sizemat *const lo,
                    t_sizemat size);
+
+t_cost get_cost_diff(const t_mat_cell *const cost_mat_2d,
+                     const t_sizemat *const sol,
+                     const t_sizemat *const neighb_delta, const t_sizemat size);
+
+t_cost get_cost(const t_mat_cell *const cost_mat_2d, const t_sizemat *const sol,
+                const t_sizemat *const neighb_delta, const t_sizemat size);
 
 /**
  * @brief Compute the prefix sum of each row of a matrix independently.
