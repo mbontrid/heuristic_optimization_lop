@@ -42,9 +42,20 @@ extern t_mat_cell **cost_mat_2d;
 t_cost computeCost(const t_mat_cell *const cost_mat, const t_sizemat *const lo,
                    t_sizemat size);
 
-t_cost get_cost_diff(const t_mat_cell *const cost_mat_2d,
-                     const t_sizemat *const sol,
-                     const t_sizemat *const neighb_delta, const t_sizemat size);
+/**
+ * @brief get the diference of cost from a solution with a modification applied.
+ *
+ * @param cost_mat_2d 2d matrix of costs.
+ * @param sol solution on which the .
+ * @param neighb_delta madification on sol.
+ * @param size size of neighb_delta and sol.
+ * @return the diference of the cost of sol and cost of sol with neighb_delta
+ * applied.
+ */
+long int get_cost_diff(const t_mat_cell *const cost_mat_2d,
+                       const t_sizemat *const sol,
+                       const t_sizemat *const neighb_delta,
+                       const t_sizemat size);
 
 t_cost get_cost(const t_mat_cell *const cost_mat_2d, const t_sizemat *const sol,
                 const t_sizemat *const neighb_delta, const t_sizemat size);

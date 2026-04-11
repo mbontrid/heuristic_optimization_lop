@@ -64,9 +64,7 @@ t_cost computeCost(const t_mat_cell *const cost_mat_2d,
 t_cost get_cost_diff(const t_mat_cell *const cost_mat_2d,
                      const t_sizemat *const sol,
                      const t_sizemat *const neighb_delta,
-                     const t_sizemat size) {
-  return 0;
-}
+                     const t_sizemat size) {}
 
 t_cost get_cost(const t_mat_cell *const cost_mat_2d, const t_sizemat *const sol,
                 const t_sizemat *const neighb_delta, const t_sizemat size) {
