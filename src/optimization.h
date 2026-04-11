@@ -46,8 +46,9 @@ t_cost computeCost(const t_mat_cell *const cost_mat, const t_sizemat *const lo,
  * @brief get the diference of cost from a solution with a modification applied.
  *
  * @param cost_mat_2d 2d matrix of costs.
- * @param sol solution on which the .
- * @param neighb_delta madification on sol.
+ * @param sol source solution (neighb_delta is not yet applied on it).
+ * @param neighb_delta modification to apply to sol with
+ * new_sol[neighb_delta[i]] = sol[i].
  * @param size size of neighb_delta and sol.
  * @return the diference of the cost of sol and cost of sol with neighb_delta
  * applied.

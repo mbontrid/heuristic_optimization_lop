@@ -68,17 +68,40 @@ long int get_cost_diff_with_delta(const t_mat_cell *const cost_mat_2d,
   long int cost_diff = 0;
 
   /*
-   * Cost only changes for pairs (i,j) whose relative order is reversed by
-   * neighb_delta. For such pairs, contribution switches from
-   * cost[sol[i]][sol[j]] to cost[sol[j]][sol[i]].
+   * neighb_delta is applied on sol as: new_sol[neighb_delta[i]] = sol[i].
+   * Only pairs whose relative order changes contribute to cost_diff.
+   *
+   * We only iterate pairs where at least one position moved (neighb_delta[i] != i),
+   * which is substantially faster for sparse neighborhood deltas.
    */
+  if (size < 2) {
+    return 0;
+  }
+
+  t_sizemat moved_count = 0;
+  t_sizemat moved_indexes[size];
+  bool moved_mask[size];
+
   for (t_sizemat i = 0; i < size; i++) {
     assert(neighb_delta[i] < size);
+    const bool is_moved = neighb_delta[i] != i;
+    moved_mask[i] = is_moved;
+    if (is_moved) {
+      moved_indexes[moved_count++] = i;
+    }
+  }
+
+  for (t_sizemat idx = 0; idx < moved_count; idx++) {
+    const t_sizemat i = moved_indexes[idx];
     const t_sizemat delta_i = neighb_delta[i];
     const t_sizemat sol_i = sol[i];
 
+    /*
+     * Pairs (i, j) with i < j. This handles:
+     *  - moved/moved pairs exactly once
+     *  - moved/unmoved pairs where moved index is the left endpoint
+     */
     for (t_sizemat j = i + 1; j < size; j++) {
-      assert(neighb_delta[j] < size);
       if (delta_i <= neighb_delta[j]) {
         continue;
       }
@@ -86,6 +109,20 @@ long int get_cost_diff_with_delta(const t_mat_cell *const cost_mat_2d,
       const t_sizemat sol_j = sol[j];
       cost_diff += (long int)cost_mat_2d[size * sol_j + sol_i] -
                    (long int)cost_mat_2d[size * sol_i + sol_j];
+    }
+
+    /*
+     * Pairs (j, i) with j < i and j unmoved. Pairs with moved j were already
+     * processed in the previous loop when j was the left endpoint.
+     */
+    for (t_sizemat j = 0; j < i; j++) {
+      if (moved_mask[j] || j <= delta_i) {
+        continue;
+      }
+
+      const t_sizemat sol_j = sol[j];
+      cost_diff += (long int)cost_mat_2d[size * sol_i + sol_j] -
+                   (long int)cost_mat_2d[size * sol_j + sol_i];
     }
   }
 
