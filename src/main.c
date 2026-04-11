@@ -182,8 +182,15 @@ int main(int argc, char **argv) {
 
   DPRINTF("debug of neighborhood and sol_start\n");
 
-  lop(cost_mat_2d, cost_mat_size, arguments.fptr_sol_start,
-      arguments.fptr_pivoting_rule, arguments.fptr_neighborhood);
+  t_sizemat *sol =
+      lop(cost_mat_2d, cost_mat_size, arguments.fptr_sol_start,
+          arguments.fptr_pivoting_rule, arguments.fptr_neighborhood);
+  cost = computeCost(cost_mat_2d, sol, cost_mat_size);
+
+  printf("lop cost found : %u with sol : \n", cost);
+  print_array_1d(sol, cost_mat_size);
+
+  free(sol);
 
   /* starts time measurement */
   start_timers();

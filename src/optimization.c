@@ -103,8 +103,6 @@ t_sizemat get_n_transpose(t_sizemat size) {
 t_sizemat *neighb_transpose_deltas(t_sizemat *const n_rows,
                                    const t_sizemat n_columns) {
 
-  DPRINTF("executing neighborhood_tranpose\n");
-
   *n_rows = get_n_transpose(n_columns);
   t_sizemat *transposes_deltas_2d =
       malloc(*n_rows * n_columns * sizeof(t_sizemat));
@@ -115,18 +113,19 @@ t_sizemat *neighb_transpose_deltas(t_sizemat *const n_rows,
     for (t_sizemat j = 0; j < n_columns; j++) {
       transposes_deltas_2d[n_columns * i + j] = j;
     }
+
     t_sizemat temp = transposes_deltas_2d[n_columns * i + i];
     transposes_deltas_2d[n_columns * i + i] =
         transposes_deltas_2d[n_columns * i + i + 1];
-    transposes_deltas_2d[n_columns * i + (i + 1) % n_columns] = temp;
+    transposes_deltas_2d[n_columns * i + (i + 1) % n_columns] =
+        temp; // the % alows the transpose to go around the array.
   }
 
+  DPRINTF("all transposes : \n");
 #ifndef NDEBUG
-  for (ulong i = 0; i < *n_rows; i++) {
-    for (t_sizemat j = 0; j < n_columns; j++) {
-      printf("%u ", transposes_deltas_2d[n_columns * i + j]);
-    }
-    printf("\n");
+  for (t_sizemat i = 0; i < *n_rows; i++) {
+    DPRINTF("transpose %u : ", i)
+    print_array_1d(&transposes_deltas_2d[n_columns * i], n_columns);
   }
 #endif
   return transposes_deltas_2d;
@@ -405,7 +404,7 @@ t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
                                neighb_deltas.n_columns);
 
     if (new_cost > cost) {
-      DPRINTF("new best cost found : %d (old cost: %d", new_cost, cost);
+      DPRINTF("new best cost found : %d (old cost: %d)\n", new_cost, cost);
       cost = new_cost;
       break;
     }
@@ -426,10 +425,10 @@ t_cost pivot_best(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
     t_sizemat *neighb_delta =
         &neighb_deltas.mat_2d[neighb_deltas.n_columns * i];
 
-    DPRINTF("testing neibgh_deltas : ");
-#ifndef NDEBUG
-    print_array_1d(neighb_delta, neighb_deltas.n_columns);
-#endif
+    //     DPRINTF("testing neibgh_deltas : ");
+    // #ifndef NDEBUG
+    //     print_array_1d(neighb_delta, neighb_deltas.n_columns);
+    // #endif
 
     array_apply_shuffle(new_sol_1d, neighb_delta, sol_1d,
                         neighb_deltas.n_columns);
