@@ -1,44 +1,31 @@
 #ifndef _ARG_PARSER_H_
 #define _ARG_PARSER_H_
 
-#include "optimization.h"
 #include <stdbool.h>
 
-enum pivoting_rule {
-  first,
-  best,
-};
+#include "optimization.h"
 
-enum neighborhood {
-  transpose,
-  exchange,
-  insert,
-};
-
-enum sol_start {
-  randome,
-  c_and_w,
-};
-
-static struct arguments {
+struct arguments {
   bool is_pos_arg;
-  char *pos_args[1]; // positional argumuments of the command line calla.
+  char *pos_args[1];
   char *instance_file;
   char *out_file;
   bool verbose;
 
-  enum pivoting_rule pivoting_rule;
-  enum neighborhood neighborhood;
-  enum sol_start sol_start;
-
   t_fptr_pivot_rule fptr_pivoting_rule;
   t_fptr_neighborhood fptr_neighborhood;
   t_fptr_sol_start fptr_sol_start;
-} arguments;
+};
 
-bool is_verbose() { return arguments.verbose; }
+extern struct arguments arguments;
 
-static const char doc[] = "LOP instance resolver";
-static const char args_doc[] = "";
+void init_arguments(struct arguments *args);
+void parse_arguments(int argc, char **argv, struct arguments *args);
+void verbose_printf(const char *func_name, const char *fmt, ...);
+
+#define PVERB(...)                                                             \
+  do {                                                                         \
+    verbose_printf(__func__, __VA_ARGS__);                                     \
+  } while (0)
 
 #endif //_ARG_PARSER_H_
