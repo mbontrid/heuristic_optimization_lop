@@ -67,11 +67,27 @@ long int get_cost_diff_by_delta(const t_mat_cell *const cost_mat_2d,
                                 const t_sizemat size) {
   long int cost_diff = 0;
 
-  t_sizemat *new_sol = malloc(size * sizeof(t_sizemat));
-  array_apply_shuffle(new_sol, neighb_delta, sol, size);
-  cost_diff = (long int)computeCost(cost_mat_2d, new_sol, size) -
-              (long int)computeCost(cost_mat_2d, sol, size);
-  free(new_sol);
+  /*
+   * Cost only changes for pairs (i,j) whose relative order is reversed by
+   * neighb_delta. For such pairs, contribution switches from w[sol[i]][sol[j]]
+   * to w[sol[j]][sol[i]].
+   */
+  for (t_sizemat i = 0; i < size; i++) {
+    assert(neighb_delta[i] < size);
+    const t_sizemat delta_i = neighb_delta[i];
+    const t_sizemat sol_i = sol[i];
+
+    for (t_sizemat j = i + 1; j < size; j++) {
+      assert(neighb_delta[j] < size);
+      if (delta_i <= neighb_delta[j]) {
+        continue;
+      }
+
+      const t_sizemat sol_j = sol[j];
+      cost_diff += (long int)cost_mat_2d[size * sol_j + sol_i] -
+                   (long int)cost_mat_2d[size * sol_i + sol_j];
+    }
+  }
 
 #ifndef NDEBUG
   t_sizemat *new_sol_ndebug = malloc(size * sizeof(t_sizemat));
