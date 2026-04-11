@@ -61,14 +61,37 @@ t_cost computeCost(const t_mat_cell *const cost_mat_2d,
   return (sum);
 }
 
-t_cost get_cost_diff(const t_mat_cell *const cost_mat_2d,
-                     const t_sizemat *const sol,
-                     const t_sizemat *const neighb_delta,
-                     const t_sizemat size) {}
+long int get_cost_diff_by_delta(const t_mat_cell *const cost_mat_2d,
+                                const t_sizemat *const sol,
+                                const t_sizemat *const neighb_delta,
+                                const t_sizemat size) {
+  long int cost_diff = 0;
+
+  t_sizemat *new_sol = malloc(size * sizeof(t_sizemat));
+  array_apply_shuffle(new_sol, neighb_delta, sol, size);
+  cost_diff = (long int)computeCost(cost_mat_2d, new_sol, size) -
+              (long int)computeCost(cost_mat_2d, sol, size);
+  free(new_sol);
+
+#ifndef NDEBUG
+  t_sizemat *new_sol_ndebug = malloc(size * sizeof(t_sizemat));
+  array_apply_shuffle(new_sol_ndebug, neighb_delta, sol, size);
+  t_cost cost = computeCost(cost_mat_2d, sol, size);
+  t_cost new_cost = computeCost(cost_mat_2d, new_sol_ndebug, size);
+  DPRINTF("cost_diff : %ld | cost : %u | new_cost : %u\n", cost_diff, cost,
+          new_cost);
+  assert(cost + cost_diff == new_cost);
+  free(new_sol_ndebug);
+#endif
+
+  return cost_diff;
+}
 
 t_cost get_cost(const t_mat_cell *const cost_mat_2d, const t_sizemat *const sol,
-                const t_sizemat *const neighb_delta, const t_sizemat size) {
-  return computeCost(cost_mat_2d, sol, size);
+                const t_sizemat *const neighb_delta, const t_sizemat size,
+                t_cost old_cost) {
+  return old_cost +
+         get_cost_diff_by_delta(cost_mat_2d, sol, neighb_delta, size);
 }
 
 t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, t_sizemat n_rows,
@@ -398,12 +421,13 @@ t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
     //     print_array_1d(new_sol_1d, neighb_deltas.n_columns);
     // #endif
 
-    t_cost new_cost = get_cost(cost_matrix.mat_2d, new_sol_1d, neighb_delta,
-                               neighb_deltas.n_columns);
+    long int cost_diff = get_cost_diff_by_delta(
+        cost_matrix.mat_2d, new_sol_1d, neighb_delta, neighb_deltas.n_columns);
 
-    if (new_cost > cost) {
-      DPRINTF("new best cost found : %d (old cost: %d)\n", new_cost, cost);
-      cost = new_cost;
+    if (cost_diff > 0) {
+      DPRINTF("new best cost found : %d (old cost: %d)\n",
+              cost + (t_cost)cost_diff, cost);
+      cost += cost_diff;
       break;
     }
   }
@@ -430,13 +454,14 @@ t_cost pivot_best(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
 
     array_apply_shuffle(new_sol_1d, neighb_delta, sol_1d,
                         neighb_deltas.n_columns);
-    t_cost new_cost = get_cost(cost_matrix.mat_2d, new_sol_1d, neighb_delta,
-                               neighb_deltas.n_columns);
 
-    if (new_cost > cost) {
+    long int cost_diff = get_cost_diff_by_delta(
+        cost_matrix.mat_2d, new_sol_1d, neighb_delta, neighb_deltas.n_columns);
+
+    if (cost_diff > 0) {
       DPRINTF("Found better cost: old cost : %u | new cost : %u\n", cost,
-              new_cost);
-      cost = new_cost;
+              cost + (t_cost)cost_diff);
+      cost += cost_diff;
       best_neighb_delta = neighb_delta;
     }
   }
