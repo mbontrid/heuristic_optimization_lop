@@ -52,10 +52,10 @@ t_cost computeCost(const t_mat_cell *const cost_mat, const t_sizemat *const lo,
  * @return the diference of the cost of sol and cost of sol with neighb_delta
  * applied.
  */
-long int get_cost_diff_by_delta(const t_mat_cell *const cost_mat_2d,
-                                const t_sizemat *const sol,
-                                const t_sizemat *const neighb_delta,
-                                const t_sizemat size);
+long int get_cost_diff_with_delta(const t_mat_cell *const cost_mat_2d,
+                                  const t_sizemat *const sol,
+                                  const t_sizemat *const neighb_delta,
+                                  const t_sizemat size);
 
 t_cost get_cost(const t_mat_cell *const cost_mat_2d, const t_sizemat *const sol,
                 const t_sizemat *const neighb_delta, const t_sizemat size,
@@ -131,8 +131,9 @@ t_sizemat *sol_start_cw_tentative(const t_mat_cell *restrict const cost_mat_2d,
 t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
                    struct matrix nighb_deltas, struct matrix cost_matrix);
 
-t_cost pivot_best(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
-                  struct matrix nighb_deltas, struct matrix cost_matrix);
+t_cost pivot_best(const t_sizemat *const sol_1d, t_sizemat *new_sol_1d,
+                  t_cost cost, struct matrix nighb_deltas,
+                  struct matrix cost_matrix);
 
 t_sizemat *lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
                t_fptr_sol_start fptr_sol_start,

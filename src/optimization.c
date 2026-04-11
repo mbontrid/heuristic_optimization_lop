@@ -61,16 +61,16 @@ t_cost computeCost(const t_mat_cell *const cost_mat_2d,
   return (sum);
 }
 
-long int get_cost_diff_by_delta(const t_mat_cell *const cost_mat_2d,
-                                const t_sizemat *const sol,
-                                const t_sizemat *const neighb_delta,
-                                const t_sizemat size) {
+long int get_cost_diff_with_delta(const t_mat_cell *const cost_mat_2d,
+                                  const t_sizemat *const sol,
+                                  const t_sizemat *const neighb_delta,
+                                  const t_sizemat size) {
   long int cost_diff = 0;
 
   /*
    * Cost only changes for pairs (i,j) whose relative order is reversed by
-   * neighb_delta. For such pairs, contribution switches from w[sol[i]][sol[j]]
-   * to w[sol[j]][sol[i]].
+   * neighb_delta. For such pairs, contribution switches from
+   * cost[sol[i]][sol[j]] to cost[sol[j]][sol[i]].
    */
   for (t_sizemat i = 0; i < size; i++) {
     assert(neighb_delta[i] < size);
@@ -89,6 +89,8 @@ long int get_cost_diff_by_delta(const t_mat_cell *const cost_mat_2d,
     }
   }
 
+// this is a test of the good result runing only when NDEBUG is defined. It is
+// slowing considerably the execution.
 #ifndef NDEBUG
   t_sizemat *new_sol_ndebug = malloc(size * sizeof(t_sizemat));
   array_apply_shuffle(new_sol_ndebug, neighb_delta, sol, size);
@@ -107,7 +109,7 @@ t_cost get_cost(const t_mat_cell *const cost_mat_2d, const t_sizemat *const sol,
                 const t_sizemat *const neighb_delta, const t_sizemat size,
                 t_cost old_cost) {
   return old_cost +
-         get_cost_diff_by_delta(cost_mat_2d, sol, neighb_delta, size);
+         get_cost_diff_with_delta(cost_mat_2d, sol, neighb_delta, size);
 }
 
 t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, t_sizemat n_rows,
@@ -423,67 +425,56 @@ t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
   for (t_sizemat i = 0; i < neighb_deltas.n_rows; i++) {
     const t_sizemat *const neighb_delta =
         &neighb_deltas.mat_2d[neighb_deltas.n_columns * i];
+
     //
     // #ifndef NDEBUG
     //     DPRINTF("got the %d neighb_deltas\n", i);
     //     print_array_1d(neighb_delta, neighb_deltas.n_columns);
     // #endif
 
-    array_apply_shuffle(new_sol_1d, neighb_delta, sol_1d,
-                        neighb_deltas.n_columns);
-
     // #ifndef NDEBUG
     //     DPRINTF("new sol :\n");
     //     print_array_1d(new_sol_1d, neighb_deltas.n_columns);
     // #endif
 
-    long int cost_diff = get_cost_diff_by_delta(
-        cost_matrix.mat_2d, new_sol_1d, neighb_delta, neighb_deltas.n_columns);
+    t_cost new_cost = get_cost(cost_matrix.mat_2d, sol_1d, neighb_delta,
+                               neighb_deltas.n_columns, cost);
 
-    if (cost_diff > 0) {
-      DPRINTF("new best cost found : %d (old cost: %d)\n",
-              cost + (t_cost)cost_diff, cost);
-      cost += cost_diff;
-      break;
+    if (new_cost > cost) {
+      DPRINTF("new best cost found : %d (old cost: %d)\n", new_cost, cost);
+      cost = new_cost;
+      array_apply_shuffle(new_sol_1d, neighb_delta, sol_1d,
+                          neighb_deltas.n_columns);
+      break; // once a better cost is found, pivot_first stop.
     }
   }
   return cost;
 }
 
-t_cost pivot_best(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
-                  struct matrix neighb_deltas, struct matrix cost_matrix) {
+t_cost pivot_best(const t_sizemat *const sol_1d, t_sizemat *new_sol_1d,
+                  t_cost cost, struct matrix neighb_deltas,
+                  struct matrix cost_matrix) {
   DPRINTF("executing pivot_best\n");
 
   cost = 0;
-  memcpy(new_sol_1d, sol_1d, cost_matrix.n_columns);
-  t_sizemat *best_neighb_delta = neighb_deltas.mat_2d;
+  memcpy(new_sol_1d, sol_1d, sizeof(t_sizemat) * neighb_deltas.n_columns);
 
   for (t_sizemat i = 0; i < neighb_deltas.n_rows; i++) {
 
     t_sizemat *neighb_delta =
         &neighb_deltas.mat_2d[neighb_deltas.n_columns * i];
 
-    //     DPRINTF("testing neibgh_deltas : ");
-    // #ifndef NDEBUG
-    //     print_array_1d(neighb_delta, neighb_deltas.n_columns);
-    // #endif
+    t_cost new_cost = get_cost(cost_matrix.mat_2d, sol_1d, neighb_delta,
+                               neighb_deltas.n_columns, cost);
 
-    array_apply_shuffle(new_sol_1d, neighb_delta, sol_1d,
-                        neighb_deltas.n_columns);
-
-    long int cost_diff = get_cost_diff_by_delta(
-        cost_matrix.mat_2d, new_sol_1d, neighb_delta, neighb_deltas.n_columns);
-
-    if (cost_diff > 0) {
+    if (new_cost > cost) {
       DPRINTF("Found better cost: old cost : %u | new cost : %u\n", cost,
-              cost + (t_cost)cost_diff);
-      cost += cost_diff;
-      best_neighb_delta = neighb_delta;
+              new_cost);
+      cost = new_cost;
+      array_apply_shuffle(new_sol_1d, neighb_delta, sol_1d,
+                          neighb_deltas.n_columns);
     }
   }
-
-  array_apply_shuffle(new_sol_1d, best_neighb_delta, sol_1d,
-                      neighb_deltas.n_columns);
 
 #ifndef NDEBUG
   DPRINTF("best pivot found with %d cost : ", cost);
