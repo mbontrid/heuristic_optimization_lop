@@ -21,6 +21,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <values.h>
 
 #include "utilities.h"
@@ -125,15 +126,10 @@ t_sizemat *generate_random_vector(t_sizemat dim)
 
 bool array_equal(const t_sizemat *const array_1d_1,
                  const t_sizemat *const array_1d_2, t_sizemat size) {
-  for (t_sizemat i = 0; i < size; i++) {
-    if (array_1d_1[i] != array_1d_2[i]) {
-      return false;
-    }
-  }
-  return true;
+  return !memcmp(array_1d_1, array_1d_2, size * sizeof(t_sizemat));
 }
 
-void print_array_1d(t_mat_cell *array, t_sizemat n_columns) {
+void print_array_1d(const t_mat_cell *const array, const t_sizemat n_columns) {
   for (t_sizemat i = 0; i < n_columns; i++) {
     printf("%u ", array[i]);
   }

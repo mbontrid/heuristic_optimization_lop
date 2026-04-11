@@ -53,10 +53,10 @@ extern int randInt(int minimum, int maximum);
 t_sizemat *generate_inc_vector(t_sizemat size);
 extern t_sizemat *generate_random_vector(t_sizemat dim);
 
-bool array_equal(const t_sizemat *const array_1d_1,
-                 const t_sizemat *const array_1d_2, t_sizemat size);
+bool array_equal(const t_sizemat *array_1d_1, const t_sizemat *array_1d_2,
+                 t_sizemat size);
 
-void print_array_1d(t_mat_cell *array, t_sizemat n_columns);
+void print_array_1d(const t_mat_cell *const array, const t_sizemat n_columns);
 void print_array_2d(t_mat_cell *array_2d, t_sizemat n_rows,
                     t_sizemat n_columns);
 void print_array_2d2(t_mat_cell **array_2d, t_sizemat n_rows,
@@ -82,6 +82,12 @@ int cmp_desc(const void *a, const void *b);
 #endif
 
 extern long int Seed; /* seed for the random number generator */
+
+#define PVERB(...)                                                             \
+  if (is_verbose()) {                                                          \
+    printf("verbose: %s", __func__);                                           \
+    printf(__VA_ARGS__);                                                       \
+  }
 
 /* inline function compiled only if NDEBUG is not defined.
  * Each inline definition has to have a empty definiation in the else branch.

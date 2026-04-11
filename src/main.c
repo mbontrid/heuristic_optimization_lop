@@ -130,6 +130,7 @@ static struct argp argp = {options, parse_opt, args_doc, doc};
 int main(int argc, char **argv) {
 
   DEBUG_PRINT("Debug print activated.\n");
+  PVERB("Verbose activated\n");
 
   long int i, j;
   t_sizemat *currentSolution;
@@ -141,7 +142,7 @@ int main(int argc, char **argv) {
 
   // ---argument parsing----
 
-  struct arguments arguments;
+  extern struct arguments arguments;
   arguments.verbose = false;
   arguments.instance_file = "instances/N-be75eec_150";
   arguments.out_file = "data/last_results";

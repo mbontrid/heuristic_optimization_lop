@@ -86,7 +86,7 @@ t_sizemat *neighb_insert_deltas(t_sizemat *const n_rows,
 void array_apply_shuffle(t_sizemat *const modified,
                          const t_sizemat *const shuffle,
                          const t_sizemat *const to_shuffle,
-                         const t_sizemat n_rows, const t_sizemat n_columns);
+                         const t_sizemat size);
 
 t_sizemat *sol_start_random(t_mat_cell *mat, t_sizemat n_columns);
 
@@ -98,16 +98,17 @@ t_sizemat *sol_start_random(t_mat_cell *mat, t_sizemat n_columns);
  * @return A array of the CW ordering.
  */
 t_sizemat *sol_start_c_and_w(t_mat_cell *cost_mat_1d, t_sizemat n_columns);
+
+t_sizemat *sol_start_cw(t_mat_cell *cost_mat_2d, t_sizemat size);
 /**
- * @brief false implementation of CW. Efficient, but false. It takes only the
- * row changes but lop has symetrical indices.
+ * @brief false implementation of CW. Efficient, but false.
  *
  * @param cost_mat_2d cost matrix 2d flattened to 1d.
  * @param n_columns size of the solution.
  * @return a false CW ordering array
  */
-t_sizemat *false_c_and_w(t_mat_cell *cost_mat_2d, t_sizemat size);
-t_sizemat *cw(const t_mat_cell *restrict const cost_mat_2d, t_sizemat size);
+t_sizemat *sol_start_cw_tentative(const t_mat_cell *restrict const cost_mat_2d,
+                                  t_sizemat size);
 
 t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
                    struct matrix nighb_deltas, struct matrix cost_matrix);
@@ -115,8 +116,9 @@ t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
 t_cost pivot_best(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
                   struct matrix nighb_deltas, struct matrix cost_matrix);
 
-void lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
-         t_fptr_sol_start fptr_sol_start, t_fptr_pivot_rule fptr_pivot_rule,
-         t_fptr_neighborhood fptr_neighborhood);
+t_sizemat *lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
+               t_fptr_sol_start fptr_sol_start,
+               t_fptr_pivot_rule fptr_pivot_rule,
+               t_fptr_neighborhood fptr_neighborhood);
 
 #endif

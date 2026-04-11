@@ -20,7 +20,7 @@ enum sol_start {
   c_and_w,
 };
 
-struct arguments {
+static struct arguments {
   bool is_pos_arg;
   char *pos_args[1]; // positional argumuments of the command line calla.
   char *instance_file;
@@ -34,7 +34,9 @@ struct arguments {
   t_fptr_pivot_rule fptr_pivoting_rule;
   t_fptr_neighborhood fptr_neighborhood;
   t_fptr_sol_start fptr_sol_start;
-};
+} arguments;
+
+bool is_verbose() { return arguments.verbose; }
 
 static const char doc[] = "LOP instance resolver";
 static const char args_doc[] = "";

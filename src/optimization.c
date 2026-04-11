@@ -27,6 +27,7 @@
 #include <string.h>
 #include <values.h>
 
+#include "arg_parser.h"
 #include "instance.h"
 #include "optimization.h"
 #include "utilities.h"
@@ -38,12 +39,15 @@
 #define MAX_FLOAT MAXFLOAT
 #endif
 
+extern struct arguments arguments;
+
 t_cost computeCost(const t_mat_cell *const cost_mat_2d, t_sizemat *lo,
                    t_sizemat size) {
-#ifndef NDEBUG
-  DPRINTF("executing computeCost with vector: \n");
-  print_array_1d(lo, size);
-#endif
+  // #ifndef NDEBUG
+  //   DPRINTF("executing computeCost with vector: \n");
+  //   print_array_1d(lo, size);
+  // #endif
+
   int h, k;
   t_cost sum = 0;
 
@@ -53,7 +57,7 @@ t_cost computeCost(const t_mat_cell *const cost_mat_2d, t_sizemat *lo,
       assert(MAX_COST - cost_mat_2d[size * lo[h] + lo[k]] >= sum);
       sum += cost_mat_2d[size * lo[h] + lo[k]];
     }
-  DPRINTF("cost calculated : %d\n", sum);
+  // DPRINTF("cost calculated : %d\n", sum);
   return (sum);
 }
 
@@ -242,16 +246,18 @@ t_sizemat *sol_start_random(t_mat_cell *mat, t_sizemat n_columns) {
   return new_random_vector;
 }
 
-t_sizemat *false_c_and_w(t_mat_cell *cost_mat_2d, t_sizemat size) {
+t_sizemat *sol_start_cw(t_mat_cell *cost_mat_2d, t_sizemat size) {
   DEBUG_PRINT("executing sol_start_c_and_w\n");
 
   t_mat_cell *sum_row_2d = prefix_sum_per_row_2d(cost_mat_2d, size, size);
 
 #ifndef NDEBUG
-  DPRINTF("cost matrix:\n");
-  print_array_2d(cost_mat_2d, size, size);
-  DPRINTF("Prefix sum of matrix:\n");
-  print_array_2d(sum_row_2d, size, size);
+  if (size <= 50) {
+    DPRINTF("cost matrix:\n");
+    print_array_2d(cost_mat_2d, size, size);
+    DPRINTF("Prefix sum of matrix:\n");
+    print_array_2d(sum_row_2d, size, size);
+  }
 #endif
 
   t_sizemat *new_best_start_1d = generate_inc_vector(size);
@@ -259,7 +265,6 @@ t_sizemat *false_c_and_w(t_mat_cell *cost_mat_2d, t_sizemat size) {
   for (t_sizemat i = 0; i < size; i++) {
     t_sizemat best_pos = i;
     t_mat_cell best = 0;
-    DPRINTF("sum for i=%u : ", i);
     for (t_sizemat j = i; j < size; j++) {
       t_sizemat sum_row_idx = new_best_start_1d[j];
 
@@ -274,16 +279,15 @@ t_sizemat *false_c_and_w(t_mat_cell *cost_mat_2d, t_sizemat size) {
         best = current;
       }
     }
-    DNPRINTF("\n");
-    DPRINTF("best at %u : %u for value %u\n", i, best_pos, best);
+    // DPRINTF("best at %u : %u for value %u\n", i, best_pos, best);
 
     t_sizemat tmp = new_best_start_1d[i];
     new_best_start_1d[i] = new_best_start_1d[best_pos];
     new_best_start_1d[best_pos] = tmp;
 
-    DPRINTF("new_best_start_1d: ");
+    // DPRINTF("new_best_start_1d: ");
 #ifndef NDEBUG
-    print_array_1d(new_best_start_1d, size);
+    // print_array_1d(new_best_start_1d, size);
 #endif
   }
 
@@ -296,7 +300,8 @@ t_sizemat *false_c_and_w(t_mat_cell *cost_mat_2d, t_sizemat size) {
   return new_best_start_1d;
 }
 
-t_sizemat *cw(const t_mat_cell *const restrict cost_mat_2d, t_sizemat size) {
+t_sizemat *sol_start_cw_tentative(const t_mat_cell *const restrict cost_mat_2d,
+                                  t_sizemat size) {
   DPRINTF("executting cw\n");
 
   t_cost *const restrict r_1d = calloc(size, sizeof(t_cost));
@@ -347,8 +352,7 @@ t_sizemat *cw(const t_mat_cell *const restrict cost_mat_2d, t_sizemat size) {
 
 t_sizemat *sol_start_c_and_w(t_mat_cell *cost_mat_2d, t_sizemat size) {
   DEBUG_PRINT("executing sol_start_c_and_w\n");
-  // t_sizemat* sol = false_c_and_w(cost_mat_2d, size);
-  t_sizemat *sol_1d = cw(cost_mat_2d, size);
+  t_sizemat *sol_1d = sol_start_cw(cost_mat_2d, size);
 
   return sol_1d;
 }
@@ -356,10 +360,11 @@ t_sizemat *sol_start_c_and_w(t_mat_cell *cost_mat_2d, t_sizemat size) {
 void array_apply_shuffle(t_sizemat *const modified,
                          const t_sizemat *const shuffle,
                          const t_sizemat *const to_shuffle,
-                         const t_sizemat n_rows, const t_sizemat n_columns) {
+                         const t_sizemat size) {
 #pragma omp simd
-  for (t_sizemat i = 0; i < n_columns * n_rows; i++) {
-    modified[i] = shuffle[to_shuffle[i]];
+  for (t_sizemat i = 0; i < size; i++) {
+    // DPRINTF("shuffle=%d | to_shuffle=%d\n", shuffle[i], to_shuffle[i]);
+    modified[shuffle[i]] = to_shuffle[i];
   }
 }
 
@@ -367,15 +372,32 @@ t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
                    struct matrix neighb_deltas, struct matrix cost_matrix) {
   DPRINTF("executing pivot_first\n");
 
+#ifndef NDEBUG
+  DPRINTF(" pivot first to apply on sol :\n");
+  print_array_1d(sol_1d, cost_matrix.n_columns);
+#endif
   for (t_sizemat i = 0; i < neighb_deltas.n_rows; i++) {
-    t_sizemat *neighb_delta =
+    const t_sizemat *const neighb_delta =
         &neighb_deltas.mat_2d[neighb_deltas.n_columns * i];
+    //
+    // #ifndef NDEBUG
+    //     DPRINTF("got the %d neighb_deltas\n", i);
+    //     print_array_1d(neighb_delta, neighb_deltas.n_columns);
+    // #endif
 
-    array_apply_shuffle(new_sol_1d, neighb_delta, sol_1d, neighb_deltas.n_rows,
+    array_apply_shuffle(new_sol_1d, neighb_delta, sol_1d,
                         neighb_deltas.n_columns);
+
+    // #ifndef NDEBUG
+    //     DPRINTF("new sol :\n");
+    //     print_array_1d(new_sol_1d, neighb_deltas.n_columns);
+    // #endif
+
     t_cost new_cost =
         computeCost(cost_matrix.mat_2d, new_sol_1d, cost_matrix.n_columns);
+
     if (new_cost > cost) {
+      // DPRINTF("new best cost found : %d (old cost: %d", new_cost, cost);
       cost = new_cost;
       break;
     }
@@ -401,7 +423,7 @@ t_cost pivot_best(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
     print_array_1d(neighb_delta, neighb_deltas.n_columns);
 #endif
 
-    array_apply_shuffle(new_sol_1d, neighb_delta, sol_1d, neighb_deltas.n_rows,
+    array_apply_shuffle(new_sol_1d, neighb_delta, sol_1d,
                         neighb_deltas.n_columns);
     t_cost new_cost =
         computeCost(cost_matrix.mat_2d, new_sol_1d, cost_matrix.n_columns);
@@ -415,13 +437,20 @@ t_cost pivot_best(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
   }
 
   array_apply_shuffle(new_sol_1d, best_neighb_modif, sol_1d,
-                      neighb_deltas.n_rows, neighb_deltas.n_columns);
+                      neighb_deltas.n_columns);
+
+#ifndef NDEBUG
+  DPRINTF("solution found with pivot best with %d cost : ", cost);
+  print_array_1d(new_sol_1d, neighb_deltas.n_columns);
+#endif
+
   return cost;
 }
 
-void lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
-         t_fptr_sol_start fptr_sol_start, t_fptr_pivot_rule fptr_pivot_rule,
-         t_fptr_neighborhood fptr_neighborhood) {
+t_sizemat *lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
+               t_fptr_sol_start fptr_sol_start,
+               t_fptr_pivot_rule fptr_pivot_rule,
+               t_fptr_neighborhood fptr_neighborhood) {
   DPRINTF("executing lop\n");
 
   struct matrix cost_mat;
@@ -437,13 +466,20 @@ void lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
 
   // initial solution
   t_sizemat *sol_1d = fptr_sol_start(cost_mat.mat_2d, cost_mat.n_columns);
+#ifndef NDEBUG
+  DPRINTF("lop got a starting solution : \n");
+  print_array_1d(sol_1d, cost_mat_dim);
+#endif
   t_sizemat *new_sol_1d = malloc(cost_mat.n_columns * sizeof(t_sizemat));
+  memcpy(new_sol_1d, sol_1d, cost_mat_dim * sizeof(t_sizemat));
 
   t_cost cost = computeCost(cost_mat_2d, sol_1d, cost_mat_dim);
   DPRINTF("original cost : %d cost\n", cost);
   t_cost new_cost = cost;
 
-  while (cost < new_cost ||
+  bool is_improve = true;
+
+  while (is_improve ||
          (cost == new_cost && !array_equal(new_sol_1d, sol_1d, cost_mat_dim))) {
 
     DPRINTF("lop while : cost=%d and new_cost=%d\n", cost, new_cost);
@@ -458,8 +494,10 @@ void lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
     new_cost =
         fptr_pivot_rule(sol_1d, new_sol_1d, cost, neigh_deltas, cost_mat);
 
-    DPRINTF("lop while after pivot: cost=%u and new_cost=%u\n", cost, new_cost);
+    PVERB("cost=%d | new_cost=%d\n", cost, new_cost);
+    is_improve = cost < new_cost;
   }
   free(new_sol_1d);
   free(neigh_deltas.mat_2d);
+  return sol_1d;
 }
