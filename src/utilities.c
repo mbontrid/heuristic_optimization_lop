@@ -189,3 +189,14 @@ int cmp_desc(const void *a, const void *b) {
     return -1;
   return 0;
 }
+
+void array_apply_shuffle(t_sizemat *const result,
+                         const t_sizemat *const shuffle,
+                         const t_sizemat *const to_shuffle,
+                         const t_sizemat size) {
+#pragma omp simd
+  for (t_sizemat i = 0; i < size; i++) {
+    // DPRINTF("shuffle=%d | to_shuffle=%d\n", shuffle[i], to_shuffle[i]);
+    result[shuffle[i]] = to_shuffle[i];
+  }
+}

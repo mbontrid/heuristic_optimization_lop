@@ -67,6 +67,21 @@ unsigned int factorial(unsigned int N);
 // Comparator for descending order
 int cmp_desc(const void *a, const void *b);
 
+/**
+ * @brief reorder an array based on the indice of another array. The resulting
+ * array and the shuffle array have to of the same size.
+ *
+ * @param modified [TODO:parameter]
+ * @param shuffle [TODO:parameter]
+ * @param to_shuffle [TODO:parameter]
+ * @param n_rows [TODO:parameter]
+ * @param n_columns [TODO:parameter]
+ */
+void array_apply_shuffle(t_sizemat *const modified,
+                         const t_sizemat *const shuffle,
+                         const t_sizemat *const to_shuffle,
+                         const t_sizemat size);
+
 /* constants for a pseudo-random number generator, taken from
    Numerical Recipes in C book --- never trust the standard C random
    number generator */
