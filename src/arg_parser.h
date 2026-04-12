@@ -10,6 +10,7 @@ struct arguments {
   char *pos_args[1];
   char *instance_file;
   char *out_file;
+  char *algo;
   bool verbose;
 
   t_fptr_pivot_rule fptr_pivoting_rule;

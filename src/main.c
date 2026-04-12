@@ -65,15 +65,15 @@ int main(int argc, char **argv) {
   // lop measurement
   // ------------------------------------------------------------
 
+  t_sizemat *sol_1d = arguments.fptr_sol_start(cost_mat_2d, cost_mat_size);
+
   /* starts time measurement */
   start_timers();
-  t_sizemat *sol =
-      lop(cost_mat_2d, cost_mat_size, arguments.fptr_sol_start,
-          arguments.fptr_pivoting_rule, arguments.fptr_neighborhood);
+  t_cost cost =
+      it_imp_lop(cost_mat_2d, cost_mat_size, sol_1d,
+                 arguments.fptr_pivoting_rule, arguments.fptr_neighborhood);
   const double elapsed_seconds = elapsed_time(VIRTUAL);
   /* stop time measurement */
-
-  t_cost cost = computeCost(cost_mat_2d, sol, cost_mat_size);
 
   printf("RESULT cost=%u time=%g\n", cost, elapsed_seconds);
 
@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
   PVERB("lop sol : \n", cost);
   PARRAY(sol, cost_mat_size);
 
-  free(sol);
+  free(sol_1d);
 
   return 0;
 }

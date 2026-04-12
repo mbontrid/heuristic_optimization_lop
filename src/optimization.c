@@ -525,10 +525,9 @@ t_cost pivot_best(const t_sizemat *const sol_1d, t_sizemat *new_sol_1d,
   return best_cost;
 }
 
-t_sizemat *lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
-               t_fptr_sol_start fptr_sol_start,
-               t_fptr_pivot_rule fptr_pivot_rule,
-               t_fptr_neighborhood fptr_neighborhood) {
+t_cost it_imp_lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
+                  t_sizemat *const sol_1d, t_fptr_pivot_rule fptr_pivot_rule,
+                  t_fptr_neighborhood fptr_neighborhood) {
   DPRINTF("executing lop\n");
 
   // put matrixes in a struct
@@ -542,9 +541,6 @@ t_sizemat *lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
   neigh_deltas.n_columns = cost_mat_dim;
   neigh_deltas.mat_2d =
       fptr_neighborhood(&neigh_deltas.n_rows, neigh_deltas.n_columns);
-
-  // initial solution
-  t_sizemat *sol_1d = fptr_sol_start(cost_mat.mat_2d, cost_mat.n_columns);
 
   DPRINTF("lop got a starting solution : \n");
   PARRAY(sol_1d, cost_mat_dim);
@@ -578,5 +574,14 @@ t_sizemat *lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
   DPRINTF("lop best cost found: %u\n", cost);
   free(new_sol_1d);
   free(neigh_deltas.mat_2d);
-  return sol_1d;
+  return cost;
+}
+
+t_cost vnd_lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
+               t_sizemat *const sol_1d, t_fptr_pivot_rule fptr_pivot_rule,
+               t_fptr_neighborhood *fptr_neighborhood_1) {
+
+  t_cost cost = it_imp_lop(cost_mat_2d, cost_mat_dim, sol_1d, fptr_pivot_rule,
+                           fptr_neighborhood_1[0]);
+  return cost;
 }
