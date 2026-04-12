@@ -1,5 +1,11 @@
 # Heuristic Optimization: LOP
 
+## data
+
+### instances
+
+instances are preferably places in `data/input/instances/`.
+
 ## Compile
 
 [cmake](https://cmake.org/) is required to compile this project.
