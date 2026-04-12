@@ -30,7 +30,7 @@
 
 int main(int argc, char **argv) {
 
-  DEBUG_PRINT("Debug print activated.\n");
+  DPRINTF("Debug print activated.\n");
 
   long int i, j;
   t_sizemat *currentSolution;

@@ -118,7 +118,7 @@ t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
                    struct matrix nighb_deltas, struct matrix cost_matrix);
 
 t_cost pivot_best(const t_sizemat *const sol_1d, t_sizemat *new_sol_1d,
-                  t_cost cost, struct matrix nighb_deltas,
+                  const t_cost cost, struct matrix nighb_deltas,
                   struct matrix cost_matrix);
 
 t_sizemat *lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,

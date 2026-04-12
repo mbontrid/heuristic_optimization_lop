@@ -103,21 +103,25 @@ extern long int Seed; /* seed for the random number generator */
  */
 #ifndef NDEBUG
 
-#define DEBUG_PRINT(msg) printf("DEBUG: %s\n", msg);
-
 #define DPRINTF(...)                                                           \
   printf("DEBUG: %s: ", __func__);                                             \
   printf(__VA_ARGS__);
 
 #define DNPRINTF(...) printf(__VA_ARGS__);
 
-#else
+#define PARRAY(array, n_columns)                                               \
+  do {                                                                         \
+    printf("DEBUG: %s: ", __func__);                                           \
+    print_array_1d(array, n_columns);                                          \
+  } while (0)
 
-#define DEBUG_PRINT(msg)
+#else
 
 #define DPRINTF(...)
 
 #define DNPRINTF(...)
+
+#define PARRAY(array, n_columns)
 
 #endif
 

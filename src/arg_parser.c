@@ -40,10 +40,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
   case 'p':
     if (strcmp(arg, "first") == 0) {
       args->fptr_pivoting_rule = pivot_first;
-      DEBUG_PRINT("pivoting rule set to first");
+      DPRINTF("pivoting rule set to first\n");
     } else if (strcmp(arg, "best") == 0) {
       args->fptr_pivoting_rule = pivot_best;
-      DEBUG_PRINT("pivoting rule set to best");
+      DPRINTF("pivoting rule set to best\n");
     } else {
       argp_error(state, "Invalid pivoting_rule option: %s", arg);
     }
@@ -51,13 +51,13 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
   case 'n':
     if (strcmp(arg, "transpose") == 0) {
       args->fptr_neighborhood = neighb_transpose_deltas;
-      DEBUG_PRINT("neighborhood set to transpose");
+      DPRINTF("neighborhood set to transpose\n");
     } else if (strcmp(arg, "exchange") == 0) {
       args->fptr_neighborhood = neighb_exchange_deltas;
-      DEBUG_PRINT("neighborhood set to exchange");
+      DPRINTF("neighborhood set to exchange\n");
     } else if (strcmp(arg, "insert") == 0) {
       args->fptr_neighborhood = neighb_insert_deltas;
-      DEBUG_PRINT("neighborhood set to insert");
+      DPRINTF("neighborhood set to insert\n");
     } else {
       argp_error(state, "Invalid neighborhood option: %s", arg);
     }
@@ -65,10 +65,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
   case 's':
     if (strcmp(arg, "random") == 0) {
       args->fptr_sol_start = sol_start_random;
-      DEBUG_PRINT("solution start set to random");
+      DPRINTF("solution start set to random\n");
     } else if (strcmp(arg, "c_and_w") == 0) {
       args->fptr_sol_start = sol_start_c_and_w;
-      DEBUG_PRINT("solution start set to c_and_w");
+      DPRINTF("solution start set to c_and_w\n");
     } else {
       argp_error(state, "Invalid initial solution option: %s", arg);
     }
@@ -84,9 +84,8 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     args->pos_args[state->arg_num] = arg;
     break;
   case ARGP_KEY_END:
-    if (args->is_pos_arg &&
-        state->arg_num <
-            (int)(sizeof(args->pos_args) / sizeof(args->pos_args[0]))) {
+    if (args->is_pos_arg && state->arg_num < (int)(sizeof(args->pos_args) /
+                                                   sizeof(args->pos_args[0]))) {
       argp_error(state, "Not enough positional arguments.");
     }
     break;
