@@ -70,12 +70,17 @@ int main(int argc, char **argv) {
   t_sizemat *sol =
       lop(cost_mat_2d, cost_mat_size, arguments.fptr_sol_start,
           arguments.fptr_pivoting_rule, arguments.fptr_neighborhood);
-  printf("Time elapsed since we started the timer: %g\n\n",
-         elapsed_time(VIRTUAL));
+  const double elapsed_seconds = elapsed_time(VIRTUAL);
+  /* stop time measurement */
 
   t_cost cost = computeCost(cost_mat_2d, sol, cost_mat_size);
-  PVERB("lop cost found : %u with sol : \n", cost);
-  print_array_1d(sol, cost_mat_size);
+
+  printf("RESULT cost=%u time=%g\n", cost, elapsed_seconds);
+
+  PVERB("lop seconds : %g\n\n", elapsed_seconds);
+  PVERB("lop cost: %u\n", cost);
+  PVERB("lop sol : \n", cost);
+  PARRAY(sol, cost_mat_size);
 
   free(sol);
 
