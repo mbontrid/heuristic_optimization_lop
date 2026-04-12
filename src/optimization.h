@@ -43,12 +43,12 @@ t_cost computeCost(const t_mat_cell *const cost_mat, const t_sizemat *const lo,
                    t_sizemat size);
 
 /**
- * @brief get the diference of cost from a solution with a modification applied.
+ * @brief get the cost difference if a neithberhood modification is applied to a
+ * solution.
  *
  * @param cost_mat_2d 2d matrix of costs.
  * @param sol source solution (neighb_delta is not yet applied on it).
- * @param neighb_delta modification to apply to sol with
- * new_sol[neighb_delta[i]] = sol[i].
+ * @param neighb_delta modification on sol.
  * @param size size of neighb_delta and sol.
  * @return the diference of the cost of sol and cost of sol with neighb_delta
  * applied.
@@ -91,21 +91,6 @@ t_sizemat *neighb_exchange_deltas(t_sizemat *const n_rows,
                                   const t_sizemat n_columns);
 t_sizemat *neighb_insert_deltas(t_sizemat *const n_rows,
                                 const t_sizemat n_columns);
-
-/**
- * @brief reorder an array based on the indice of another array. The resulting
- * array and the shuffle array have to of the same size.
- *
- * @param modified [TODO:parameter]
- * @param shuffle [TODO:parameter]
- * @param to_shuffle [TODO:parameter]
- * @param n_rows [TODO:parameter]
- * @param n_columns [TODO:parameter]
- */
-void array_apply_shuffle(t_sizemat *const modified,
-                         const t_sizemat *const shuffle,
-                         const t_sizemat *const to_shuffle,
-                         const t_sizemat size);
 
 t_sizemat *sol_start_random(t_mat_cell *mat, t_sizemat n_columns);
 

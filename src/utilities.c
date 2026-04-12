@@ -129,17 +129,6 @@ bool array_equal(const t_sizemat *const array_1d_1,
 
   int a = memcmp(array_1d_1, array_1d_2, size * sizeof(t_sizemat));
 
-#ifndef NDEBUG
-  DPRINTF("diff : %d\n", a);
-  print_array_1d(array_1d_1, size);
-  DPRINTF("vs\n");
-  print_array_1d(array_1d_2, size);
-  if (!a) {
-    DPRINTF("arrays are equal !\n")
-  } else {
-    DPRINTF("arrays are different !\n")
-  }
-#endif
   return !a;
 }
 
