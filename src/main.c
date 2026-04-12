@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "arg_parser.h"
 #include "instance.h"
@@ -65,13 +66,14 @@ int main(int argc, char **argv) {
   // lop measurement
   // ------------------------------------------------------------
 
+  // generating first solution
   t_sizemat *sol_1d = arguments.fptr_sol_start(cost_mat_2d, cost_mat_size);
 
   /* starts time measurement */
   start_timers();
   t_cost cost =
-      it_imp_lop(cost_mat_2d, cost_mat_size, sol_1d,
-                 arguments.fptr_pivoting_rule, arguments.fptr_neighborhood);
+      vnd_lop(cost_mat_2d, cost_mat_size, sol_1d, arguments.fptr_pivoting_rule,
+              arguments.fptrs_neighborhood, arguments.n_neighb_vnd);
   const double elapsed_seconds = elapsed_time(VIRTUAL);
   /* stop time measurement */
 
@@ -80,7 +82,7 @@ int main(int argc, char **argv) {
   PVERB("lop seconds : %g\n\n", elapsed_seconds);
   PVERB("lop cost: %u\n", cost);
   PVERB("lop sol : \n", cost);
-  PARRAY(sol, cost_mat_size);
+  PARRAY(sol_1d, cost_mat_size);
 
   free(sol_1d);
 

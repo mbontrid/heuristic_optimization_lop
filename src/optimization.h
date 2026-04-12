@@ -22,9 +22,10 @@
 #define _LO_H_
 
 #include "utilities.h"
+#include <sys/types.h>
 
 struct matrix {
-  t_sizemat *mat_2d;
+  const t_sizemat *mat_2d;
   t_sizemat n_rows;
   t_sizemat n_columns;
 };
@@ -125,7 +126,8 @@ t_cost it_imp_lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
                   t_sizemat *const sol_1d, t_fptr_pivot_rule fptr_pivot_rule,
                   t_fptr_neighborhood fptr_neighborhood);
 
-t_cost vnd_lop(t_mat_cell *const cost_mat_2d, t_sizemat cost_mat_dim,
+t_cost vnd_lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
                t_sizemat *const sol_1d, t_fptr_pivot_rule fptr_pivot_rule,
-               t_fptr_neighborhood *fptr_neighborhood_1);
+               t_fptr_neighborhood *fptr_neighborhood_1,
+               const ushort n_neighb_vnd);
 #endif

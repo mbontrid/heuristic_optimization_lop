@@ -2,6 +2,7 @@
 #define _ARG_PARSER_H_
 
 #include <stdbool.h>
+#include <values.h>
 
 #include "optimization.h"
 
@@ -10,11 +11,12 @@ struct arguments {
   char *pos_args[1];
   char *instance_file;
   char *out_file;
-  char *algo;
+  char *method;
   bool verbose;
 
+  unsigned short n_neighb_vnd;
   t_fptr_pivot_rule fptr_pivoting_rule;
-  t_fptr_neighborhood fptr_neighborhood;
+  t_fptr_neighborhood fptrs_neighborhood[MAXSHORT * 2];
   t_fptr_sol_start fptr_sol_start;
 };
 
