@@ -61,6 +61,8 @@ long int get_cost_diff_with_delta(const t_mat_cell *const cost_mat_2d,
                                   const t_sizemat *const sol,
                                   const t_sizemat *const neighb_delta,
                                   const t_sizemat size) {
+  DPRINTF("executing... \n");
+
   long int cost_diff = 0;
 
   for (t_sizemat moved_idx = 0; moved_idx < size; moved_idx++) {
@@ -107,6 +109,7 @@ long int get_cost_diff_with_delta(const t_mat_cell *const cost_mat_2d,
   t_cost new_cost_assert = computeCost(cost_mat_2d, new_sol_ndebug, size);
   assert(cost_assert + cost_diff == new_cost_assert);
   free(new_sol_ndebug);
+  DPRINTF("cost_diff computed : %ld\n", cost_diff);
 #endif
 
   return cost_diff;
@@ -116,6 +119,7 @@ t_cost get_cost(const t_mat_cell *const cost_mat_2d, const t_sizemat *const sol,
                 const t_sizemat *const neighb_delta, const t_sizemat size,
                 t_cost old_cost) {
 
+  DPRINTF("executing get_cost with old_cost=%u\n", old_cost);
   assert(old_cost == computeCost(cost_mat_2d, sol, size));
 
   long int cost_diff =
@@ -123,8 +127,8 @@ t_cost get_cost(const t_mat_cell *const cost_mat_2d, const t_sizemat *const sol,
   t_cost new_cost = old_cost + cost_diff;
 
 #ifndef NDEBUG
-  // DPRINTF("old_cost=%u | cost_diff=%ld | new_cost=%u\n", old_cost, cost_diff,
-  //         new_cost);
+  DPRINTF("old_cost=%u | cost_diff=%ld | new_cost=%u\n", old_cost, cost_diff,
+          new_cost);
   t_sizemat *assert_new_sol_1d = malloc(size * sizeof(t_sizemat));
   assert(assert_new_sol_1d);
   array_apply_shuffle(assert_new_sol_1d, neighb_delta, sol, size);
@@ -158,6 +162,8 @@ t_sizemat get_n_transpose(t_sizemat size) {
 
   if (size < 2) {
     return 0;
+  } else if (size == 2) {
+    return 1;
   }
   DPRINTF("get_n_transpose: for a %u array, there is %u transpose\n", size,
           (size));
@@ -181,18 +187,24 @@ t_sizemat *neighb_transpose_deltas(t_sizemat *const n_rows,
 
     t_sizemat temp = transposes_deltas_2d[n_columns * i + i];
     transposes_deltas_2d[n_columns * i + i] =
-        transposes_deltas_2d[n_columns * i + i + 1];
+        transposes_deltas_2d[n_columns * i + (i + 1) % n_columns];
     transposes_deltas_2d[n_columns * i + (i + 1) % n_columns] =
         temp; // the % alows the transpose to go around the array.
   }
 
-  //   DPRINTF("all transposes : \n");
-  // #ifndef NDEBUG
-  //   for (t_sizemat i = 0; i < *n_rows; i++) {
-  //     DPRINTF("transpose %u : ", i)
-  //     PARRAY(&transposes_deltas_2d[n_columns * i], n_columns);
-  //   }
-  // #endif
+#ifndef NDEBUG
+  DPRINTF("all transposes : \n");
+  for (t_sizemat i = 0; i < *n_rows; i++) {
+    DPRINTF("transpose %u : ", i)
+    PARRAY(&transposes_deltas_2d[n_columns * i], n_columns);
+  }
+
+  for (t_sizemat i = 0; i < *n_rows; i++) {
+    for (t_sizemat j = 0; j < n_columns; j++) {
+      assert(transposes_deltas_2d[n_columns * i + j] <= n_columns);
+    }
+  }
+#endif
   return transposes_deltas_2d;
 }
 
@@ -444,7 +456,7 @@ t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d,
                    const t_cost cost, struct matrix neighb_deltas,
                    struct matrix cost_matrix) {
 
-  DPRINTF("executing...");
+  DPRINTF("executing...\n");
 
   assert(array_equal(new_sol_1d, sol_1d, neighb_deltas.n_columns));
 
@@ -455,6 +467,7 @@ t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d,
 
   for (t_sizemat i = 0; i < neighb_deltas.n_rows; i++) {
 
+    assert(&neighb_deltas.mat_2d[neighb_deltas.n_columns * i]);
     const t_sizemat *neighb_delta =
         &neighb_deltas.mat_2d[neighb_deltas.n_columns * i];
 

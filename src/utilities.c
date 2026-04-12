@@ -18,6 +18,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -186,6 +187,7 @@ void array_apply_shuffle(t_sizemat *const result,
 #pragma omp simd
   for (t_sizemat i = 0; i < size; i++) {
     // DPRINTF("shuffle=%d | to_shuffle=%d\n", shuffle[i], to_shuffle[i]);
+    assert(shuffle[i] <= size);
     result[shuffle[i]] = to_shuffle[i];
   }
 }
