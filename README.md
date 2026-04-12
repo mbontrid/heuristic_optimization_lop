@@ -41,7 +41,7 @@ Use example :
 
 ## development
 
-The debug target has flag and verbose compiled with it `(-Og)`. It is far more verbose and asserts are evaluated.
+The debug target has flag and verbose compiled with it `(-Og)`. It is far more verbose and there is great number of high complexity asserts.
 
 Build debug target:
 
@@ -58,5 +58,19 @@ To run the debug:
 ./build/bin/lop_debug -i ./instances/N-be75eec_150 -s c_and_w -n insert -p best
 
 ```
+
+To illustrate the difference of time between the lop executable and the lop_debug executable:
+
+```bash
+./build/bin/lop_debug -i ./instances/N-be75eec_150 -s c_and_w -n exchange -p best -v
+```
+
+Takes 130 seconds
+
+```bash
+./build/bin/lop -i ./instances/N-be75eec_150 -s c_and_w -n exchange -p best -v
+```
+
+Takes 0.88 seconds.
 
 ## Documentation

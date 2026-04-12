@@ -32,10 +32,6 @@ int main(int argc, char **argv) {
 
   DPRINTF("Debug print activated.\n");
 
-  long int i, j;
-  t_sizemat *currentSolution;
-  int cost, newCost, temp, firstRandomPosition, secondRandomPosition;
-
   /* Do not buffer output */
   setbuf(stdout, NULL);
   setbuf(stderr, NULL);
@@ -53,82 +49,35 @@ int main(int argc, char **argv) {
   t_sizemat cost_mat_size = 0;
   t_mat_cell *const cost_mat_2d =
       readInstance(arguments.instance_file, &cost_mat_size);
-  printf("Data have been read from instance file. Size of instance = %u.\n\n",
-         cost_mat_size);
+  PVERB("Data have been read from instance file. Size of instance = %u.\n\n",
+        cost_mat_size);
 
   /* initialize random number generator, deterministically based on instance.
    * To do this we simply set the seed to the sum of elements in the matrix,
    so it is constant per-instance, but (most likely) varies between instances
  */
   Seed = (long int)0;
-  for (i = 0; i < cost_mat_size; ++i)
-    for (j = 0; j < cost_mat_size; ++j)
+  for (t_sizemat i = 0; i < cost_mat_size; ++i)
+    for (t_sizemat j = 0; j < cost_mat_size; ++j)
       Seed += (long int)cost_mat_2d[cost_mat_size * i + j];
-  printf("Seed used to initialize RNG: %ld.\n\n", Seed);
+  PVERB("Seed used to initialize RNG: %ld.\n\n", Seed);
 
-  DPRINTF("debug of neighborhood and sol_start\n");
-
-  t_sizemat *sol =
-      lop(cost_mat_2d, cost_mat_size, arguments.fptr_sol_start,
-          arguments.fptr_pivoting_rule, arguments.fptr_neighborhood);
-  cost = computeCost(cost_mat_2d, sol, cost_mat_size);
-
-  printf("lop cost found : %u with sol : \n", cost);
-  print_array_1d(sol, cost_mat_size);
-
-  free(sol);
+  // lop measurement
+  // ------------------------------------------------------------
 
   /* starts time measurement */
   start_timers();
-
-  currentSolution = generate_random_vector(cost_mat_size);
-
-  /* Print solution */
-  printf("Initial solution:\n");
-  for (j = 0; j < cost_mat_size; j++)
-    printf(" %u", currentSolution[j]);
-  printf("\n");
-
-  /* Compute cost of solution and print it */
-  cost = computeCost(cost_mat_2d, currentSolution, cost_mat_size);
-  printf("Cost of this initial solution: %d\n\n", cost);
-
-  /* Example: apply an exchange operation of two elements at random position
-   */
-  firstRandomPosition = randInt(0, cost_mat_size - 1);
-  // Ensure second position is different from first one:
-  secondRandomPosition = firstRandomPosition + randInt(1, (cost_mat_size - 2));
-  if (secondRandomPosition >= cost_mat_size)
-    secondRandomPosition -= cost_mat_size;
-
-  printf("Two positions exchanged: %d and %d. ", firstRandomPosition,
-         secondRandomPosition);
-
-  temp = currentSolution[firstRandomPosition];
-  currentSolution[firstRandomPosition] = currentSolution[secondRandomPosition];
-  currentSolution[secondRandomPosition] = temp;
-
-  printf("Solution after exchange:\n");
-  for (j = 0; j < cost_mat_size; j++)
-    printf(" %u", currentSolution[j]);
-  printf("\n");
-
-  /* Recompute cost of solution after the exchange move */
-  /* There are some more efficient way to do this, instead of recomputing
-   * everything... */
-  newCost = computeCost(cost_mat_2d, currentSolution, cost_mat_size);
-  printf("Cost of this solution after applying the exchange move: %d\n",
-         newCost);
-
-  if (newCost == cost)
-    printf("Second solution is as good as first one\n");
-  else if (newCost > cost)
-    printf("Second solution is better than first one\n");
-  else
-    printf("Second solution is worse than first one\n");
-
+  t_sizemat *sol =
+      lop(cost_mat_2d, cost_mat_size, arguments.fptr_sol_start,
+          arguments.fptr_pivoting_rule, arguments.fptr_neighborhood);
   printf("Time elapsed since we started the timer: %g\n\n",
          elapsed_time(VIRTUAL));
+
+  t_cost cost = computeCost(cost_mat_2d, sol, cost_mat_size);
+  PVERB("lop cost found : %u with sol : \n", cost);
+  print_array_1d(sol, cost_mat_size);
+
+  free(sol);
 
   return 0;
 }

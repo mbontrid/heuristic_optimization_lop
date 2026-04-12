@@ -187,7 +187,7 @@ t_sizemat *neighb_transpose_deltas(t_sizemat *const n_rows,
 #ifndef NDEBUG
   for (t_sizemat i = 0; i < *n_rows; i++) {
     DPRINTF("transpose %u : ", i)
-    print_array_1d(&transposes_deltas_2d[n_columns * i], n_columns);
+    PARRAY(&transposes_deltas_2d[n_columns * i], n_columns);
   }
 #endif
   return transposes_deltas_2d;
@@ -261,6 +261,7 @@ t_sizemat *neighb_insert_deltas(t_sizemat *const n_rows,
   DPRINTF("executing for %u collumns and %d rows\n", n_columns, *n_rows);
 
   t_sizemat *inserts_delta_2d = malloc(n_columns * *n_rows * sizeof(t_sizemat));
+  DPRINTF("%u inserts possibilities allocated\n", *n_rows);
 
   // only increment a row if condition completed, so no for loop possible for
   // the row.
@@ -568,9 +569,10 @@ t_sizemat *lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
 
     assert(new_cost == computeCost(cost_mat_2d, new_sol_1d, cost_mat_dim));
 
-    is_improve = cost < new_cost;
-    // is_improve = cost < new_cost ||
-    // (cost == new_cost && !array_equal(new_sol_1d, sol_1d, cost_mat_dim));
+    // is_improve = cost < new_cost;
+    is_improve =
+        cost < new_cost ||
+        (cost == new_cost && !array_equal(new_sol_1d, sol_1d, cost_mat_dim));
     DPRINTF("cost=%d | new_cost=%d\n", cost, new_cost);
   }
   DPRINTF("lop best cost found: %u\n", cost);
