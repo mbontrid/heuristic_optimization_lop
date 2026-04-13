@@ -262,6 +262,7 @@ def parse_args() -> argparse.Namespace:
         help="Timeout in seconds for each solver run. 0 means no timeout.",
     )
     parser.add_argument(
+        "-w",
         "--workers",
         type=int,
         default=0,
