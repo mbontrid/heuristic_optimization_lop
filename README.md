@@ -9,6 +9,8 @@ python3 tools/benchmark_best_known.py
 Dependencies: [cmake](https://cmake.org/download/) and python
 
 Warning: the full benchmark takes hours.
+Use `--workers <n>` to run benchmark combinations in parallel processes (defaults to all CPUs minus one; use `1` to run sequentially).
+If time measurement is important, run with the minimum number of workers.
 
 ## Project structure
 

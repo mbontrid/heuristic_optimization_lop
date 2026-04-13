@@ -1,3 +1,0 @@
-instance,best_known_cost,pivot,neighborhoods,sol_start,cost,time_s,rel_percent_deviation,gap_to_best,solution
-N-be75eec_150,3482828,first,['transpose'],random,0,0.003133,-100.0,-3482828,
-N-be75eec_150,3482828,first,['transpose'],c_and_w,0,0.004301,-100.0,-3482828,

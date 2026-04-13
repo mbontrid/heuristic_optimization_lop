@@ -1,9 +1,11 @@
 import argparse
 import csv
 import itertools
+import multiprocessing
 import re
 import subprocess
 import sys
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 PIVOTS = ("first", "best")
@@ -13,6 +15,7 @@ NEIGHBORHOODS = (["transpose"], ["exchange"], ["insert"])
 RESULT_PATTERN = re.compile(
     r"RESULT\s+cost=(?P<cost>\d+)\s+time=(?P<time>[0-9.eE+-]+)\s+solution=(?P<solution>[\d+\s]+)"
 )
+BenchmarkJob = tuple[str, int, Path, str, list[str], str]
 
 
 def parse_best_known(path: Path) -> list[tuple[str, int]]:
@@ -149,6 +152,59 @@ def run_solver_once(
     return cost, elapsed_seconds, solution
 
 
+def run_benchmark_job(
+    job: BenchmarkJob,
+    binary_path: Path,
+    runs_per_job: int,
+    timeout_seconds: float,
+    is_solution: bool,
+) -> dict[str, object]:
+    (
+        instance_name,
+        best_known_cost,
+        instance_path,
+        pivot,
+        neighborhoods,
+        sol_start,
+    ) = job
+
+    costs: list[int] = []
+    times: list[float] = []
+    solutions: list[list[int] | None] = []
+
+    for _ in range(runs_per_job):
+        cost, elapsed, solution = run_solver_once(
+            binary_path=binary_path,
+            instance_path=instance_path,
+            pivot=pivot,
+            neighborhoods=neighborhoods,
+            sol_start=sol_start,
+            timeout_seconds=timeout_seconds,
+            is_solution=is_solution,
+        )
+        costs.append(cost)
+        times.append(elapsed)
+        solutions.append(solution)
+
+    cost = max(costs)
+    time = min(times)
+    solution = solutions[0]
+    relative_percentage_deviation = ((cost - best_known_cost) / best_known_cost) * 100
+
+    return {
+        "instance": instance_name,
+        "best_known_cost": best_known_cost,
+        "pivot": pivot,
+        "neighborhoods": neighborhoods,
+        "sol_start": sol_start,
+        "cost": cost,
+        "time_s": time,
+        "rel_percent_deviation": relative_percentage_deviation,
+        "gap_to_best": cost - best_known_cost,
+        "solution": solution,
+    }
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
@@ -205,12 +261,40 @@ def parse_args() -> argparse.Namespace:
         default=0,
         help="Timeout in seconds for each solver run. 0 means no timeout.",
     )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=0,
+        help=(
+            "Number of workers used to run benchmark combinations in parallel processes. "
+            "Use 1 to disable parallel execution and 0 to use all CPUs minus one."
+        ),
+    )
     return parser.parse_args()
 
 
 def benchmark(args, combinations: list, instances, output_path: Path):
     total_runs = len(instances) * len(combinations) * args.k
     current_run = 0
+
+    jobs: list[BenchmarkJob] = []
+
+    for instance_name, best_known_cost in instances:
+        instance_path = args.instances_dir / instance_name
+        if not instance_path.is_file():
+            raise FileNotFoundError(f"Instance file not found: {instance_path}")
+
+        for pivot, neighborhoods, sol_start in combinations:
+            jobs.append(
+                (
+                    instance_name,
+                    best_known_cost,
+                    instance_path,
+                    pivot,
+                    neighborhoods,
+                    sol_start,
+                )
+            )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8", newline="") as csv_file:
@@ -231,58 +315,22 @@ def benchmark(args, combinations: list, instances, output_path: Path):
         )
         writer.writeheader()
 
-        for instance_name, best_known_cost in instances:
-            instance_path = args.instances_dir / instance_name
-            if not instance_path.is_file():
-                raise FileNotFoundError(f"Instance file not found: {instance_path}")
-
-            for pivot, neighborhoods, sol_start in combinations:
-                costs: list[int] = []
-                times: list[float] = []
-                solutions: list[list[int] | None] = []
-
-                for _ in range(args.k):
-                    current_run += 1
-                    print(
-                        f"[{current_run}/{total_runs}] {instance_name} "
-                        f"p={pivot} n={neighborhoods} s={sol_start}",
-                        file=sys.stderr,
-                    )
-                    cost, elapsed, solution = run_solver_once(
-                        binary_path=args.binary,
-                        instance_path=instance_path,
-                        pivot=pivot,
-                        neighborhoods=neighborhoods,
-                        sol_start=sol_start,
-                        timeout_seconds=args.timeout,
-                        is_solution=args.solution,
-                    )
-                    costs.append(cost)
-                    times.append(elapsed)
-                    solutions.append(solution)
-
-                cost = max(costs)
-                time = min(times)
-                solution = solutions[0]
-
-                relative_percentage_deviation = (
-                    (cost - best_known_cost) / best_known_cost
-                ) * 100
-
-                writer.writerow(
-                    {
-                        "instance": instance_name,
-                        "best_known_cost": best_known_cost,
-                        "pivot": pivot,
-                        "neighborhoods": neighborhoods,
-                        "sol_start": sol_start,
-                        "cost": cost,
-                        "time_s": time,
-                        "rel_percent_deviation": relative_percentage_deviation,
-                        "gap_to_best": cost - best_known_cost,
-                        "solution": solution,
-                    }
+        with ProcessPoolExecutor(max_workers=args.workers) as executor:
+            for row in executor.map(
+                run_benchmark_job,
+                jobs,
+                itertools.repeat(args.binary),
+                itertools.repeat(args.k),
+                itertools.repeat(args.timeout),
+                itertools.repeat(args.solution),
+            ):
+                current_run += args.k
+                print(
+                    f"[{current_run}/{total_runs}] {row['instance']} "
+                    f"p={row['pivot']} n={row['neighborhoods']} s={row['sol_start']}",
+                    file=sys.stderr,
                 )
+                writer.writerow(row)
 
 
 def main() -> int:
@@ -290,6 +338,15 @@ def main() -> int:
 
     if args.k <= 1:
         raise ValueError("--k must be greater than 0")
+    if args.workers < 0:
+        raise ValueError("--workers must be greater than or equal to 0")
+    if args.workers == 0:
+        args.workers = max(1, multiprocessing.cpu_count() - 1)
+    if args.workers > multiprocessing.cpu_count():
+        raise ValueError(
+            "--workers more workers specified than available on this system"
+        )
+    print(f"{args.workers} processors allocated")
     if not args.binary.is_file():
         args.binary = run_compile_target()
         if not args.binary.is_file():
@@ -309,7 +366,7 @@ def main() -> int:
 
     benchmark(args, combinations, instances, args.output_it_imp)
 
-    print(f"Wrote iterative improvment benchmark results to: {args.output}")
+    print(f"Wrote iterative improvment benchmark results to: {args.output_it_imp}")
 
     # variant neighborhood descent benchmark with two different neighborhood orderings
 
