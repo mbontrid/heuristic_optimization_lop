@@ -31,11 +31,9 @@
 
 int main(int argc, char **argv) {
 
-  DPRINTF("Debug print activated.\n");
-
-  /* Do not buffer output */
-  // setbuf(stdout, NULL);
-  // setbuf(stderr, NULL);
+  DPRINTF("------WARNING-------\n If you see this message, it means that you "
+          "are running the debug version of this program. Performances will be "
+          "greatly impacted.");
 
   // ---argument parsing----
 
@@ -61,7 +59,7 @@ int main(int argc, char **argv) {
   for (t_sizemat i = 0; i < mat_cost_dim; ++i)
     for (t_sizemat j = 0; j < mat_cost_dim; ++j)
       Seed += (long int)cost_mat_2d[mat_cost_dim * i + j];
-  PVERB("Seed used to initialize RNG: %ld.\n\n", Seed);
+  PVERB("Seed used to initialize RNG: %ld.\n", Seed);
 
   // lop measurement
   // ------------------------------------------------------------
@@ -77,7 +75,7 @@ int main(int argc, char **argv) {
   const double elapsed_seconds = elapsed_time(VIRTUAL);
   /* stop time measurement */
 
-  printf("RESULT cost=%u time=%g solution=\n", cost, elapsed_seconds);
+  printf("RESULT cost=%u time=%g solution=", cost, elapsed_seconds);
   print_array_1d(sol_1d, mat_cost_dim);
 
   free(sol_1d);

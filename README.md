@@ -4,7 +4,7 @@
 
 ### instances
 
-instances are preferably places in `data/input/instances/`.
+Instances are preferably places in `data/input/instances/`.
 
 ## Compile
 
@@ -39,10 +39,23 @@ To use with default parameters:
 ./build/bin/lop
 ```
 
-Use example :
+### examples
+
+#### Iterative improvement lop
 
 ```bash
-./build/bin/lop -i ./instances/N-test_10 -s c_and_w -n exchange -p best
+./build/bin/lop -i ./instances/N-be75eec_150 -s c_and_w -n exchange -p best
+```
+
+#### variable neighborhood descent lop
+
+The difference with iterative improvement is just the number of `-n` called.
+
+```bash
+ ./build/bin/lop -i ./data/input/instances/N-be75eec_150 -s c_and_w -p first -n transpose -n exchange -n insert -v
+```
+
+```
 ```
 
 ## development

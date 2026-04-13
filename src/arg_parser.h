@@ -11,7 +11,6 @@ struct arguments {
   char *pos_args[1];
   char *instance_file;
   char *out_file;
-  char *method;
   bool verbose;
 
   unsigned short n_neighb_vnd;
