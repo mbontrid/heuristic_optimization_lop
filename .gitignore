@@ -1,8 +1,5 @@
 # Project defined
 build/
-bin/
-data/input/
-data/output/
 
 CMakeLists.txt.user
 CMakeCache.txt

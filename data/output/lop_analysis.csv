@@ -1,0 +1,5 @@
+instance,best_known_cost,pivot,neighborhoods,sol_start,cost,time_s,rel_percent_deviation,gap_to_best,solution
+N-be75eec_150,3482828,first,['transpose'],random,2131491.000000,0.003879,-38.799992,-1351337.000000,
+N-be75eec_150,3482828,first,['transpose'],c_and_w,2657375.000000,0.005775,-23.700654,-825453.000000,
+N-be75eec_150,3482828,first,['exchange'],random,3397099.000000,3.764560,-2.461477,-85729.000000,
+N-be75eec_150,3482828,first,['exchange'],c_and_w,3373323.000000,3.162080,-3.144140,-109505.000000,
