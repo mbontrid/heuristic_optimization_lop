@@ -2,7 +2,6 @@ import argparse
 import csv
 import itertools
 import re
-import statistics
 import subprocess
 import sys
 from pathlib import Path
@@ -304,11 +303,15 @@ def main() -> int:
     if not instances:
         raise RuntimeError("No instances loaded from best-known file")
 
-    # combinations = list(itertools.product(PIVOTS, NEIGHBORHOODS, START_SOLS))
-    #
-    # benchmark(args, combinations, instances, args.output_it_imp)
-    #
-    # print(f"Wrote iterative improvment benchmark results to: {args.output}")
+    # iterative improvement benchmark with all pivot/neighborhood/sol_start combinations
+
+    combinations = list(itertools.product(PIVOTS, NEIGHBORHOODS, START_SOLS))
+
+    benchmark(args, combinations, instances, args.output_it_imp)
+
+    print(f"Wrote iterative improvment benchmark results to: {args.output}")
+
+    # variant neighborhood descent benchmark with two different neighborhood orderings
 
     vnd_neighborhoods = [
         ["transpose", "exchange", "insert"],
@@ -322,6 +325,8 @@ def main() -> int:
     benchmark(args, combinations, instances, args.output_vnd)
 
     print(f"Wrote VND benchmark results to: {args.output_vnd}")
+
+    print("All done !")
 
     return 0
 
