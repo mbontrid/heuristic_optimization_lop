@@ -236,7 +236,7 @@ def benchmark(args, combinations: list, instances, output_path: Path):
             if not instance_path.is_file():
                 raise FileNotFoundError(f"Instance file not found: {instance_path}")
 
-            for pivot, neighborhood, sol_start in combinations:
+            for pivot, neighborhoods, sol_start in combinations:
                 costs: list[int] = []
                 times: list[float] = []
                 solutions: list[list[int] | None] = []
@@ -245,14 +245,14 @@ def benchmark(args, combinations: list, instances, output_path: Path):
                     current_run += 1
                     print(
                         f"[{current_run}/{total_runs}] {instance_name} "
-                        f"p={pivot} n={neighborhood} s={sol_start}",
+                        f"p={pivot} n={neighborhoods} s={sol_start}",
                         file=sys.stderr,
                     )
                     cost, elapsed, solution = run_solver_once(
                         binary_path=args.binary,
                         instance_path=instance_path,
                         pivot=pivot,
-                        neighborhoods=neighborhood,
+                        neighborhoods=neighborhoods,
                         sol_start=sol_start,
                         timeout_seconds=args.timeout,
                         is_solution=args.solution,
@@ -268,8 +268,6 @@ def benchmark(args, combinations: list, instances, output_path: Path):
                 relative_percentage_deviation = (
                     (cost - best_known_cost) / best_known_cost
                 ) * 100
-
-                neighborhoods = [neighborhood]
 
                 writer.writerow(
                     {
