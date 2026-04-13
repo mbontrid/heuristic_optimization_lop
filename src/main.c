@@ -34,8 +34,8 @@ int main(int argc, char **argv) {
   DPRINTF("Debug print activated.\n");
 
   /* Do not buffer output */
-  setbuf(stdout, NULL);
-  setbuf(stderr, NULL);
+  // setbuf(stdout, NULL);
+  // setbuf(stderr, NULL);
 
   // ---argument parsing----
 
@@ -47,44 +47,39 @@ int main(int argc, char **argv) {
   //--- end args passing ----
 
   /* Read instance file */
-  t_sizemat cost_mat_size = 0;
+  t_sizemat mat_cost_dim = 0;
   t_mat_cell *const cost_mat_2d =
-      readInstance(arguments.instance_file, &cost_mat_size);
+      readInstance(arguments.instance_file, &mat_cost_dim);
   PVERB("Data have been read from instance file. Size of instance = %u.\n\n",
-        cost_mat_size);
+        mat_cost_dim);
 
   /* initialize random number generator, deterministically based on instance.
    * To do this we simply set the seed to the sum of elements in the matrix,
    so it is constant per-instance, but (most likely) varies between instances
  */
   Seed = (long int)0;
-  for (t_sizemat i = 0; i < cost_mat_size; ++i)
-    for (t_sizemat j = 0; j < cost_mat_size; ++j)
-      Seed += (long int)cost_mat_2d[cost_mat_size * i + j];
+  for (t_sizemat i = 0; i < mat_cost_dim; ++i)
+    for (t_sizemat j = 0; j < mat_cost_dim; ++j)
+      Seed += (long int)cost_mat_2d[mat_cost_dim * i + j];
   PVERB("Seed used to initialize RNG: %ld.\n\n", Seed);
 
   // lop measurement
   // ------------------------------------------------------------
 
   // generating first solution
-  t_sizemat *sol_1d = arguments.fptr_sol_start(cost_mat_2d, cost_mat_size);
+  t_sizemat *sol_1d = arguments.fptr_sol_start(cost_mat_2d, mat_cost_dim);
 
   /* starts time measurement */
   start_timers();
   t_cost cost =
-      vnd_lop(cost_mat_2d, cost_mat_size, sol_1d, arguments.fptr_pivoting_rule,
+      vnd_lop(cost_mat_2d, mat_cost_dim, sol_1d, arguments.fptr_pivoting_rule,
               arguments.fptrs_neighborhood, arguments.n_neighb_vnd);
   const double elapsed_seconds = elapsed_time(VIRTUAL);
   /* stop time measurement */
 
-  printf("RESULT cost=%u time=%g\n", cost, elapsed_seconds);
-
-  PVERB("lop seconds : %g\n\n", elapsed_seconds);
-  PVERB("lop cost: %u\n", cost);
-  PVERB("lop sol : \n", cost);
-  PARRAY(sol_1d, cost_mat_size);
+  printf("RESULT cost=%u time=%g solution=\n", cost, elapsed_seconds);
+  print_array_1d(sol_1d, mat_cost_dim);
 
   free(sol_1d);
-
   return 0;
 }

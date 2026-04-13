@@ -619,10 +619,10 @@ t_cost vnd_lop(t_mat_cell *cost_mat_2d, t_sizemat mat_cost_dim,
     if (new_cost > cost) {
       k_neighb = 0;
       cost = new_cost;
-      DPRINTF("vnd_lop found better cost: old cost : %u | new cost : %u\n",
-              cost, new_cost);
+      PVERB("vnd_lop found better cost: old cost : %u | new cost : %u\n", cost,
+            new_cost);
     } else {
-      DPRINTF("vnd_lop no improvement with neighborhood %u\n", k_neighb);
+      PVERB("vnd_lop no improvement with neighborhood %u\n", k_neighb);
       k_neighb++;
     }
   }
