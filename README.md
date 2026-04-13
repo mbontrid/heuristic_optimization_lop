@@ -1,10 +1,46 @@
 # Heuristic Optimization: LOP
 
-## data
+To run the full benchmark, only one command is needed:
 
-### instances
+```bash
+python3 tools/benchmark_best_known.py
+```
 
-Instances are preferably places in `data/input/instances/`.
+Dependencies: [cmake](https://cmake.org/download/) and python
+
+Warning: the full benchmark takes hours.
+
+## Project structure
+
+- Instances are preferably places in `data/input/instances/`.
+- `best_known.txt` associates each instance with its best known solution. It is used in the benchmark to compute the gap of the solutions found by the algorithms.
+
+```tree
+.
+├── build
+│   ├── bin
+│   │   ├── lop
+│   │   └── lop_debug
+├── CMakeLists.txt
+├── data
+│   ├── best_known.txt
+│   ├── input
+│   │   └── instances
+│   │       ├── N-be75eec_150
+.   .       .
+.   .       .
+.   .       .
+│   └── output
+│       ├── lop_analysis.csv
+│       └── lop_vnd_analysis.csv
+├── doc
+├── include
+├── Makefile
+├── README.md
+├── src
+├── tools
+    └── benchmark_best_known.py
+```
 
 ## Compile
 
@@ -23,7 +59,16 @@ To clean the repo from all builds.
 rm -rf build/
 ```
 
+Only use the Makefile if there is compatibility issues with cmake.
+
 ## Run
+
+For the full benchmark help :
+
+```
+```bash
+python3 tools/benchmark_best_known.py --help
+```
 
 The binary (after compilation) is located in `./build/bin/`.
 

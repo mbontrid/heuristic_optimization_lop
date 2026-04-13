@@ -158,6 +158,7 @@ def parse_args() -> argparse.Namespace:
         "--k",
         type=int,
         required=True,
+        default=1,
         help="Number of runs per algo combination (instance, pivot, neighborhood, sol_start).",
     )
     parser.add_argument(
@@ -288,7 +289,7 @@ def benchmark(args, combinations: list, instances, output_path: Path):
 def main() -> int:
     args = parse_args()
 
-    if args.k <= 0:
+    if args.k <= 1:
         raise ValueError("--k must be greater than 0")
     if not args.binary.is_file():
         args.binary = run_compile_target()
