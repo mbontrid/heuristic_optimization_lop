@@ -8,7 +8,7 @@ from pathlib import Path
 
 PIVOTS = ("first", "best")
 START_SOLS = ("random", "c_and_w")
-NEIGHBORHOODS = ("transpose", "exchange", "insert")
+NEIGHBORHOODS = (["transpose"], ["exchange"], ["insert"])
 
 RESULT_PATTERN = re.compile(
     r"RESULT\s+cost=(?P<cost>\d+)\s+time=(?P<time>[0-9.eE+-]+)\s+solution=(?P<solution>[\d+\s]+)"
@@ -112,6 +112,8 @@ def run_solver_once(
     ]
     for neighb in neighborhoods:
         cmd.extend(["-n", neighb])
+
+    # print(f"Running command: {' '.join(cmd)}", file=sys.stderr)
 
     completed = subprocess.run(
         cmd,
@@ -259,10 +261,9 @@ def benchmark(args, combinations: list, instances, output_path: Path):
                     times.append(elapsed)
                     solutions.append(solution)
 
-                min_time_pos = times.index(min(times))
-                cost = costs[min_time_pos]
-                time = times[min_time_pos]
-                solution = solutions[min_time_pos]
+                cost = max(costs)
+                time = min(times)
+                solution = solutions[0]
 
                 relative_percentage_deviation = (
                     (cost - best_known_cost) / best_known_cost

@@ -616,7 +616,7 @@ t_cost vnd_lop(t_mat_cell *cost_mat_2d, t_sizemat mat_cost_dim,
     t_cost new_cost = it_imp_lop(cost_mat_2d, mat_cost_dim, sol_1d,
                                  fptr_pivot_rule, fptr_neighborhood[k_neighb]);
 
-    if (new_cost > cost) {
+    if (new_cost > cost && k_neighb > 0) {
       k_neighb = 0;
       cost = new_cost;
       PVERB("vnd_lop found better cost: old cost : %u | new cost : %u\n", cost,
