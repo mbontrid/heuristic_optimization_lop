@@ -79,10 +79,10 @@ long int get_cost_diff_with_shuffle(const t_mat_cell *const cost_mat_2d,
       if (moved_pos <= neighb_delta[right_idx]) {
         continue;
       }
-      const t_sizemat right_value = sol[right_idx];
-      const size_t right_row_offset = (size_t)size * right_value;
+      const t_sizemat right_sol = sol[right_idx];
+      const size_t right_row_offset = (size_t)size * right_sol;
       cost_diff += (long int)cost_mat_2d[right_row_offset + moved_sol] -
-                   (long int)cost_mat_2d[moved_row + right_value];
+                   (long int)cost_mat_2d[moved_row + right_sol];
     }
 
     /*
@@ -145,10 +145,10 @@ long int cost_swap_delta(const t_mat_cell *const cost_mat_2d,
                    (long int)cost_mat_2d[left_row_offset + right_sol];
 
   for (size_t k = left + 1; k < right; k++) {
-    const size_t middle_value = sol_1d[k];
-    const size_t middle_row_offset = size * middle_value;
-    delta += (long int)cost_mat_2d[right_row_offset + middle_value] -
-             (long int)cost_mat_2d[left_row_offset + middle_value] +
+    const size_t middle_sol = sol_1d[k];
+    const size_t middle_row_offset = size * middle_sol;
+    delta += (long int)cost_mat_2d[right_row_offset + middle_sol] -
+             (long int)cost_mat_2d[left_row_offset + middle_sol] +
              (long int)cost_mat_2d[middle_row_offset + left_sol] -
              (long int)cost_mat_2d[middle_row_offset + right_sol];
   }
