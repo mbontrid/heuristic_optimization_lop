@@ -126,6 +126,12 @@ t_sizemat *generate_random_vector(t_sizemat dim)
   return random_vector;
 }
 
+void swap(t_sizemat *array_1d, t_sizemat size, t_sizemat i, t_sizemat j) {
+  t_sizemat tmp = array_1d[i];
+  array_1d[i] = array_1d[j];
+  array_1d[j] = tmp;
+}
+
 bool array_equal(const t_sizemat *const array_1d_1,
                  const t_sizemat *const array_1d_2, t_sizemat size) {
 

@@ -54,6 +54,7 @@ extern int randInt(int minimum, int maximum);
 t_sizemat *generate_inc_vector(t_sizemat size);
 extern t_sizemat *generate_random_vector(t_sizemat dim);
 
+void swap(t_sizemat *array_1d, t_sizemat size, t_sizemat i, t_sizemat j);
 bool array_equal(const t_sizemat *array_1d_1, const t_sizemat *array_1d_2,
                  t_sizemat size);
 
@@ -73,12 +74,6 @@ double end_clock(clock_t start);
 /**
  * @brief reorder an array based on the indice of another array. The resulting
  * array and the shuffle array have to of the same size.
- *
- * @param modified [TODO:parameter]
- * @param shuffle [TODO:parameter]
- * @param to_shuffle [TODO:parameter]
- * @param n_rows [TODO:parameter]
- * @param n_columns [TODO:parameter]
  */
 void array_apply_shuffle(t_sizemat *const modified,
                          const t_sizemat *const shuffle,

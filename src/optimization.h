@@ -123,7 +123,8 @@ t_cost pivot_best(const t_sizemat *const sol_1d, t_sizemat *new_sol_1d,
                   struct matrix cost_matrix);
 
 t_cost it_imp_lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
-                  t_sizemat *const sol_1d, t_fptr_pivot_rule fptr_pivot_rule,
+                  t_sizemat *const sol_1d, t_cost cost,
+                  t_fptr_pivot_rule fptr_pivot_rule,
                   t_fptr_neighborhood fptr_neighborhood);
 
 t_cost vnd_lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
