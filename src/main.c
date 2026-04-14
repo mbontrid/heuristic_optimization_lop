@@ -23,9 +23,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "arg_parser.h"
-#include "clocker.h"
 #include "instance.h"
 #include "optimization.h"
 #include "utilities.h"
@@ -69,11 +69,11 @@ int main(int argc, char **argv) {
   t_sizemat *sol_1d = arguments.fptr_sol_start(cost_mat_2d, mat_cost_dim);
 
   /* starts time measurement */
-  ushort timer_index = start_clock();
+  clock_t start = clock();
   t_cost cost =
       vnd_lop(cost_mat_2d, mat_cost_dim, sol_1d, arguments.fptr_pivoting_rule,
               arguments.fptrs_neighborhood, arguments.n_neighb_vnd);
-  const double elapsed_seconds = stop_clock(timer_index);
+  const double elapsed_seconds = end_clock(start);
   /* stop time measurement */
 
   printf("RESULT cost=%u time=%g solution=", cost, elapsed_seconds);

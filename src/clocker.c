@@ -31,3 +31,8 @@ double stop_clock(unsigned short index) {
   clock_list[index] = 0;
   return elapsed;
 }
+
+double second_colck(clock_t start) {
+  clock_t end = clock();
+  return (double)(end - start) / CLOCKS_PER_SEC;
+}

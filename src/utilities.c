@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <values.h>
 
 #include "utilities.h"
@@ -190,4 +191,9 @@ void array_apply_shuffle(t_sizemat *const result,
     assert(shuffle[i] <= size);
     result[shuffle[i]] = to_shuffle[i];
   }
+}
+
+double end_clock(clock_t start) {
+  clock_t end = clock();
+  return (double)(end - start) / CLOCKS_PER_SEC;
 }

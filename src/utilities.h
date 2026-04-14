@@ -23,6 +23,7 @@
 
 #include <limits.h>
 #include <stdbool.h>
+#include <time.h>
 #define PREV 0
 #define NEXT 1
 #define E_START 0
@@ -66,6 +67,8 @@ unsigned int factorial(unsigned int N);
 
 // Comparator for descending order
 int cmp_desc(const void *a, const void *b);
+
+double end_clock(clock_t start);
 
 /**
  * @brief reorder an array based on the indice of another array. The resulting
