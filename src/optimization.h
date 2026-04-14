@@ -54,14 +54,27 @@ t_cost computeCost(const t_mat_cell *const cost_mat, const t_sizemat *const lo,
  * @return the diference of the cost of sol and cost of sol with neighb_delta
  * applied.
  */
-long int get_cost_diff_with_delta(const t_mat_cell *const cost_mat_2d,
-                                  const t_sizemat *const sol,
-                                  const t_sizemat *const neighb_delta,
-                                  const t_sizemat size);
+long int get_cost_diff_with_shuffle(const t_mat_cell *const cost_mat_2d,
+                                    const t_sizemat *const sol,
+                                    const t_sizemat *const neighb_delta,
+                                    const t_sizemat size);
 
-t_cost get_cost(const t_mat_cell *const cost_mat_2d, const t_sizemat *const sol,
-                const t_sizemat *const neighb_delta, const t_sizemat size,
-                t_cost old_cost);
+/**
+ * @brief Compute efficiently the cost difference if a swap of two elemen of a
+ * solution of a lop is apllied.
+ *
+ * @param cost_mat_2d Cost matrix 2d  of size [size, size] flattened to 1d.
+ * @param sol_1d 1d array of size [size] on which the swap is applied.
+ * @param size size of {cost_mat_2d} and {sol_1d}.
+ * @param i index of the first element to swap in sol_1d.
+ * @param j index of the second element to swap in sol_1d.
+ * @return delta cost of the swap, i.e. cost of sol_1d with i and j swapped -
+ * cost of sol_1d.
+ */
+long int cost_swap_delta(const t_mat_cell *const cost_mat_2d,
+                         const size_t *const sol_1d, const size_t size,
+                         const size_t i, const size_t j);
+
 /**
  * @brief Compute the prefix sum of each row of a matrix independently.
  * 0 1 2 3 4 5 6 7 8 9 -> 0 1 3 6 10 17 25 34

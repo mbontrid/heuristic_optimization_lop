@@ -57,10 +57,10 @@ t_cost computeCost(const t_mat_cell *const cost_mat_2d,
   return (sum);
 }
 
-long int get_cost_diff_with_delta(const t_mat_cell *const cost_mat_2d,
-                                  const t_sizemat *const sol,
-                                  const t_sizemat *const neighb_delta,
-                                  const t_sizemat size) {
+long int get_cost_diff_with_shuffle(const t_mat_cell *const cost_mat_2d,
+                                    const t_sizemat *const sol,
+                                    const t_sizemat *const neighb_delta,
+                                    const t_sizemat size) {
   DPRINTF("executing... \n");
 
   long int cost_diff = 0;
@@ -115,47 +115,56 @@ long int get_cost_diff_with_delta(const t_mat_cell *const cost_mat_2d,
   return cost_diff;
 }
 
-int delta_cost_swap(const t_mat_cell *const cost_mat_2d,
-                    const t_sizemat *const sol_1d, const t_sizemat size,
-                    const t_sizemat i, const t_sizemat j) {
+long int cost_swap_delta(const t_mat_cell *const cost_mat_2d,
+                         const size_t *const sol_1d, const size_t size,
+                         const size_t i, const size_t j) {
 
-  int delta = 0;
+  assert(cost_mat_2d);
+  assert(sol_1d);
+  assert(i < size);
+  assert(j < size);
+
+  if (size < 2 || i == j) {
+    return 0;
+  }
+
+  size_t left = i;
+  size_t right = j;
+  if (left > right) {
+    size_t tmp = left;
+    left = right;
+    right = tmp;
+  }
+
+  const size_t left_sol = sol_1d[left];
+  const size_t right_sol = sol_1d[right];
+  const size_t left_row_offset = size * left_sol;
+  const size_t right_row_offset = size * right_sol;
+
+  long int delta = (long int)cost_mat_2d[right_row_offset + left_sol] -
+                   (long int)cost_mat_2d[left_row_offset + right_sol];
+
+  for (size_t k = left + 1; k < right; k++) {
+    const size_t middle_value = sol_1d[k];
+    const size_t middle_row_offset = size * middle_value;
+    delta += (long int)cost_mat_2d[right_row_offset + middle_value] -
+             (long int)cost_mat_2d[left_row_offset + middle_value] +
+             (long int)cost_mat_2d[middle_row_offset + left_sol] -
+             (long int)cost_mat_2d[middle_row_offset + right_sol];
+  }
 
 #ifndef NDEBUG
   t_sizemat *new_sol_assert = malloc(size * sizeof(t_sizemat));
+  assert(new_sol_assert);
   memcpy(new_sol_assert, sol_1d, size * sizeof(t_sizemat));
-  swap(new_sol_assert, size, i, j);
+  swap(new_sol_assert, size, left, right);
   t_cost sol_cost = computeCost(cost_mat_2d, sol_1d, size);
   t_cost new_sol_assert_cost = computeCost(cost_mat_2d, new_sol_assert, size);
-  assert(sol_cost + delta = sol_assert_cost);
+  assert((long int)sol_cost + delta == (long int)new_sol_assert_cost);
+  free(new_sol_assert);
 #endif
 
   return delta;
-}
-
-t_cost get_cost(const t_mat_cell *const cost_mat_2d, const t_sizemat *const sol,
-                const t_sizemat *const neighb_delta, const t_sizemat size,
-                t_cost old_cost) {
-
-  DPRINTF("executing get_cost with old_cost=%u\n", old_cost);
-  assert(old_cost == computeCost(cost_mat_2d, sol, size));
-
-  long int cost_diff =
-      get_cost_diff_with_delta(cost_mat_2d, sol, neighb_delta, size);
-  t_cost new_cost = old_cost + cost_diff;
-
-#ifndef NDEBUG
-  DPRINTF("old_cost=%u | cost_diff=%ld | new_cost=%u\n", old_cost, cost_diff,
-          new_cost);
-  t_sizemat *assert_new_sol_1d = malloc(size * sizeof(t_sizemat));
-  assert(assert_new_sol_1d);
-  array_apply_shuffle(assert_new_sol_1d, neighb_delta, sol, size);
-  t_cost assert_new_cost = computeCost(cost_mat_2d, assert_new_sol_1d, size);
-  assert(assert_new_cost == new_cost);
-  free(assert_new_sol_1d);
-#endif
-
-  return new_cost;
 }
 
 t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, t_sizemat n_rows,
