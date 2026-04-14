@@ -23,6 +23,6 @@
 
 #include "utilities.h"
 
-t_mat_cell *readInstance(const char *filename, t_sizemat *const size);
+t_mat_cell *readInstance(const char *filename, size_t *const size);
 
 #endif

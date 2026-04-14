@@ -30,7 +30,7 @@
 
 long int Seed;
 
-t_mat_cell **createMatrixx(t_sizemat dim) {
+t_mat_cell **createMatrixx(size_t dim) {
 
   int k;
   t_mat_cell **result = (t_mat_cell **)calloc(dim, sizeof(long int *));
@@ -73,23 +73,23 @@ int randInt(int minimum, int maximum) {
   return ((int)(ran01(&Seed) * (maximum - minimum + 1)) + minimum);
 }
 
-t_sizemat *generate_inc_vector(t_sizemat size) {
-  t_sizemat *new_vector = malloc(size * sizeof(size));
+size_t *generate_inc_vector(size_t size) {
+  size_t *new_vector = malloc(size * sizeof(size));
 
-  for (t_sizemat i = 0; i < size; i++) {
+  for (size_t i = 0; i < size; i++) {
     new_vector[i] = i;
   }
   return new_vector;
 }
 
-t_sizemat *generate_random_vector(t_sizemat dim)
+size_t *generate_random_vector(size_t dim)
 /* Generates a random vector, quick and dirty */
 {
-  t_sizemat *random_vector;
+  size_t *random_vector;
   int i, help, node, tot_assigned = 0;
   double rnd;
 
-  random_vector = malloc(dim * sizeof(t_sizemat));
+  random_vector = malloc(dim * sizeof(size_t));
 
   if (!random_vector) {
     fatal("Error on random_vector malloc\n");
@@ -108,7 +108,7 @@ t_sizemat *generate_random_vector(t_sizemat dim)
     tot_assigned++;
     // #ifndef NDEBUG
     //     DPRINTF("Construction of randome vector at step %i: ", i);
-    //     for (t_sizemat j = 0; j < dim; j++) {
+    //     for (size_t j = 0; j < dim; j++) {
     //       printf("%du ", random_vector[j]);
     //     }
     //     printf("\n");
@@ -117,7 +117,7 @@ t_sizemat *generate_random_vector(t_sizemat dim)
 
 #ifndef NDEBUG
   DPRINTF("random_vector : ");
-  for (t_sizemat i = 0; i < dim; i++) {
+  for (size_t i = 0; i < dim; i++) {
     printf("%d ", random_vector[i]);
   }
   printf("\n");
@@ -126,31 +126,31 @@ t_sizemat *generate_random_vector(t_sizemat dim)
   return random_vector;
 }
 
-void swap(t_sizemat *array_1d, t_sizemat size, t_sizemat i, t_sizemat j) {
-  t_sizemat tmp = array_1d[i];
+void swap(size_t *array_1d, size_t size, size_t i, size_t j) {
+  size_t tmp = array_1d[i];
   array_1d[i] = array_1d[j];
   array_1d[j] = tmp;
 }
 
-bool array_equal(const t_sizemat *const array_1d_1,
-                 const t_sizemat *const array_1d_2, t_sizemat size) {
+bool array_equal(const size_t *const array_1d_1,
+                 const size_t *const array_1d_2, size_t size) {
 
-  int a = memcmp(array_1d_1, array_1d_2, size * sizeof(t_sizemat));
+  int a = memcmp(array_1d_1, array_1d_2, size * sizeof(size_t));
 
   return !a;
 }
 
-void print_array_1d(const t_mat_cell *const array, const t_sizemat n_columns) {
-  for (t_sizemat i = 0; i < n_columns; i++) {
+void print_array_1d(const t_mat_cell *const array, const size_t n_columns) {
+  for (size_t i = 0; i < n_columns; i++) {
     printf("%u ", array[i]);
   }
   printf("\n");
 }
 
-void print_array_2d(t_mat_cell *array_2d, t_sizemat n_rows,
-                    t_sizemat n_columns) {
-  for (t_sizemat i = 0; i < n_rows; i++) {
-    for (t_sizemat j = 0; j < n_columns; j++) {
+void print_array_2d(t_mat_cell *array_2d, size_t n_rows,
+                    size_t n_columns) {
+  for (size_t i = 0; i < n_rows; i++) {
+    for (size_t j = 0; j < n_columns; j++) {
       t_mat_cell value = array_2d[n_columns * i + j];
       printf("%u ", value);
     }
@@ -158,10 +158,10 @@ void print_array_2d(t_mat_cell *array_2d, t_sizemat n_rows,
   }
 }
 
-void print_array_2d2(t_mat_cell **array_2d, t_sizemat n_rows,
-                     t_sizemat n_columns) {
-  for (t_sizemat i = 0; i < n_rows; i++) {
-    for (t_sizemat j = 0; j < n_columns; j++) {
+void print_array_2d2(t_mat_cell **array_2d, size_t n_rows,
+                     size_t n_columns) {
+  for (size_t i = 0; i < n_rows; i++) {
+    for (size_t j = 0; j < n_columns; j++) {
       t_mat_cell value = array_2d[i][j];
       printf("%u ", value);
     }
@@ -187,12 +187,12 @@ int cmp_desc(const void *a, const void *b) {
   return 0;
 }
 
-void array_apply_shuffle(t_sizemat *const result,
-                         const t_sizemat *const shuffle,
-                         const t_sizemat *const to_shuffle,
-                         const t_sizemat size) {
+void array_apply_shuffle(size_t *const result,
+                         const size_t *const shuffle,
+                         const size_t *const to_shuffle,
+                         const size_t size) {
 #pragma omp simd
-  for (t_sizemat i = 0; i < size; i++) {
+  for (size_t i = 0; i < size; i++) {
     // DPRINTF("shuffle=%d | to_shuffle=%d\n", shuffle[i], to_shuffle[i]);
     assert(shuffle[i] <= size);
     result[shuffle[i]] = to_shuffle[i];

@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
   //--- end args passing ----
 
   /* Read instance file */
-  t_sizemat mat_cost_dim = 0;
+  size_t mat_cost_dim = 0;
   t_mat_cell *const cost_mat_2d =
       readInstance(arguments.instance_file, &mat_cost_dim);
   PVERB("Data have been read from instance file. Size of instance = %u.\n\n",
@@ -57,8 +57,8 @@ int main(int argc, char **argv) {
    so it is constant per-instance, but (most likely) varies between instances
  */
   Seed = (long int)0;
-  for (t_sizemat i = 0; i < mat_cost_dim; ++i)
-    for (t_sizemat j = 0; j < mat_cost_dim; ++j)
+  for (size_t i = 0; i < mat_cost_dim; ++i)
+    for (size_t j = 0; j < mat_cost_dim; ++j)
       Seed += (long int)cost_mat_2d[mat_cost_dim * i + j];
   PVERB("Seed used to initialize RNG: %ld.\n", Seed);
 
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
   // ------------------------------------------------------------
 
   // generating first solution
-  t_sizemat *sol_1d = arguments.fptr_sol_start(cost_mat_2d, mat_cost_dim);
+  size_t *sol_1d = arguments.fptr_sol_start(cost_mat_2d, mat_cost_dim);
 
   /* starts time measurement */
   clock_t start = clock();

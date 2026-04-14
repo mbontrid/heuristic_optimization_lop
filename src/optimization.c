@@ -41,7 +41,7 @@
 extern struct arguments arguments;
 
 t_cost computeCost(const t_mat_cell *const cost_mat_2d,
-                   const t_sizemat *const lo, t_sizemat size) {
+                   const size_t *const lo, size_t size) {
   // #ifndef NDEBUG
   //   DPRINTF("executing computeCost with vector: \n");
   //   print_array_1d(lo, size);
@@ -49,8 +49,8 @@ t_cost computeCost(const t_mat_cell *const cost_mat_2d,
 
   t_cost sum = 0;
   /* Diagonal value are not considered */
-  for (t_sizemat h = 0; h < size; h++)
-    for (t_sizemat k = h + 1; k < size; k++) {
+  for (size_t h = 0; h < size; h++)
+    for (size_t k = h + 1; k < size; k++) {
       assert(MAX_COST - cost_mat_2d[size * lo[h] + lo[k]] >= sum);
       sum += cost_mat_2d[size * lo[h] + lo[k]];
     }
@@ -58,28 +58,28 @@ t_cost computeCost(const t_mat_cell *const cost_mat_2d,
 }
 
 long int get_cost_diff_with_shuffle(const t_mat_cell *const cost_mat_2d,
-                                    const t_sizemat *const sol,
-                                    const t_sizemat *const neighb_delta,
-                                    const t_sizemat size) {
+                                    const size_t *const sol,
+                                    const size_t *const neighb_delta,
+                                    const size_t size) {
   DPRINTF("executing... \n");
 
   long int cost_diff = 0;
 
-  for (t_sizemat moved_idx = 0; moved_idx < size; moved_idx++) {
-    const t_sizemat moved_pos = neighb_delta[moved_idx];
+  for (size_t moved_idx = 0; moved_idx < size; moved_idx++) {
+    const size_t moved_pos = neighb_delta[moved_idx];
     if (moved_pos == moved_idx) {
       continue;
     }
 
-    const t_sizemat moved_sol = sol[moved_idx];
-    const t_sizemat moved_row = size * moved_sol;
+    const size_t moved_sol = sol[moved_idx];
+    const size_t moved_row = size * moved_sol;
 
     /* Pairs (moved_idx, right_idx) with moved_idx < right_idx */
-    for (t_sizemat right_idx = moved_idx + 1; right_idx < size; right_idx++) {
+    for (size_t right_idx = moved_idx + 1; right_idx < size; right_idx++) {
       if (moved_pos <= neighb_delta[right_idx]) {
         continue;
       }
-      const t_sizemat right_sol = sol[right_idx];
+      const size_t right_sol = sol[right_idx];
       const size_t right_row_offset = (size_t)size * right_sol;
       cost_diff += (long int)cost_mat_2d[right_row_offset + moved_sol] -
                    (long int)cost_mat_2d[moved_row + right_sol];
@@ -88,11 +88,11 @@ long int get_cost_diff_with_shuffle(const t_mat_cell *const cost_mat_2d,
     /*
      * Pairs (left_idx, moved_idx) with left_idx < moved_idx.
      */
-    for (t_sizemat left_idx = 0; left_idx < moved_idx; left_idx++) {
+    for (size_t left_idx = 0; left_idx < moved_idx; left_idx++) {
       if (neighb_delta[left_idx] != left_idx || left_idx <= moved_pos) {
         continue;
       }
-      const t_sizemat left_value = sol[left_idx];
+      const size_t left_value = sol[left_idx];
       const size_t left_row_offset = (size_t)size * left_value;
       cost_diff += (long int)cost_mat_2d[moved_row + left_value] -
                    (long int)cost_mat_2d[left_row_offset + moved_sol];
@@ -102,7 +102,7 @@ long int get_cost_diff_with_shuffle(const t_mat_cell *const cost_mat_2d,
 // this is a test of the good result runing only when NDEBUG is defined. It is
 // slowing considerably the execution. as multiple ComputeCost are made.
 #ifndef NDEBUG
-  t_sizemat *new_sol_ndebug = malloc(size * sizeof(t_sizemat));
+  size_t *new_sol_ndebug = malloc(size * sizeof(size_t));
   assert(new_sol_ndebug);
   array_apply_shuffle(new_sol_ndebug, neighb_delta, sol, size);
   t_cost cost_assert = computeCost(cost_mat_2d, sol, size);
@@ -145,18 +145,18 @@ long int cost_swap_delta(const t_mat_cell *const cost_mat_2d,
                    (long int)cost_mat_2d[left_row_offset + right_sol];
 
   for (size_t k = left + 1; k < right; k++) {
-    const size_t middle_sol = sol_1d[k];
-    const size_t middle_row_offset = size * middle_sol;
-    delta += (long int)cost_mat_2d[right_row_offset + middle_sol] -
-             (long int)cost_mat_2d[left_row_offset + middle_sol] +
+    const size_t middle_value = sol_1d[k];
+    const size_t middle_row_offset = size * middle_value;
+    delta += (long int)cost_mat_2d[right_row_offset + middle_value] -
+             (long int)cost_mat_2d[left_row_offset + middle_value] +
              (long int)cost_mat_2d[middle_row_offset + left_sol] -
              (long int)cost_mat_2d[middle_row_offset + right_sol];
   }
 
 #ifndef NDEBUG
-  t_sizemat *new_sol_assert = malloc(size * sizeof(t_sizemat));
+  size_t *new_sol_assert = malloc(size * sizeof(size_t));
   assert(new_sol_assert);
-  memcpy(new_sol_assert, sol_1d, size * sizeof(t_sizemat));
+  memcpy(new_sol_assert, sol_1d, size * sizeof(size_t));
   swap(new_sol_assert, size, left, right);
   t_cost sol_cost = computeCost(cost_mat_2d, sol_1d, size);
   t_cost new_sol_assert_cost = computeCost(cost_mat_2d, new_sol_assert, size);
@@ -167,14 +167,14 @@ long int cost_swap_delta(const t_mat_cell *const cost_mat_2d,
   return delta;
 }
 
-t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, t_sizemat n_rows,
-                                  t_sizemat n_columns) {
+t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, size_t n_rows,
+                                  size_t n_columns) {
 
   t_mat_cell *sum_row_2d = malloc(n_columns * n_columns * sizeof(t_mat_cell));
   assert(sum_row_2d);
-  for (t_sizemat i = 0; i < n_rows; i++) {
+  for (size_t i = 0; i < n_rows; i++) {
     sum_row_2d[n_columns * i] = mat[n_columns * i];
-    for (t_sizemat j = 1; j < n_columns; j++) {
+    for (size_t j = 1; j < n_columns; j++) {
       assert(MAX_COST_CELL -
              sum_row_2d[n_columns * i + j - 1 >= mat[n_columns * i + j]]);
       sum_row_2d[n_columns * i + j] =
@@ -185,7 +185,7 @@ t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, t_sizemat n_rows,
   return sum_row_2d;
 }
 
-t_sizemat get_n_transpose(t_sizemat size) {
+size_t get_n_transpose(size_t size) {
 
   if (size < 2) {
     return 0;
@@ -197,22 +197,22 @@ t_sizemat get_n_transpose(t_sizemat size) {
   return size;
 }
 
-t_sizemat *neighb_transpose_deltas(t_sizemat *const n_rows,
-                                   const t_sizemat n_columns) {
+size_t *neighb_transpose_deltas(size_t *const n_rows,
+                                   const size_t n_columns) {
 
   *n_rows = get_n_transpose(n_columns);
-  t_sizemat *transposes_deltas_2d =
-      malloc(*n_rows * n_columns * sizeof(t_sizemat));
+  size_t *transposes_deltas_2d =
+      malloc(*n_rows * n_columns * sizeof(size_t));
   assert(transposes_deltas_2d);
 
   DPRINTF("%u transoposes possibilities allocated\n", *n_rows);
 
   for (ulong i = 0; i < *n_rows; i++) {
-    for (t_sizemat j = 0; j < n_columns; j++) {
+    for (size_t j = 0; j < n_columns; j++) {
       transposes_deltas_2d[n_columns * i + j] = j;
     }
 
-    t_sizemat temp = transposes_deltas_2d[n_columns * i + i];
+    size_t temp = transposes_deltas_2d[n_columns * i + i];
     transposes_deltas_2d[n_columns * i + i] =
         transposes_deltas_2d[n_columns * i + (i + 1) % n_columns];
     transposes_deltas_2d[n_columns * i + (i + 1) % n_columns] =
@@ -221,13 +221,13 @@ t_sizemat *neighb_transpose_deltas(t_sizemat *const n_rows,
 
 #ifndef NDEBUG
   DPRINTF("all transposes : \n");
-  for (t_sizemat i = 0; i < *n_rows; i++) {
+  for (size_t i = 0; i < *n_rows; i++) {
     DPRINTF("transpose %u : ", i)
     PARRAY(&transposes_deltas_2d[n_columns * i], n_columns);
   }
 
-  for (t_sizemat i = 0; i < *n_rows; i++) {
-    for (t_sizemat j = 0; j < n_columns; j++) {
+  for (size_t i = 0; i < *n_rows; i++) {
+    for (size_t j = 0; j < n_columns; j++) {
       assert(transposes_deltas_2d[n_columns * i + j] <= n_columns);
     }
   }
@@ -235,19 +235,19 @@ t_sizemat *neighb_transpose_deltas(t_sizemat *const n_rows,
   return transposes_deltas_2d;
 }
 
-uint get_n_exchange(t_sizemat size) {
+uint get_n_exchange(size_t size) {
   if (size < 2) {
     return 0;
   }
   return size * (size - 1) / 2;
 }
 
-t_sizemat *neighb_exchange_deltas(t_sizemat *const n_rows,
-                                  const t_sizemat n_columns) {
+size_t *neighb_exchange_deltas(size_t *const n_rows,
+                                  const size_t n_columns) {
 
   *n_rows = get_n_exchange(n_columns);
-  t_sizemat *restrict exchanges_deltas_2d =
-      malloc(*n_rows * n_columns * sizeof(t_sizemat));
+  size_t *restrict exchanges_deltas_2d =
+      malloc(*n_rows * n_columns * sizeof(size_t));
   assert(exchanges_deltas_2d);
 
   DPRINTF("%d exchanges possibilities allocated\n", *n_rows);
@@ -258,9 +258,9 @@ t_sizemat *neighb_exchange_deltas(t_sizemat *const n_rows,
   }
 
   uint row = 0;
-  for (t_sizemat i = 0; i < n_columns - 1; i++) {
-    for (t_sizemat j = i + 1; j < n_columns; j++) {
-      t_sizemat temp = exchanges_deltas_2d[n_columns * row + i];
+  for (size_t i = 0; i < n_columns - 1; i++) {
+    for (size_t j = i + 1; j < n_columns; j++) {
+      size_t temp = exchanges_deltas_2d[n_columns * row + i];
       exchanges_deltas_2d[n_columns * row + i] =
           exchanges_deltas_2d[n_columns * row + j];
       exchanges_deltas_2d[n_columns * row + j] = temp;
@@ -272,7 +272,7 @@ t_sizemat *neighb_exchange_deltas(t_sizemat *const n_rows,
 #ifndef NDEBUG
   if (*n_rows < 100) {
     for (ulong i = 0; i < *n_rows; i++) {
-      for (t_sizemat j = 0; j < n_columns; j++) {
+      for (size_t j = 0; j < n_columns; j++) {
         printf("%u ", exchanges_deltas_2d[n_columns * i + j]);
       }
       printf("\n");
@@ -283,9 +283,9 @@ t_sizemat *neighb_exchange_deltas(t_sizemat *const n_rows,
   return exchanges_deltas_2d;
 }
 
-t_sizemat get_n_inserts(t_sizemat size) {
+size_t get_n_inserts(size_t size) {
   assert(MAX_SIZEMAT - (size - 1) * (size - 1) >= 0);
-  t_sizemat n_inserts = (size - 1) * (size - 1);
+  size_t n_inserts = (size - 1) * (size - 1);
   if (size < 2) {
     n_inserts = 0;
   } else if (size == 2) {
@@ -297,13 +297,13 @@ t_sizemat get_n_inserts(t_sizemat size) {
   return n_inserts;
 }
 
-t_sizemat *neighb_insert_deltas(t_sizemat *const n_rows,
-                                const t_sizemat n_columns) {
+size_t *neighb_insert_deltas(size_t *const n_rows,
+                                const size_t n_columns) {
 
   *n_rows = get_n_inserts(n_columns);
   DPRINTF("executing for %u collumns and %d rows\n", n_columns, *n_rows);
 
-  t_sizemat *inserts_delta_2d = malloc(n_columns * *n_rows * sizeof(t_sizemat));
+  size_t *inserts_delta_2d = malloc(n_columns * *n_rows * sizeof(size_t));
   assert(inserts_delta_2d);
   DPRINTF("%u inserts possibilities allocated\n", *n_rows);
 
@@ -312,13 +312,13 @@ t_sizemat *neighb_insert_deltas(t_sizemat *const n_rows,
   ulong row = 0;
 
   // which number has to move
-  for (t_sizemat i = 0; i < n_columns; i++) {
+  for (size_t i = 0; i < n_columns; i++) {
     // to which number i has to move
-    for (t_sizemat j = 0; j < n_columns; j++) {
+    for (size_t j = 0; j < n_columns; j++) {
       // avoid duplicates
       if (i != j && i != j + 1) {
         // go through each number of a row
-        for (t_sizemat x = 0; x < n_columns; x++) {
+        for (size_t x = 0; x < n_columns; x++) {
           // "move"" number to the left
           if (i < j && x >= i && x < j) {
             inserts_delta_2d[n_columns * row + x] = x + 1;
@@ -332,7 +332,7 @@ t_sizemat *neighb_insert_deltas(t_sizemat *const n_rows,
         }
 #ifndef NDEBUG
         if (n_columns < 100) {
-          for (t_sizemat x = 0; x < n_columns; x++) {
+          for (size_t x = 0; x < n_columns; x++) {
             printf("%u ", inserts_delta_2d[n_columns * i + x]);
           }
           printf(" for i=%u, j=%u\n", i, j);
@@ -348,14 +348,14 @@ t_sizemat *neighb_insert_deltas(t_sizemat *const n_rows,
   return inserts_delta_2d;
 }
 
-t_sizemat *sol_start_random(t_mat_cell *mat, t_sizemat n_columns) {
+size_t *sol_start_random(t_mat_cell *mat, size_t n_columns) {
   DPRINTF("executing sol_start_random\n");
 
-  t_sizemat *new_random_vector = generate_random_vector(n_columns);
+  size_t *new_random_vector = generate_random_vector(n_columns);
 
 #ifndef NDEBUG
   DPRINTF("random generated starting solution vector\n")
-  for (t_sizemat i = 0; i < n_columns; i++) {
+  for (size_t i = 0; i < n_columns; i++) {
     printf("%d ", new_random_vector[i]);
   }
   printf("\n");
@@ -364,7 +364,7 @@ t_sizemat *sol_start_random(t_mat_cell *mat, t_sizemat n_columns) {
   return new_random_vector;
 }
 
-t_sizemat *sol_start_cw(t_mat_cell *cost_mat_2d, t_sizemat size) {
+size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size) {
   DPRINTF("executing sol_start_c_and_w\n");
 
   t_mat_cell *sum_row_2d = prefix_sum_per_row_2d(cost_mat_2d, size, size);
@@ -378,13 +378,13 @@ t_sizemat *sol_start_cw(t_mat_cell *cost_mat_2d, t_sizemat size) {
   }
 #endif
 
-  t_sizemat *new_best_start_1d = generate_inc_vector(size);
+  size_t *new_best_start_1d = generate_inc_vector(size);
 
-  for (t_sizemat i = 0; i < size; i++) {
-    t_sizemat best_pos = i;
+  for (size_t i = 0; i < size; i++) {
+    size_t best_pos = i;
     t_mat_cell best = 0;
-    for (t_sizemat j = i; j < size; j++) {
-      t_sizemat sum_row_idx = new_best_start_1d[j];
+    for (size_t j = i; j < size; j++) {
+      size_t sum_row_idx = new_best_start_1d[j];
 
       // current = cost_mat_2d[i][last] - cost_mat_2d[i][i]
       t_mat_cell last_sum = sum_row_2d[size * sum_row_idx + size - 1];
@@ -399,7 +399,7 @@ t_sizemat *sol_start_cw(t_mat_cell *cost_mat_2d, t_sizemat size) {
     }
     // DPRINTF("best at %u : %u for value %u\n", i, best_pos, best);
 
-    t_sizemat tmp = new_best_start_1d[i];
+    size_t tmp = new_best_start_1d[i];
     new_best_start_1d[i] = new_best_start_1d[best_pos];
     new_best_start_1d[best_pos] = tmp;
 
@@ -418,8 +418,8 @@ t_sizemat *sol_start_cw(t_mat_cell *cost_mat_2d, t_sizemat size) {
   return new_best_start_1d;
 }
 
-t_sizemat *sol_start_cw_tentative(const t_mat_cell *const restrict cost_mat_2d,
-                                  t_sizemat size) {
+size_t *sol_start_cw_tentative(const t_mat_cell *const restrict cost_mat_2d,
+                                  size_t size) {
   DPRINTF("executting cw\n");
 
   t_cost *const restrict r_1d = calloc(size, sizeof(t_cost));
@@ -427,7 +427,7 @@ t_sizemat *sol_start_cw_tentative(const t_mat_cell *const restrict cost_mat_2d,
   Item *const restrict s_1d = malloc(size * sizeof(Item));
   assert(s_1d);
 
-  t_sizemat *restrict sol_1d = malloc(size * sizeof(t_sizemat));
+  size_t *restrict sol_1d = malloc(size * sizeof(size_t));
   assert(sol_1d);
 
 /*
@@ -436,9 +436,9 @@ t_sizemat *sol_start_cw_tentative(const t_mat_cell *const restrict cost_mat_2d,
  * s[i] = r[i] - c[i]
  */
 #pragma omp simd
-  for (t_sizemat x = 0; x < size * size; x++) {
-    t_sizemat i = x / size;
-    t_sizemat j = x % size;
+  for (size_t x = 0; x < size * size; x++) {
+    size_t i = x / size;
+    size_t j = x % size;
     assert(MAX_COST_CELL - cost_mat_2d[size * i + j] >= r_1d[i]);
     r_1d[i] += cost_mat_2d[size * i + j];
     assert(MAX_COST_CELL - cost_mat_2d[size * j + i] >= c_1d[i]);
@@ -446,7 +446,7 @@ t_sizemat *sol_start_cw_tentative(const t_mat_cell *const restrict cost_mat_2d,
   }
 
 #pragma omp simd
-  for (t_sizemat i = 0; i < size; i++) {
+  for (size_t i = 0; i < size; i++) {
     s_1d[i].value = r_1d[i] - c_1d[i] - 2 * cost_mat_2d[size * i + i];
     assert(s_1d[i].index <= size);
     s_1d[i].index = i;
@@ -455,7 +455,7 @@ t_sizemat *sol_start_cw_tentative(const t_mat_cell *const restrict cost_mat_2d,
   qsort(s_1d, size, sizeof(Item), cmp_desc);
 
 #pragma omp simd
-  for (t_sizemat i = 0; i < size; i++) {
+  for (size_t i = 0; i < size; i++) {
     sol_1d[i] = s_1d[i].index;
   }
 
@@ -470,16 +470,16 @@ t_sizemat *sol_start_cw_tentative(const t_mat_cell *const restrict cost_mat_2d,
   return sol_1d;
 }
 
-t_sizemat *sol_start_c_and_w(t_mat_cell *cost_mat_2d, t_sizemat size) {
+size_t *sol_start_c_and_w(t_mat_cell *cost_mat_2d, size_t size) {
   DPRINTF("executing sol_start_c_and_w\n");
-  t_sizemat *sol_1d = sol_start_cw(cost_mat_2d, size);
-  // t_sizemat *sol_1d = sol_start_cw_tentative(cost_mat_2d, size); \\don't
+  size_t *sol_1d = sol_start_cw(cost_mat_2d, size);
+  // size_t *sol_1d = sol_start_cw_tentative(cost_mat_2d, size); \\don't
   // work.
 
   return sol_1d;
 }
 
-t_cost pivot(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, const t_cost cost,
+t_cost pivot(const size_t *sol_1d, size_t *new_sol_1d, const t_cost cost,
              struct matrix neighb_deltas, struct matrix cost_matrix) {
 
   assert(array_equal(new_sol_1d, sol_1d, neighb_deltas.n_columns));
@@ -490,9 +490,9 @@ t_cost pivot(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, const t_cost cost,
 
   t_cost best_cost = cost;
 
-  for (t_sizemat i = 0; i < neighb_deltas.n_rows; i++) {
+  for (size_t i = 0; i < neighb_deltas.n_rows; i++) {
 
-    const t_sizemat *neighb_delta =
+    const size_t *neighb_delta =
         &neighb_deltas.mat_2d[neighb_deltas.n_columns * i];
     assert(neighb_delta);
     assert(best_cost == computeCost(cost_matrix.mat_2d, new_sol_1d,
@@ -502,8 +502,8 @@ t_cost pivot(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, const t_cost cost,
                                neighb_deltas.n_columns, cost);
 
 #ifndef NDEBUG
-    t_sizemat *assert_new_sol =
-        malloc(neighb_deltas.n_columns * sizeof(t_sizemat));
+    size_t *assert_new_sol =
+        malloc(neighb_deltas.n_columns * sizeof(size_t));
     assert(assert_new_sol);
     array_apply_shuffle(assert_new_sol, neighb_delta, sol_1d,
                         neighb_deltas.n_columns);
@@ -525,7 +525,7 @@ t_cost pivot(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, const t_cost cost,
   return best_cost;
 }
 
-t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d,
+t_cost pivot_first(const size_t *sol_1d, size_t *new_sol_1d,
                    const t_cost cost, struct matrix neighb_deltas,
                    struct matrix cost_matrix) {
 
@@ -538,10 +538,10 @@ t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d,
   assert(cost ==
          computeCost(cost_matrix.mat_2d, sol_1d, neighb_deltas.n_columns));
 
-  for (t_sizemat i = 0; i < neighb_deltas.n_rows; i++) {
+  for (size_t i = 0; i < neighb_deltas.n_rows; i++) {
 
     assert(&neighb_deltas.mat_2d[neighb_deltas.n_columns * i]);
-    const t_sizemat *neighb_delta =
+    const size_t *neighb_delta =
         &neighb_deltas.mat_2d[neighb_deltas.n_columns * i];
 
     assert(best_cost == computeCost(cost_matrix.mat_2d, new_sol_1d,
@@ -551,8 +551,8 @@ t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d,
                                neighb_deltas.n_columns, cost);
 
 #ifndef NDEBUG
-    t_sizemat *assert_new_sol =
-        malloc(neighb_deltas.n_columns * sizeof(t_sizemat));
+    size_t *assert_new_sol =
+        malloc(neighb_deltas.n_columns * sizeof(size_t));
     assert(assert_new_sol);
     array_apply_shuffle(assert_new_sol, neighb_delta, sol_1d,
                         neighb_deltas.n_columns);
@@ -574,7 +574,7 @@ t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d,
   return best_cost;
 }
 
-t_cost pivot_best(const t_sizemat *const sol_1d, t_sizemat *new_sol_1d,
+t_cost pivot_best(const size_t *const sol_1d, size_t *new_sol_1d,
                   const t_cost cost, struct matrix neighb_deltas,
                   struct matrix cost_matrix) {
   DPRINTF("executing...\n");
@@ -586,9 +586,9 @@ t_cost pivot_best(const t_sizemat *const sol_1d, t_sizemat *new_sol_1d,
   assert(cost ==
          computeCost(cost_matrix.mat_2d, sol_1d, neighb_deltas.n_columns));
 
-  for (t_sizemat i = 0; i < neighb_deltas.n_rows; i++) {
+  for (size_t i = 0; i < neighb_deltas.n_rows; i++) {
 
-    const t_sizemat *neighb_delta =
+    const size_t *neighb_delta =
         &neighb_deltas.mat_2d[neighb_deltas.n_columns * i];
 
     assert(best_cost == computeCost(cost_matrix.mat_2d, new_sol_1d,
@@ -598,8 +598,8 @@ t_cost pivot_best(const t_sizemat *const sol_1d, t_sizemat *new_sol_1d,
                                neighb_deltas.n_columns, cost);
 
 #ifndef NDEBUG
-    t_sizemat *assert_new_sol =
-        malloc(neighb_deltas.n_columns * sizeof(t_sizemat));
+    size_t *assert_new_sol =
+        malloc(neighb_deltas.n_columns * sizeof(size_t));
     assert(assert_new_sol);
     array_apply_shuffle(assert_new_sol, neighb_delta, sol_1d,
                         neighb_deltas.n_columns);
@@ -621,8 +621,8 @@ t_cost pivot_best(const t_sizemat *const sol_1d, t_sizemat *new_sol_1d,
   return best_cost;
 }
 
-t_cost it_imp_lop(t_mat_cell *cost_mat_2d, t_sizemat mat_cost_dim,
-                  t_sizemat *const sol_1d, t_cost cost,
+t_cost it_imp_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
+                  size_t *const sol_1d, t_cost cost,
                   t_fptr_pivot_rule fptr_pivot_rule,
                   t_fptr_neighborhood fptr_neighborhood) {
   DPRINTF("executing lop\n");
@@ -637,9 +637,9 @@ t_cost it_imp_lop(t_mat_cell *cost_mat_2d, t_sizemat mat_cost_dim,
       fptr_neighborhood(&neigh_deltas.n_rows, neigh_deltas.n_columns);
 
   // new solution after each pivot.
-  t_sizemat *new_sol_1d = malloc(cost_mat.n_columns * sizeof(t_sizemat));
+  size_t *new_sol_1d = malloc(cost_mat.n_columns * sizeof(size_t));
   assert(new_sol_1d);
-  memcpy(new_sol_1d, sol_1d, mat_cost_dim * sizeof(t_sizemat));
+  memcpy(new_sol_1d, sol_1d, mat_cost_dim * sizeof(size_t));
 
   t_cost new_cost = cost;
   DPRINTF("starting cost : %u cost\n", cost);
@@ -649,7 +649,7 @@ t_cost it_imp_lop(t_mat_cell *cost_mat_2d, t_sizemat mat_cost_dim,
   while (is_improve) {
 
     cost = new_cost;
-    memcpy(sol_1d, new_sol_1d, mat_cost_dim * sizeof(t_sizemat));
+    memcpy(sol_1d, new_sol_1d, mat_cost_dim * sizeof(size_t));
 
     assert(array_equal(new_sol_1d, sol_1d, mat_cost_dim));
     assert(cost == new_cost);
@@ -672,8 +672,8 @@ t_cost it_imp_lop(t_mat_cell *cost_mat_2d, t_sizemat mat_cost_dim,
   return cost;
 }
 
-t_cost vnd_lop(t_mat_cell *cost_mat_2d, t_sizemat mat_cost_dim,
-               t_sizemat *const sol_1d, t_fptr_pivot_rule fptr_pivot_rule,
+t_cost vnd_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
+               size_t *const sol_1d, t_fptr_pivot_rule fptr_pivot_rule,
                t_fptr_neighborhood *fptr_neighborhood,
                const ushort n_neighb_vn) {
 

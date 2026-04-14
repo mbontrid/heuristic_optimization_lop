@@ -25,23 +25,23 @@
 #include <sys/types.h>
 
 struct matrix {
-  const t_sizemat *mat_2d;
-  t_sizemat n_rows;
-  t_sizemat n_columns;
+  const size_t *mat_2d;
+  size_t n_rows;
+  size_t n_columns;
 };
 
-typedef t_sizemat *(*t_fptr_neighborhood)(t_sizemat *const n_rows,
-                                          const t_sizemat n_columns);
-typedef t_cost (*t_fptr_pivot_rule)(const t_sizemat *sol_1d,
-                                    t_sizemat *new_sol_1d, t_cost cost,
+typedef size_t *(*t_fptr_neighborhood)(size_t *const n_rows,
+                                          const size_t n_columns);
+typedef t_cost (*t_fptr_pivot_rule)(const size_t *sol_1d,
+                                    size_t *new_sol_1d, t_cost cost,
                                     struct matrix nighb_deltas,
                                     struct matrix cost_matrix);
-typedef t_sizemat *(*t_fptr_sol_start)(t_mat_cell *CostMat, t_sizemat size);
+typedef size_t *(*t_fptr_sol_start)(t_mat_cell *CostMat, size_t size);
 
 extern t_mat_cell **cost_mat_2d;
 
-t_cost computeCost(const t_mat_cell *const cost_mat, const t_sizemat *const lo,
-                   t_sizemat size);
+t_cost computeCost(const t_mat_cell *const cost_mat, const size_t *const lo,
+                   size_t size);
 
 /**
  * @brief get the cost difference if a neithberhood modification is applied to a
@@ -55,9 +55,9 @@ t_cost computeCost(const t_mat_cell *const cost_mat, const t_sizemat *const lo,
  * applied.
  */
 long int get_cost_diff_with_shuffle(const t_mat_cell *const cost_mat_2d,
-                                    const t_sizemat *const sol,
-                                    const t_sizemat *const neighb_delta,
-                                    const t_sizemat size);
+                                    const size_t *const sol,
+                                    const size_t *const neighb_delta,
+                                    const size_t size);
 
 /**
  * @brief Compute efficiently the cost difference if a swap of two elemen of a
@@ -84,12 +84,12 @@ long int cost_swap_delta(const t_mat_cell *const cost_mat_2d,
  * @param n_columns dimension of mat
  * @return A new 2d matrix pointer.
  */
-t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, t_sizemat n_rows,
-                                  t_sizemat n_columns);
+t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, size_t n_rows,
+                                  size_t n_columns);
 
-t_sizemat get_n_transpose(t_sizemat size);
-t_sizemat get_n_inserts(t_sizemat size);
-t_sizemat get_n_exchange(t_sizemat size);
+size_t get_n_transpose(size_t size);
+size_t get_n_inserts(size_t size);
+size_t get_n_exchange(size_t size);
 
 /**
  * @brief get_all_possible transposes in a vector of size n_columns
@@ -99,14 +99,14 @@ t_sizemat get_n_exchange(t_sizemat size);
  * @param n_columns size of vector to transpose.
  * @param n_rows number of possible transposes.
  */
-t_sizemat *neighb_transpose_deltas(t_sizemat *const n_rows,
-                                   const t_sizemat n_columns);
-t_sizemat *neighb_exchange_deltas(t_sizemat *const n_rows,
-                                  const t_sizemat n_columns);
-t_sizemat *neighb_insert_deltas(t_sizemat *const n_rows,
-                                const t_sizemat n_columns);
+size_t *neighb_transpose_deltas(size_t *const n_rows,
+                                   const size_t n_columns);
+size_t *neighb_exchange_deltas(size_t *const n_rows,
+                                  const size_t n_columns);
+size_t *neighb_insert_deltas(size_t *const n_rows,
+                                const size_t n_columns);
 
-t_sizemat *sol_start_random(t_mat_cell *mat, t_sizemat n_columns);
+size_t *sol_start_random(t_mat_cell *mat, size_t n_columns);
 
 /**
  * @brief Chenery and Watanabe (CW) greedy heuristic.
@@ -115,9 +115,9 @@ t_sizemat *sol_start_random(t_mat_cell *mat, t_sizemat n_columns);
  * @param n_columns Dimension of the square matrix
  * @return A array of the CW ordering.
  */
-t_sizemat *sol_start_c_and_w(t_mat_cell *cost_mat_1d, t_sizemat n_columns);
+size_t *sol_start_c_and_w(t_mat_cell *cost_mat_1d, size_t n_columns);
 
-t_sizemat *sol_start_cw(t_mat_cell *cost_mat_2d, t_sizemat size);
+size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size);
 /**
  * @brief false implementation of CW. Efficient, but false.
  *
@@ -125,23 +125,23 @@ t_sizemat *sol_start_cw(t_mat_cell *cost_mat_2d, t_sizemat size);
  * @param n_columns size of the solution.
  * @return a false CW ordering array
  */
-t_sizemat *sol_start_cw_tentative(const t_mat_cell *restrict const cost_mat_2d,
-                                  t_sizemat size);
+size_t *sol_start_cw_tentative(const t_mat_cell *restrict const cost_mat_2d,
+                                  size_t size);
 
-t_cost pivot_first(const t_sizemat *sol_1d, t_sizemat *new_sol_1d, t_cost cost,
+t_cost pivot_first(const size_t *sol_1d, size_t *new_sol_1d, t_cost cost,
                    struct matrix nighb_deltas, struct matrix cost_matrix);
 
-t_cost pivot_best(const t_sizemat *const sol_1d, t_sizemat *new_sol_1d,
+t_cost pivot_best(const size_t *const sol_1d, size_t *new_sol_1d,
                   const t_cost cost, struct matrix nighb_deltas,
                   struct matrix cost_matrix);
 
-t_cost it_imp_lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
-                  t_sizemat *const sol_1d, t_cost cost,
+t_cost it_imp_lop(t_mat_cell *cost_mat_2d, size_t cost_mat_dim,
+                  size_t *const sol_1d, t_cost cost,
                   t_fptr_pivot_rule fptr_pivot_rule,
                   t_fptr_neighborhood fptr_neighborhood);
 
-t_cost vnd_lop(t_mat_cell *cost_mat_2d, t_sizemat cost_mat_dim,
-               t_sizemat *const sol_1d, t_fptr_pivot_rule fptr_pivot_rule,
+t_cost vnd_lop(t_mat_cell *cost_mat_2d, size_t cost_mat_dim,
+               size_t *const sol_1d, t_fptr_pivot_rule fptr_pivot_rule,
                t_fptr_neighborhood *fptr_neighborhood_1,
                const ushort n_neighb_vnd);
 #endif

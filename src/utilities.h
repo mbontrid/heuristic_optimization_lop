@@ -29,7 +29,6 @@
 #define E_START 0
 #define E_END 1
 
-typedef unsigned int t_sizemat;
 typedef unsigned int t_mat_cell;
 typedef unsigned int t_cost;
 
@@ -42,7 +41,7 @@ typedef struct {
   double value;
 } Item;
 
-t_mat_cell **createMatrixx(t_sizemat i);
+t_mat_cell **createMatrixx(size_t i);
 int rand0N(int limit);
 
 extern void fatal(char *s);
@@ -51,18 +50,18 @@ extern double ran01(long *idum);
 
 extern int randInt(int minimum, int maximum);
 
-t_sizemat *generate_inc_vector(t_sizemat size);
-extern t_sizemat *generate_random_vector(t_sizemat dim);
+size_t *generate_inc_vector(size_t size);
+extern size_t *generate_random_vector(size_t dim);
 
-void swap(t_sizemat *array_1d, t_sizemat size, t_sizemat i, t_sizemat j);
-bool array_equal(const t_sizemat *array_1d_1, const t_sizemat *array_1d_2,
-                 t_sizemat size);
+void swap(size_t *array_1d, size_t size, size_t i, size_t j);
+bool array_equal(const size_t *array_1d_1, const size_t *array_1d_2,
+                 size_t size);
 
-void print_array_1d(const t_mat_cell *const array, const t_sizemat n_columns);
-void print_array_2d(t_mat_cell *array_2d, t_sizemat n_rows,
-                    t_sizemat n_columns);
-void print_array_2d2(t_mat_cell **array_2d, t_sizemat n_rows,
-                     t_sizemat n_columns);
+void print_array_1d(const t_mat_cell *const array, const size_t n_columns);
+void print_array_2d(t_mat_cell *array_2d, size_t n_rows,
+                    size_t n_columns);
+void print_array_2d2(t_mat_cell **array_2d, size_t n_rows,
+                     size_t n_columns);
 
 unsigned int factorial(unsigned int N);
 
@@ -75,10 +74,10 @@ double end_clock(clock_t start);
  * @brief reorder an array based on the indice of another array. The resulting
  * array and the shuffle array have to of the same size.
  */
-void array_apply_shuffle(t_sizemat *const modified,
-                         const t_sizemat *const shuffle,
-                         const t_sizemat *const to_shuffle,
-                         const t_sizemat size);
+void array_apply_shuffle(size_t *const modified,
+                         const size_t *const shuffle,
+                         const size_t *const to_shuffle,
+                         const size_t size);
 
 /* constants for a pseudo-random number generator, taken from
    Numerical Recipes in C book --- never trust the standard C random
