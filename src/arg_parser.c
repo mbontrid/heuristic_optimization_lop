@@ -73,7 +73,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
       args->fptr_sol_start = sol_start_random;
       DPRINTF("solution start set to random\n");
     } else if (strcmp(arg, "c_and_w") == 0) {
-      args->fptr_sol_start = sol_start_c_and_w;
+      args->fptr_sol_start = sol_start_cw;
       DPRINTF("solution start set to c_and_w\n");
     } else {
       argp_error(state, "Invalid initial solution option: %s", arg);
@@ -116,7 +116,7 @@ void init_arguments(struct arguments *args) {
   args->start_rule = C_AND_W;
   args->neighb_exploration[0] = EXCHANGE;
   args->fptr_neighb_exploration[0] = cost_delta_exchange;
-  args->fptr_sol_start = sol_start_c_and_w;
+  args->fptr_sol_start = sol_start_cw;
 }
 
 void parse_arguments(int argc, char **argv, struct arguments *args) {

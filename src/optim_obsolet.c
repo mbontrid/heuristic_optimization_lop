@@ -17,6 +17,42 @@
 #define MAX_FLOAT MAXFLOAT
 #endif
 
+size_t *neighb_transpose_deltas(size_t *const n_rows, const size_t n_columns) {
+
+  *n_rows = get_n_transpose(n_columns);
+  size_t *const transposes_deltas_2d =
+      malloc(*n_rows * n_columns * sizeof(size_t));
+  assert(transposes_deltas_2d);
+
+  DPRINTF("%zu transoposes possibilities allocated\n", *n_rows);
+
+  for (ulong i = 0; i < *n_rows; i++) {
+    for (size_t j = 0; j < n_columns; j++) {
+      transposes_deltas_2d[n_columns * i + j] = j;
+    }
+
+    size_t temp = transposes_deltas_2d[n_columns * i + i];
+    transposes_deltas_2d[n_columns * i + i] =
+        transposes_deltas_2d[n_columns * i + (i + 1) % n_columns];
+    transposes_deltas_2d[n_columns * i + (i + 1) % n_columns] =
+        temp; // the % alows the transpose to go around the array.
+  }
+
+#ifndef NDEBUG
+  DPRINTF("all transposes : \n");
+  for (size_t i = 0; i < *n_rows; i++) {
+    DPRINTF("transpose %zu : ", i)
+    // PARRAY(&transposes_deltas_2d[n_columns * i], n_columns);
+  }
+
+  for (size_t i = 0; i < *n_rows; i++) {
+    for (size_t j = 0; j < n_columns; j++) {
+      assert(transposes_deltas_2d[n_columns * i + j] <= n_columns);
+    }
+  }
+#endif
+  return transposes_deltas_2d;
+}
 size_t *neighb_exchange_deltas(size_t *const n_rows, const size_t n_columns) {
 
   *n_rows = get_n_exchange(n_columns);

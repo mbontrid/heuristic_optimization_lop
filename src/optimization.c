@@ -153,16 +153,16 @@ t_cost_delta cost_swap_delta(const t_mat_cell *const cost_mat_2d,
              (long int)cost_mat_2d[middle_row_offset + right_sol];
   }
 
-#ifndef NDEBUG
-  size_t *new_sol_assert = malloc(size * sizeof(size_t));
-  assert(new_sol_assert);
-  memcpy(new_sol_assert, sol_1d, size * sizeof(size_t));
-  swap(new_sol_assert, size, left, right);
-  t_cost sol_cost = computeCost(cost_mat_2d, sol_1d, size);
-  t_cost new_sol_assert_cost = computeCost(cost_mat_2d, new_sol_assert, size);
-  assert((long int)sol_cost + delta == (long int)new_sol_assert_cost);
-  free(new_sol_assert);
-#endif
+  // #ifndef NDEBUG
+  //   size_t *new_sol_assert = malloc(size * sizeof(size_t));
+  //   assert(new_sol_assert);
+  //   memcpy(new_sol_assert, sol_1d, size * sizeof(size_t));
+  //   swap(new_sol_assert, size, left, right);
+  //   t_cost sol_cost = computeCost(cost_mat_2d, sol_1d, size);
+  //   t_cost new_sol_assert_cost = computeCost(cost_mat_2d, new_sol_assert,
+  //   size); assert((long int)sol_cost + delta == (long
+  //   int)new_sol_assert_cost); free(new_sol_assert);
+  // #endif
 
   return delta;
 }
@@ -197,41 +197,18 @@ size_t get_n_transpose(size_t size) {
   return size;
 }
 
-size_t *neighb_transpose_deltas(size_t *const n_rows, const size_t n_columns) {
-
-  *n_rows = get_n_transpose(n_columns);
-  size_t *const transposes_deltas_2d =
-      malloc(*n_rows * n_columns * sizeof(size_t));
-  assert(transposes_deltas_2d);
-
-  DPRINTF("%zu transoposes possibilities allocated\n", *n_rows);
-
-  for (ulong i = 0; i < *n_rows; i++) {
-    for (size_t j = 0; j < n_columns; j++) {
-      transposes_deltas_2d[n_columns * i + j] = j;
-    }
-
-    size_t temp = transposes_deltas_2d[n_columns * i + i];
-    transposes_deltas_2d[n_columns * i + i] =
-        transposes_deltas_2d[n_columns * i + (i + 1) % n_columns];
-    transposes_deltas_2d[n_columns * i + (i + 1) % n_columns] =
-        temp; // the % alows the transpose to go around the array.
+size_t get_n_inserts(size_t size) {
+  assert(MAX_SIZEMAT - (size - 1) * (size - 1) >= 0);
+  size_t n_inserts = (size - 1) * (size - 1);
+  if (size < 2) {
+    n_inserts = 0;
+  } else if (size == 2) {
+    n_inserts = 3;
   }
 
-#ifndef NDEBUG
-  DPRINTF("all transposes : \n");
-  for (size_t i = 0; i < *n_rows; i++) {
-    DPRINTF("transpose %zu : ", i)
-    // PARRAY(&transposes_deltas_2d[n_columns * i], n_columns);
-  }
+  DPRINTF("for a %zu array, there is %zu insert\n", size, n_inserts);
 
-  for (size_t i = 0; i < *n_rows; i++) {
-    for (size_t j = 0; j < n_columns; j++) {
-      assert(transposes_deltas_2d[n_columns * i + j] <= n_columns);
-    }
-  }
-#endif
-  return transposes_deltas_2d;
+  return n_inserts;
 }
 
 size_t get_n_exchange(size_t size) {
@@ -303,7 +280,7 @@ t_cost_delta cost_delta_transpose(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
 
 t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
                                size_t size, bool is_first) {
-  t_cost best_delta = 0;
+  t_cost_delta best_delta = 0;
   size_t *best_sol = malloc(size * sizeof(size_t));
   t_cost_delta const_cost_delta = 0;
   size_t *constructive_sol = malloc(size * sizeof(size_t));
@@ -347,32 +324,10 @@ t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
   return best_delta;
 }
 
-size_t get_n_inserts(size_t size) {
-  assert(MAX_SIZEMAT - (size - 1) * (size - 1) >= 0);
-  size_t n_inserts = (size - 1) * (size - 1);
-  if (size < 2) {
-    n_inserts = 0;
-  } else if (size == 2) {
-    n_inserts = 3;
-  }
-
-  DPRINTF("for a %zu array, there is %zu insert\n", size, n_inserts);
-
-  return n_inserts;
-}
-
 size_t *sol_start_random(t_mat_cell *mat, size_t n_columns) {
   DPRINTF("executing sol_start_random\n");
 
   size_t *new_random_vector = generate_random_vector(n_columns);
-
-#ifndef NDEBUG
-  DPRINTF("random generated starting solution vector\n")
-  for (size_t i = 0; i < n_columns; i++) {
-    printf("%zu ", new_random_vector[i]);
-  }
-  printf("\n");
-#endif
 
   return new_random_vector;
 }
@@ -415,17 +370,10 @@ size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size) {
     size_t tmp = new_best_start_1d[i];
     new_best_start_1d[i] = new_best_start_1d[best_pos];
     new_best_start_1d[best_pos] = tmp;
-
-    // DPRINTF("new_best_start_1d: ");
-#ifndef NDEBUG
-    // print_array_1d(new_best_start_1d, size);
-#endif
   }
 
-#ifndef NDEBUG
   DPRINTF("C_and_W solution\n");
-  print_array_1d((long int *)new_best_start_1d, size);
-#endif
+  PARRAY((long int *)new_best_start_1d, size);
 
   free(sum_row_2d);
   return new_best_start_1d;
