@@ -327,7 +327,7 @@ def benchmark(args, combinations: list, instances, output_path: Path):
                 current_run += args.k
                 print(
                     f"[{current_run}/{total_runs}] {row['instance']} "
-                    f"p={row['pivot']} n={row['neighborhoods']} s={row['sol_start']}",
+                    f"s={row['sol_start']} p={row['pivot']} n={row['neighborhoods']}",
                     file=sys.stderr,
                 )
                 writer.writerow(row)
