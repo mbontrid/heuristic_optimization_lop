@@ -215,7 +215,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--k",
         type=int,
-        required=True,
         default=1,
         help="Number of runs per algo combination (instance, pivot, neighborhood, sol_start).",
     )
@@ -337,7 +336,7 @@ def benchmark(args, combinations: list, instances, output_path: Path):
 def main() -> int:
     args = parse_args()
 
-    if args.k <= 1:
+    if args.k < 1:
         raise ValueError("--k must be greater than 0")
     if args.workers < 0:
         raise ValueError("--workers must be greater than or equal to 0")
