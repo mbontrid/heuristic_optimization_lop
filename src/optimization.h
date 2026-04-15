@@ -120,7 +120,7 @@ size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size);
  * @param n_columns size of the solution.
  * @return a false CW ordering array
  */
-size_t *sol_start_cw_tentative(const t_mat_cell *restrict const cost_mat_2d,
+size_t *sol_start_cw_tentative(const t_mat_cell *const cost_mat_2d,
                                size_t size);
 
 t_cost_delta

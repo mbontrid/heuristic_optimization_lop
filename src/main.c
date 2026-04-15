@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 
   DPRINTF("------WARNING-------\n If you see this message, it means that you "
           "are running the debug version of this program. Performances will be "
-          "greatly impacted.");
+          "greatly impacted.\n");
 
   // ---argument parsing----
 
@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
   /* stop time measurement */
 
   printf("RESULT cost=%u time=%g solution=", cost, elapsed_seconds);
-  print_array_1d(sol_1d, mat_cost_dim);
+  print_array_1d((long int *)sol_1d, mat_cost_dim);
 
   free(sol_1d);
   return 0;

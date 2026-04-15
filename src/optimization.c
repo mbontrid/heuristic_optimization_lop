@@ -192,7 +192,7 @@ size_t get_n_transpose(size_t size) {
   } else if (size == 2) {
     return 1;
   }
-  DPRINTF("get_n_transpose: for a %u array, there is %u transpose\n", size,
+  DPRINTF("get_n_transpose: for a %zu array, there is %zu transpose\n", size,
           (size));
   return size;
 }
@@ -200,10 +200,11 @@ size_t get_n_transpose(size_t size) {
 size_t *neighb_transpose_deltas(size_t *const n_rows, const size_t n_columns) {
 
   *n_rows = get_n_transpose(n_columns);
-  size_t *transposes_deltas_2d = malloc(*n_rows * n_columns * sizeof(size_t));
+  size_t *const transposes_deltas_2d =
+      malloc(*n_rows * n_columns * sizeof(size_t));
   assert(transposes_deltas_2d);
 
-  DPRINTF("%u transoposes possibilities allocated\n", *n_rows);
+  DPRINTF("%zu transoposes possibilities allocated\n", *n_rows);
 
   for (ulong i = 0; i < *n_rows; i++) {
     for (size_t j = 0; j < n_columns; j++) {
@@ -220,8 +221,8 @@ size_t *neighb_transpose_deltas(size_t *const n_rows, const size_t n_columns) {
 #ifndef NDEBUG
   DPRINTF("all transposes : \n");
   for (size_t i = 0; i < *n_rows; i++) {
-    DPRINTF("transpose %u : ", i)
-    PARRAY(&transposes_deltas_2d[n_columns * i], n_columns);
+    DPRINTF("transpose %zu : ", i)
+    // PARRAY(&transposes_deltas_2d[n_columns * i], n_columns);
   }
 
   for (size_t i = 0; i < *n_rows; i++) {
@@ -245,7 +246,8 @@ t_cost_delta cost_delta_exchange(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
   /* set cost to MAX_COST for pivot_best*/
 
   t_cost best_delta = 0;
-  size_t best_i, best_j = 0;
+  size_t best_i = 0;
+  size_t best_j = 0;
 
   for (size_t i = 0; i < size - 1; i++) {
     for (size_t j = i + 1; j < size; j++) {
@@ -345,31 +347,6 @@ t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
   return best_delta;
 }
 
-void get_swap_exchange(size_t *const swap_1d, const size_t comb_idx,
-                       const size_t size) {
-  assert(comb_idx < get_n_exchange(size));
-  size_t i = 0;
-  size_t j = 1;
-  for (size_t k = 0; k < comb_idx; k++) {
-    j++;
-    if (j == size) {
-      i++;
-      j = i + 1;
-    }
-  }
-  swap_1d[i] = j;
-  swap_1d[j] = i;
-
-#ifndef NDEBUG
-  size_t n_exchanges;
-  size_t *exchanges_assert_2d = neighb_exchange_deltas(&n_exchanges, size);
-  size_t *exchange_assert_1d = &exchanges_assert_2d[n_exchanges * comb_idx];
-  assert(echange_assert_1d[i] == j);
-  assert(echange_assert_1d[j] == i);
-  free(exchanges_assert_2d);
-#endif
-}
-
 size_t *neighb_exchange_deltas(size_t *const n_rows, const size_t n_columns) {
 
   *n_rows = get_n_exchange(n_columns);
@@ -377,7 +354,7 @@ size_t *neighb_exchange_deltas(size_t *const n_rows, const size_t n_columns) {
       malloc(*n_rows * n_columns * sizeof(size_t));
   assert(exchanges_deltas_2d);
 
-  DPRINTF("%d exchanges possibilities allocated\n", *n_rows);
+  DPRINTF("%zu exchanges possibilities allocated\n", *n_rows);
 
 #pragma omp simd
   for (ulong i = 0; i < *n_rows * n_columns; i++) {
@@ -395,12 +372,12 @@ size_t *neighb_exchange_deltas(size_t *const n_rows, const size_t n_columns) {
     }
   }
 
-  DPRINTF("executing for %d collumns and %d rows\n", n_columns, *n_rows);
+  DPRINTF("executing for %zu collumns and %zu rows\n", n_columns, *n_rows);
 #ifndef NDEBUG
   if (*n_rows < 100) {
     for (ulong i = 0; i < *n_rows; i++) {
       for (size_t j = 0; j < n_columns; j++) {
-        printf("%u ", exchanges_deltas_2d[n_columns * i + j]);
+        printf("%zu ", exchanges_deltas_2d[n_columns * i + j]);
       }
       printf("\n");
     }
@@ -419,7 +396,7 @@ size_t get_n_inserts(size_t size) {
     n_inserts = 3;
   }
 
-  DPRINTF("for a %u array, there is %u insert\n", size, n_inserts);
+  DPRINTF("for a %zu array, there is %zu insert\n", size, n_inserts);
 
   return n_inserts;
 }
@@ -427,11 +404,11 @@ size_t get_n_inserts(size_t size) {
 size_t *neighb_insert_deltas(size_t *const n_rows, const size_t n_columns) {
 
   *n_rows = get_n_inserts(n_columns);
-  DPRINTF("executing for %u collumns and %d rows\n", n_columns, *n_rows);
+  DPRINTF("executing for %zu collumns and %zu rows\n", n_columns, *n_rows);
 
   size_t *inserts_delta_2d = malloc(n_columns * *n_rows * sizeof(size_t));
   assert(inserts_delta_2d);
-  DPRINTF("%u inserts possibilities allocated\n", *n_rows);
+  DPRINTF("%zu inserts possibilities allocated\n", *n_rows);
 
   // only increment a row if condition completed, so no for loop possible for
   // the row.
@@ -459,9 +436,9 @@ size_t *neighb_insert_deltas(size_t *const n_rows, const size_t n_columns) {
 #ifndef NDEBUG
         if (n_columns < 100) {
           for (size_t x = 0; x < n_columns; x++) {
-            printf("%u ", inserts_delta_2d[n_columns * i + x]);
+            printf("%zu ", inserts_delta_2d[n_columns * i + x]);
           }
-          printf(" for i=%u, j=%u\n", i, j);
+          printf(" for i=%zu, j=%zu\n", i, j);
         }
 #endif
         row++;
@@ -469,7 +446,8 @@ size_t *neighb_insert_deltas(size_t *const n_rows, const size_t n_columns) {
     }
   }
 
-  DPRINTF("for %u collumns; total number of insert: %u\n", n_columns, *n_rows);
+  DPRINTF("for %zu collumns; total number of insert: %zu\n", n_columns,
+          *n_rows);
 
   return inserts_delta_2d;
 }
@@ -482,7 +460,7 @@ size_t *sol_start_random(t_mat_cell *mat, size_t n_columns) {
 #ifndef NDEBUG
   DPRINTF("random generated starting solution vector\n")
   for (size_t i = 0; i < n_columns; i++) {
-    printf("%d ", new_random_vector[i]);
+    printf("%zu ", new_random_vector[i]);
   }
   printf("\n");
 #endif
@@ -537,7 +515,7 @@ size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size) {
 
 #ifndef NDEBUG
   DPRINTF("C_and_W solution\n");
-  print_array_1d(new_best_start_1d, size);
+  print_array_1d((long int *)new_best_start_1d, size);
 #endif
 
   free(sum_row_2d);
@@ -587,7 +565,7 @@ size_t *sol_start_cw_tentative(const t_mat_cell *const restrict cost_mat_2d,
 
   DPRINTF("cw done, sol= ");
 #ifndef NDEBUG
-  print_array_1d(sol_1d, size);
+  print_array_1d((long int *)sol_1d, size);
 #endif
 
   free(r_1d);
@@ -615,20 +593,21 @@ it_imp_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim, size_t *const sol_1d,
   size_t *new_sol_1d = malloc(mat_cost_dim * sizeof(size_t));
   memcpy(new_sol_1d, sol_1d, mat_cost_dim * sizeof(size_t));
 
-  t_cost_delta new_delta = 0;
+  t_cost_delta neighb_delta = 0;
   t_cost_delta delta_total = 0;
 
   do {
 
-    delta_total += new_delta;
-    assert(delta_total == computeCost(cost_mat_2d, new_sol_1d, mat_cost_dim) -
-                              computeCost(cost_mat_2d, sol_1d, mat_cost_dim));
+    delta_total += neighb_delta;
     memcpy(sol_1d, new_sol_1d, mat_cost_dim * sizeof(size_t));
 
-    new_delta = fptr_cost_delta_exploration(cost_mat_2d, new_sol_1d,
-                                            mat_cost_dim, pivot_rule);
+    neighb_delta = fptr_cost_delta_exploration(cost_mat_2d, new_sol_1d,
+                                               mat_cost_dim, pivot_rule);
 
-  } while (new_delta);
+    DPRINTF("delat total=%ld | neighb delta=%ld\n", delta_total, neighb_delta);
+    assert(neighb_delta == computeCost(cost_mat_2d, new_sol_1d, mat_cost_dim) -
+                               computeCost(cost_mat_2d, sol_1d, mat_cost_dim));
+  } while (neighb_delta);
 
   free(new_sol_1d);
   return delta_total;
@@ -648,11 +627,12 @@ t_cost vnd_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
     t_cost_delta new_delta =
         it_imp_lop(cost_mat_2d, mat_cost_dim, sol_1d, pivot_rule,
                    fptr_delta_neigh_exploration[k_neighb]);
+    cost += new_delta;
 
     if (new_delta && k_neighb > 0) {
       k_neighb = 0;
-      PVERB("vnd_lop found new optimization cost: %d", new_delta);
-      cost += new_delta;
+      PVERB("vnd_lop found in neighb %u a new optimization of: %d\n", k_neighb,
+            new_delta);
     } else {
       PVERB("vnd_lop no improvement with neighborhood %u\n", k_neighb);
       k_neighb++;
