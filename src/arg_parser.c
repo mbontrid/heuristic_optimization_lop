@@ -53,10 +53,13 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
   case 'n':
     assert(args->n_neighb_vnd < MAXSHORT * 2);
     if (strcmp(arg, "transpose") == 0) {
+      args->neighb_rule[args->n_neighb_vnd] = TRANSPOSE;
       args->fptrs_neighborhood[args->n_neighb_vnd++] = neighb_transpose_deltas;
     } else if (strcmp(arg, "exchange") == 0) {
+      args->neighb_rule[args->n_neighb_vnd] = EXCHANGE;
       args->fptrs_neighborhood[args->n_neighb_vnd++] = neighb_exchange_deltas;
     } else if (strcmp(arg, "insert") == 0) {
+      args->neighb_rule[args->n_neighb_vnd] = INSERT;
       args->fptrs_neighborhood[args->n_neighb_vnd++] = neighb_insert_deltas;
     } else {
       argp_error(state, "Invalid neighborhood option: %s", arg);

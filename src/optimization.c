@@ -40,8 +40,8 @@
 
 extern struct arguments arguments;
 
-t_cost computeCost(const t_mat_cell *const cost_mat_2d,
-                   const size_t *const lo, size_t size) {
+t_cost computeCost(const t_mat_cell *const cost_mat_2d, const size_t *const lo,
+                   size_t size) {
   // #ifndef NDEBUG
   //   DPRINTF("executing computeCost with vector: \n");
   //   print_array_1d(lo, size);
@@ -115,9 +115,9 @@ long int get_cost_diff_with_shuffle(const t_mat_cell *const cost_mat_2d,
   return cost_diff;
 }
 
-long int cost_swap_delta(const t_mat_cell *const cost_mat_2d,
-                         const size_t *const sol_1d, const size_t size,
-                         const size_t i, const size_t j) {
+t_cost_delta cost_swap_delta(const t_mat_cell *const cost_mat_2d,
+                             const size_t *const sol_1d, const size_t size,
+                             const size_t i, const size_t j) {
 
   assert(cost_mat_2d);
   assert(sol_1d);
@@ -197,12 +197,10 @@ size_t get_n_transpose(size_t size) {
   return size;
 }
 
-size_t *neighb_transpose_deltas(size_t *const n_rows,
-                                   const size_t n_columns) {
+size_t *neighb_transpose_deltas(size_t *const n_rows, const size_t n_columns) {
 
   *n_rows = get_n_transpose(n_columns);
-  size_t *transposes_deltas_2d =
-      malloc(*n_rows * n_columns * sizeof(size_t));
+  size_t *transposes_deltas_2d = malloc(*n_rows * n_columns * sizeof(size_t));
   assert(transposes_deltas_2d);
 
   DPRINTF("%u transoposes possibilities allocated\n", *n_rows);
@@ -235,15 +233,144 @@ size_t *neighb_transpose_deltas(size_t *const n_rows,
   return transposes_deltas_2d;
 }
 
-uint get_n_exchange(size_t size) {
+size_t get_n_exchange(size_t size) {
   if (size < 2) {
     return 0;
   }
   return size * (size - 1) / 2;
 }
 
-size_t *neighb_exchange_deltas(size_t *const n_rows,
-                                  const size_t n_columns) {
+t_cost_delta cost_delta_exchange(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
+                                 size_t size, bool is_first) {
+  /* set cost to MAX_COST for pivot_best*/
+
+  t_cost best_delta = 0;
+  size_t best_i, best_j = 0;
+
+  for (size_t i = 0; i < size - 1; i++) {
+    for (size_t j = i + 1; j < size; j++) {
+      long int cost_delta = cost_swap_delta(cost_mat_2d, sol_1d, size, i, j);
+
+      if (cost_delta > best_delta) {
+        best_delta = cost_delta;
+        best_i = i;
+        best_j = j;
+        if (is_first) {
+          i = size - 1;
+          break;
+        }
+      }
+    }
+  }
+
+  swap(sol_1d, size, best_i, best_j);
+  return best_delta;
+}
+
+t_cost_delta cost_delta_transpose(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
+                                  size_t size, bool is_first) {
+  t_cost_delta best_delta = 0;
+  size_t best_i = 0;
+
+  for (size_t i = 0; i < size; i++) {
+    t_cost_delta cost_delta =
+        cost_swap_delta(cost_mat_2d, sol_1d, size, i, (i + 1) % size);
+
+    if (cost_delta > best_delta) {
+      best_delta = cost_delta;
+      best_i = i;
+      if (is_first) {
+        break;
+      }
+    }
+  }
+
+#ifndef NDEBUG
+  size_t *new_sol_assert = malloc(size * sizeof(size_t));
+  memcpy(new_sol_assert, sol_1d, size * sizeof(size_t));
+  t_cost cost_before = computeCost(cost_mat_2d, sol_1d, size);
+  swap(new_sol_assert, size, best_i, (best_i + 1) % size);
+  t_cost cost_after = computeCost(cost_mat_2d, new_sol_assert, size);
+  assert(cost_before + best_delta == cost_after);
+  free(new_sol_assert);
+#endif
+
+  swap(sol_1d, size, best_i, (best_i + 1) % size);
+  return best_delta;
+}
+
+t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
+                               size_t size, bool is_first) {
+  t_cost best_delta = 0;
+  size_t *best_sol = malloc(size * sizeof(size_t));
+  t_cost_delta const_cost_delta = 0;
+  size_t *constructive_sol = malloc(size * sizeof(size_t));
+  memcpy(constructive_sol, sol_1d, size * sizeof(size_t));
+
+  for (size_t i = 0; i < size; i++) {
+    for (size_t j = 0; j < size; j++) {
+      if (i == j) {
+        memcpy(constructive_sol, sol_1d, size * sizeof(size_t));
+        const_cost_delta = 0;
+      } else if (i != j + 1) {
+
+        const_cost_delta +=
+            cost_swap_delta(cost_mat_2d, constructive_sol, size, i, j);
+        swap(constructive_sol, size, i, j);
+
+        if (const_cost_delta > best_delta) {
+          memcpy(best_sol, constructive_sol, size * sizeof(size_t));
+          best_delta = const_cost_delta;
+          if (is_first) {
+            i = size;
+            break;
+          }
+        }
+      }
+    }
+    memcpy(constructive_sol, sol_1d, size * sizeof(size_t));
+    const_cost_delta = 0;
+  }
+
+#ifndef NDEBUG
+  t_cost cost_assert = computeCost(cost_mat_2d, sol_1d, size);
+  t_cost cost_best_sol = computeCost(cost_mat_2d, best_sol, size);
+  t_cost_delta cost_delta_assert = cost_best_sol - cost_assert;
+  assert(cost_delta_assert == best_delta);
+#endif
+
+  memcpy(sol_1d, best_sol, size * sizeof(size_t));
+  free(best_sol);
+  free(constructive_sol);
+  return best_delta;
+}
+
+void get_swap_exchange(size_t *const swap_1d, const size_t comb_idx,
+                       const size_t size) {
+  assert(comb_idx < get_n_exchange(size));
+  size_t i = 0;
+  size_t j = 1;
+  for (size_t k = 0; k < comb_idx; k++) {
+    j++;
+    if (j == size) {
+      i++;
+      j = i + 1;
+    }
+  }
+  swap_1d[i] = j;
+  swap_1d[j] = i;
+
+#ifndef NDEBUG
+  size_t n_exchanges;
+  size_t *exchanges_assert_2d = neighb_exchange_deltas(&n_exchanges, size);
+  size_t *exchange_assert_1d = &exchanges_assert_2d[n_exchanges * comb_idx];
+  assert(echange_assert_1d[i] == j);
+  assert(echange_assert_1d[j] == i);
+  free(exchanges_assert_2d);
+#endif
+}
+
+size_t *neighb_exchange_deltas(size_t *const n_rows, const size_t n_columns) {
 
   *n_rows = get_n_exchange(n_columns);
   size_t *restrict exchanges_deltas_2d =
@@ -297,8 +424,7 @@ size_t get_n_inserts(size_t size) {
   return n_inserts;
 }
 
-size_t *neighb_insert_deltas(size_t *const n_rows,
-                                const size_t n_columns) {
+size_t *neighb_insert_deltas(size_t *const n_rows, const size_t n_columns) {
 
   *n_rows = get_n_inserts(n_columns);
   DPRINTF("executing for %u collumns and %d rows\n", n_columns, *n_rows);
@@ -419,7 +545,7 @@ size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size) {
 }
 
 size_t *sol_start_cw_tentative(const t_mat_cell *const restrict cost_mat_2d,
-                                  size_t size) {
+                               size_t size) {
   DPRINTF("executting cw\n");
 
   t_cost *const restrict r_1d = calloc(size, sizeof(t_cost));
@@ -498,12 +624,10 @@ t_cost pivot(const size_t *sol_1d, size_t *new_sol_1d, const t_cost cost,
     assert(best_cost == computeCost(cost_matrix.mat_2d, new_sol_1d,
                                     neighb_deltas.n_columns));
 
-    t_cost new_cost = get_cost(cost_matrix.mat_2d, sol_1d, neighb_delta,
-                               neighb_deltas.n_columns, cost);
-
-#ifndef NDEBUG
-    size_t *assert_new_sol =
-        malloc(neighb_deltas.n_columns * sizeof(size_t));
+    int cost_delta = get_cost_diff_with_shuffle(
+        cost_matrix.mat_2d, sol_1d, neighb_delta, neighb_deltas.n_columns);
+    // #ifndef NDEBUG
+    size_t *assert_new_sol = malloc(neighb_deltas.n_columns * sizeof(size_t));
     assert(assert_new_sol);
     array_apply_shuffle(assert_new_sol, neighb_delta, sol_1d,
                         neighb_deltas.n_columns);
@@ -511,12 +635,12 @@ t_cost pivot(const size_t *sol_1d, size_t *new_sol_1d, const t_cost cost,
                                      neighb_deltas.n_columns);
     assert(new_cost == assert_cost);
     free(assert_new_sol);
-#endif
+    // #endif
 
-    if (new_cost > cost) {
+    if (cost_delta) {
       DPRINTF("Found better cost: old cost : %u | new cost : %u\n", cost,
               new_cost);
-      best_cost = new_cost;
+      best_cost += cost_delta;
       array_apply_shuffle(new_sol_1d, neighb_delta, sol_1d,
                           neighb_deltas.n_columns);
       break;
@@ -525,9 +649,8 @@ t_cost pivot(const size_t *sol_1d, size_t *new_sol_1d, const t_cost cost,
   return best_cost;
 }
 
-t_cost pivot_first(const size_t *sol_1d, size_t *new_sol_1d,
-                   const t_cost cost, struct matrix neighb_deltas,
-                   struct matrix cost_matrix) {
+t_cost pivot_first(const size_t *sol_1d, size_t *new_sol_1d, const t_cost cost,
+                   struct matrix neighb_deltas, struct matrix cost_matrix) {
 
   DPRINTF("executing...\n");
 
@@ -551,8 +674,7 @@ t_cost pivot_first(const size_t *sol_1d, size_t *new_sol_1d,
                                neighb_deltas.n_columns, cost);
 
 #ifndef NDEBUG
-    size_t *assert_new_sol =
-        malloc(neighb_deltas.n_columns * sizeof(size_t));
+    size_t *assert_new_sol = malloc(neighb_deltas.n_columns * sizeof(size_t));
     assert(assert_new_sol);
     array_apply_shuffle(assert_new_sol, neighb_delta, sol_1d,
                         neighb_deltas.n_columns);
@@ -598,8 +720,7 @@ t_cost pivot_best(const size_t *const sol_1d, size_t *new_sol_1d,
                                neighb_deltas.n_columns, cost);
 
 #ifndef NDEBUG
-    size_t *assert_new_sol =
-        malloc(neighb_deltas.n_columns * sizeof(size_t));
+    size_t *assert_new_sol = malloc(neighb_deltas.n_columns * sizeof(size_t));
     assert(assert_new_sol);
     array_apply_shuffle(assert_new_sol, neighb_delta, sol_1d,
                         neighb_deltas.n_columns);

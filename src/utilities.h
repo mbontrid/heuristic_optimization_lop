@@ -31,6 +31,7 @@
 
 typedef unsigned int t_mat_cell;
 typedef unsigned int t_cost;
+typedef long int t_cost_delta;
 
 #define MAX_COST UINT_MAX
 #define MAX_COST_CELL UINT_MAX
@@ -58,10 +59,8 @@ bool array_equal(const size_t *array_1d_1, const size_t *array_1d_2,
                  size_t size);
 
 void print_array_1d(const t_mat_cell *const array, const size_t n_columns);
-void print_array_2d(t_mat_cell *array_2d, size_t n_rows,
-                    size_t n_columns);
-void print_array_2d2(t_mat_cell **array_2d, size_t n_rows,
-                     size_t n_columns);
+void print_array_2d(t_mat_cell *array_2d, size_t n_rows, size_t n_columns);
+void print_array_2d2(t_mat_cell **array_2d, size_t n_rows, size_t n_columns);
 
 unsigned int factorial(unsigned int N);
 
@@ -74,10 +73,8 @@ double end_clock(clock_t start);
  * @brief reorder an array based on the indice of another array. The resulting
  * array and the shuffle array have to of the same size.
  */
-void array_apply_shuffle(size_t *const modified,
-                         const size_t *const shuffle,
-                         const size_t *const to_shuffle,
-                         const size_t size);
+void array_apply_shuffle(size_t *const modified, const size_t *const shuffle,
+                         const size_t *const to_shuffle, const size_t size);
 
 /* constants for a pseudo-random number generator, taken from
    Numerical Recipes in C book --- never trust the standard C random

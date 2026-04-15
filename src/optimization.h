@@ -25,16 +25,15 @@
 #include <sys/types.h>
 
 struct matrix {
-  const size_t *mat_2d;
+  const t_mat_cell *mat_2d;
   size_t n_rows;
   size_t n_columns;
 };
 
 typedef size_t *(*t_fptr_neighborhood)(size_t *const n_rows,
-                                          const size_t n_columns);
-typedef t_cost (*t_fptr_pivot_rule)(const size_t *sol_1d,
-                                    size_t *new_sol_1d, t_cost cost,
-                                    struct matrix nighb_deltas,
+                                       const size_t n_columns);
+typedef t_cost (*t_fptr_pivot_rule)(const size_t *sol_1d, size_t *new_sol_1d,
+                                    t_cost cost, struct matrix nighb_deltas,
                                     struct matrix cost_matrix);
 typedef size_t *(*t_fptr_sol_start)(t_mat_cell *CostMat, size_t size);
 
@@ -71,9 +70,9 @@ long int get_cost_diff_with_shuffle(const t_mat_cell *const cost_mat_2d,
  * @return delta cost of the swap, i.e. cost of sol_1d with i and j swapped -
  * cost of sol_1d.
  */
-long int cost_swap_delta(const t_mat_cell *const cost_mat_2d,
-                         const size_t *const sol_1d, const size_t size,
-                         const size_t i, const size_t j);
+t_cost_delta cost_swap_delta(const t_mat_cell *const cost_mat_2d,
+                             const size_t *const sol_1d, const size_t size,
+                             const size_t i, const size_t j);
 
 /**
  * @brief Compute the prefix sum of each row of a matrix independently.
@@ -91,6 +90,12 @@ size_t get_n_transpose(size_t size);
 size_t get_n_inserts(size_t size);
 size_t get_n_exchange(size_t size);
 
+t_cost_delta cost_delta_transpose(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
+                                  size_t size, bool is_first);
+t_cost_delta cost_delta_exchange(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
+                                 size_t size, bool is_first);
+t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
+                               size_t size, bool is_first);
 /**
  * @brief get_all_possible transposes in a vector of size n_columns
  *
@@ -99,12 +104,9 @@ size_t get_n_exchange(size_t size);
  * @param n_columns size of vector to transpose.
  * @param n_rows number of possible transposes.
  */
-size_t *neighb_transpose_deltas(size_t *const n_rows,
-                                   const size_t n_columns);
-size_t *neighb_exchange_deltas(size_t *const n_rows,
-                                  const size_t n_columns);
-size_t *neighb_insert_deltas(size_t *const n_rows,
-                                const size_t n_columns);
+size_t *neighb_transpose_deltas(size_t *const n_rows, const size_t n_columns);
+size_t *neighb_exchange_deltas(size_t *const n_rows, const size_t n_columns);
+size_t *neighb_insert_deltas(size_t *const n_rows, const size_t n_columns);
 
 size_t *sol_start_random(t_mat_cell *mat, size_t n_columns);
 
@@ -126,7 +128,7 @@ size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size);
  * @return a false CW ordering array
  */
 size_t *sol_start_cw_tentative(const t_mat_cell *restrict const cost_mat_2d,
-                                  size_t size);
+                               size_t size);
 
 t_cost pivot_first(const size_t *sol_1d, size_t *new_sol_1d, t_cost cost,
                    struct matrix nighb_deltas, struct matrix cost_matrix);
