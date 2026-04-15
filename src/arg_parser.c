@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "arg_parser.h"
+#include "optimization.h"
 #include "utilities.h"
 
 struct arguments arguments;
@@ -41,10 +42,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     break;
   case 'p':
     if (strcmp(arg, "first") == 0) {
-      args->fptr_pivoting_rule = pivot_first;
+      args->pivot_rule = FIRST;
       DPRINTF("pivoting rule set to first\n");
     } else if (strcmp(arg, "best") == 0) {
-      args->fptr_pivoting_rule = pivot_best;
+      args->pivot_rule = BEST;
       DPRINTF("pivoting rule set to best\n");
     } else {
       argp_error(state, "Invalid pivoting_rule option: %s", arg);
@@ -53,14 +54,15 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
   case 'n':
     assert(args->n_neighb_vnd < MAXSHORT * 2);
     if (strcmp(arg, "transpose") == 0) {
-      args->neighb_rule[args->n_neighb_vnd] = TRANSPOSE;
-      args->fptrs_neighborhood[args->n_neighb_vnd++] = neighb_transpose_deltas;
+      args->neighb_exploration[args->n_neighb_vnd] = TRANSPOSE;
+      args->fptr_neighb_exploration[args->n_neighb_vnd++] =
+          cost_delta_transpose;
     } else if (strcmp(arg, "exchange") == 0) {
-      args->neighb_rule[args->n_neighb_vnd] = EXCHANGE;
-      args->fptrs_neighborhood[args->n_neighb_vnd++] = neighb_exchange_deltas;
+      args->neighb_exploration[args->n_neighb_vnd] = EXCHANGE;
+      args->fptr_neighb_exploration[args->n_neighb_vnd++] = cost_delta_exchange;
     } else if (strcmp(arg, "insert") == 0) {
-      args->neighb_rule[args->n_neighb_vnd] = INSERT;
-      args->fptrs_neighborhood[args->n_neighb_vnd++] = neighb_insert_deltas;
+      args->neighb_exploration[args->n_neighb_vnd] = INSERT;
+      args->fptr_neighb_exploration[args->n_neighb_vnd++] = cost_delta_insert;
     } else {
       argp_error(state, "Invalid neighborhood option: %s", arg);
     }
@@ -109,9 +111,11 @@ void init_arguments(struct arguments *args) {
   args->verbose = false;
   args->instance_file = "data/input/instances/N-be75eec_150";
   // args->out_file = "data/output/benchmark.csv";
-  args->fptr_pivoting_rule = pivot_best;
   args->n_neighb_vnd = 0;
-  args->fptrs_neighborhood[0] = neighb_insert_deltas;
+  args->pivot_rule = BEST;
+  args->start_rule = C_AND_W;
+  args->neighb_exploration[0] = EXCHANGE;
+  args->fptr_neighb_exploration[0] = cost_delta_exchange;
   args->fptr_sol_start = sol_start_c_and_w;
 }
 
@@ -121,7 +125,6 @@ void parse_arguments(int argc, char **argv, struct arguments *args) {
 
   if (args->n_neighb_vnd == 0) {
     // If no neighborhood was specified, use the default one (exchange)
-    args->fptrs_neighborhood[args->n_neighb_vnd++] = neighb_exchange_deltas;
     DPRINTF("no neighborhood method specified, using default : exchange\n");
   }
 }

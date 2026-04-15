@@ -30,13 +30,6 @@ struct matrix {
   size_t n_columns;
 };
 
-typedef size_t *(*t_fptr_neighborhood)(size_t *const n_rows,
-                                       const size_t n_columns);
-typedef t_cost (*t_fptr_pivot_rule)(const size_t *sol_1d, size_t *new_sol_1d,
-                                    t_cost cost, struct matrix nighb_deltas,
-                                    struct matrix cost_matrix);
-typedef size_t *(*t_fptr_sol_start)(t_mat_cell *CostMat, size_t size);
-
 extern t_mat_cell **cost_mat_2d;
 
 t_cost computeCost(const t_mat_cell *const cost_mat, const size_t *const lo,
@@ -130,20 +123,13 @@ size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size);
 size_t *sol_start_cw_tentative(const t_mat_cell *restrict const cost_mat_2d,
                                size_t size);
 
-t_cost pivot_first(const size_t *sol_1d, size_t *new_sol_1d, t_cost cost,
-                   struct matrix nighb_deltas, struct matrix cost_matrix);
-
-t_cost pivot_best(const size_t *const sol_1d, size_t *new_sol_1d,
-                  const t_cost cost, struct matrix nighb_deltas,
-                  struct matrix cost_matrix);
-
-t_cost it_imp_lop(t_mat_cell *cost_mat_2d, size_t cost_mat_dim,
-                  size_t *const sol_1d, t_cost cost,
-                  t_fptr_pivot_rule fptr_pivot_rule,
-                  t_fptr_neighborhood fptr_neighborhood);
+t_cost_delta
+it_imp_lop(t_mat_cell *cost_mat_2d, size_t cost_mat_dim, size_t *const sol_1d,
+           enum pivot_enum pivot_rule,
+           t_fptr_delta_neigh_exploration fptr_delta_neigh_exploration);
 
 t_cost vnd_lop(t_mat_cell *cost_mat_2d, size_t cost_mat_dim,
-               size_t *const sol_1d, t_fptr_pivot_rule fptr_pivot_rule,
-               t_fptr_neighborhood *fptr_neighborhood_1,
+               size_t *const sol_1d, enum pivot_enum pivot_rule,
+               t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
                const ushort n_neighb_vnd);
 #endif

@@ -605,197 +605,38 @@ size_t *sol_start_c_and_w(t_mat_cell *cost_mat_2d, size_t size) {
   return sol_1d;
 }
 
-t_cost pivot(const size_t *sol_1d, size_t *new_sol_1d, const t_cost cost,
-             struct matrix neighb_deltas, struct matrix cost_matrix) {
-
-  assert(array_equal(new_sol_1d, sol_1d, neighb_deltas.n_columns));
-  assert(cost ==
-         computeCost(cost_matrix.mat_2d, sol_1d, neighb_deltas.n_columns));
-
-  DPRINTF("executing...\n");
-
-  t_cost best_cost = cost;
-
-  for (size_t i = 0; i < neighb_deltas.n_rows; i++) {
-
-    const size_t *neighb_delta =
-        &neighb_deltas.mat_2d[neighb_deltas.n_columns * i];
-    assert(neighb_delta);
-    assert(best_cost == computeCost(cost_matrix.mat_2d, new_sol_1d,
-                                    neighb_deltas.n_columns));
-
-    int cost_delta = get_cost_diff_with_shuffle(
-        cost_matrix.mat_2d, sol_1d, neighb_delta, neighb_deltas.n_columns);
-    // #ifndef NDEBUG
-    size_t *assert_new_sol = malloc(neighb_deltas.n_columns * sizeof(size_t));
-    assert(assert_new_sol);
-    array_apply_shuffle(assert_new_sol, neighb_delta, sol_1d,
-                        neighb_deltas.n_columns);
-    t_cost assert_cost = computeCost(cost_matrix.mat_2d, assert_new_sol,
-                                     neighb_deltas.n_columns);
-    assert(new_cost == assert_cost);
-    free(assert_new_sol);
-    // #endif
-
-    if (cost_delta) {
-      DPRINTF("Found better cost: old cost : %u | new cost : %u\n", cost,
-              new_cost);
-      best_cost += cost_delta;
-      array_apply_shuffle(new_sol_1d, neighb_delta, sol_1d,
-                          neighb_deltas.n_columns);
-      break;
-    }
-  }
-  return best_cost;
-}
-
-t_cost pivot_first(const size_t *sol_1d, size_t *new_sol_1d, const t_cost cost,
-                   struct matrix neighb_deltas, struct matrix cost_matrix) {
-
-  DPRINTF("executing...\n");
-
-  assert(array_equal(new_sol_1d, sol_1d, neighb_deltas.n_columns));
-
-  t_cost best_cost = cost;
-
-  assert(cost ==
-         computeCost(cost_matrix.mat_2d, sol_1d, neighb_deltas.n_columns));
-
-  for (size_t i = 0; i < neighb_deltas.n_rows; i++) {
-
-    assert(&neighb_deltas.mat_2d[neighb_deltas.n_columns * i]);
-    const size_t *neighb_delta =
-        &neighb_deltas.mat_2d[neighb_deltas.n_columns * i];
-
-    assert(best_cost == computeCost(cost_matrix.mat_2d, new_sol_1d,
-                                    neighb_deltas.n_columns));
-
-    t_cost new_cost = get_cost(cost_matrix.mat_2d, sol_1d, neighb_delta,
-                               neighb_deltas.n_columns, cost);
-
-#ifndef NDEBUG
-    size_t *assert_new_sol = malloc(neighb_deltas.n_columns * sizeof(size_t));
-    assert(assert_new_sol);
-    array_apply_shuffle(assert_new_sol, neighb_delta, sol_1d,
-                        neighb_deltas.n_columns);
-    t_cost assert_cost = computeCost(cost_matrix.mat_2d, assert_new_sol,
-                                     neighb_deltas.n_columns);
-    assert(new_cost == assert_cost);
-    free(assert_new_sol);
-#endif
-
-    if (new_cost > cost) {
-      DPRINTF("Found better cost: old cost : %u | new cost : %u\n", cost,
-              new_cost);
-      best_cost = new_cost;
-      array_apply_shuffle(new_sol_1d, neighb_delta, sol_1d,
-                          neighb_deltas.n_columns);
-      break;
-    }
-  }
-  return best_cost;
-}
-
-t_cost pivot_best(const size_t *const sol_1d, size_t *new_sol_1d,
-                  const t_cost cost, struct matrix neighb_deltas,
-                  struct matrix cost_matrix) {
-  DPRINTF("executing...\n");
-
-  assert(array_equal(new_sol_1d, sol_1d, neighb_deltas.n_columns));
-
-  t_cost best_cost = cost;
-
-  assert(cost ==
-         computeCost(cost_matrix.mat_2d, sol_1d, neighb_deltas.n_columns));
-
-  for (size_t i = 0; i < neighb_deltas.n_rows; i++) {
-
-    const size_t *neighb_delta =
-        &neighb_deltas.mat_2d[neighb_deltas.n_columns * i];
-
-    assert(best_cost == computeCost(cost_matrix.mat_2d, new_sol_1d,
-                                    neighb_deltas.n_columns));
-
-    t_cost new_cost = get_cost(cost_matrix.mat_2d, sol_1d, neighb_delta,
-                               neighb_deltas.n_columns, cost);
-
-#ifndef NDEBUG
-    size_t *assert_new_sol = malloc(neighb_deltas.n_columns * sizeof(size_t));
-    assert(assert_new_sol);
-    array_apply_shuffle(assert_new_sol, neighb_delta, sol_1d,
-                        neighb_deltas.n_columns);
-    t_cost assert_cost = computeCost(cost_matrix.mat_2d, assert_new_sol,
-                                     neighb_deltas.n_columns);
-    assert(new_cost == assert_cost);
-    free(assert_new_sol);
-#endif
-
-    if (new_cost > best_cost) {
-      DPRINTF("Found better cost: old cost : %u | new cost : %u\n", cost,
-              new_cost);
-      best_cost = new_cost;
-      array_apply_shuffle(new_sol_1d, neighb_delta, sol_1d,
-                          neighb_deltas.n_columns);
-    }
-  }
-
-  return best_cost;
-}
-
-t_cost it_imp_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
-                  size_t *const sol_1d, t_cost cost,
-                  t_fptr_pivot_rule fptr_pivot_rule,
-                  t_fptr_neighborhood fptr_neighborhood) {
+t_cost_delta
+it_imp_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim, size_t *const sol_1d,
+           enum pivot_enum pivot_rule,
+           t_fptr_delta_neigh_exploration fptr_cost_delta_exploration) {
   DPRINTF("executing lop\n");
 
-  // put matrixes in a struct
-  struct matrix cost_mat = {cost_mat_2d, mat_cost_dim, mat_cost_dim};
-
-  // all possible modif to apply to a vector to neighborhood
-  struct matrix neigh_deltas;
-  neigh_deltas.n_columns = mat_cost_dim;
-  neigh_deltas.mat_2d =
-      fptr_neighborhood(&neigh_deltas.n_rows, neigh_deltas.n_columns);
-
   // new solution after each pivot.
-  size_t *new_sol_1d = malloc(cost_mat.n_columns * sizeof(size_t));
-  assert(new_sol_1d);
+  size_t *new_sol_1d = malloc(mat_cost_dim * sizeof(size_t));
   memcpy(new_sol_1d, sol_1d, mat_cost_dim * sizeof(size_t));
 
-  t_cost new_cost = cost;
-  DPRINTF("starting cost : %u cost\n", cost);
+  t_cost_delta new_delta = 0;
+  t_cost_delta delta_total = 0;
 
-  bool is_improve = true;
+  do {
 
-  while (is_improve) {
-
-    cost = new_cost;
+    delta_total += new_delta;
+    assert(delta_total == computeCost(cost_mat_2d, new_sol_1d, mat_cost_dim) -
+                              computeCost(cost_mat_2d, sol_1d, mat_cost_dim));
     memcpy(sol_1d, new_sol_1d, mat_cost_dim * sizeof(size_t));
 
-    assert(array_equal(new_sol_1d, sol_1d, mat_cost_dim));
-    assert(cost == new_cost);
-    assert(cost_mat_2d[mat_cost_dim * 0 + 0] >= 0);
+    new_delta = fptr_cost_delta_exploration(cost_mat_2d, new_sol_1d,
+                                            mat_cost_dim, pivot_rule);
 
-    new_cost =
-        fptr_pivot_rule(sol_1d, new_sol_1d, cost, neigh_deltas, cost_mat);
+  } while (new_delta);
 
-    assert(new_cost == computeCost(cost_mat_2d, new_sol_1d, mat_cost_dim));
-
-    // is_improve = cost < new_cost;
-    is_improve =
-        cost < new_cost ||
-        (cost == new_cost && !array_equal(new_sol_1d, sol_1d, mat_cost_dim));
-    DPRINTF("cost=%d | new_cost=%d\n", cost, new_cost);
-  }
-  DPRINTF("lop best cost found: %u\n", cost);
   free(new_sol_1d);
-  free((t_mat_cell *const)neigh_deltas.mat_2d);
-  return cost;
+  return delta_total;
 }
 
 t_cost vnd_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
-               size_t *const sol_1d, t_fptr_pivot_rule fptr_pivot_rule,
-               t_fptr_neighborhood *fptr_neighborhood,
+               size_t *const sol_1d, enum pivot_enum pivot_rule,
+               t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
                const ushort n_neighb_vn) {
 
   t_cost cost = 0;
@@ -804,14 +645,14 @@ t_cost vnd_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
 
     DPRINTF("vnd %d of %d\n", k_neighb, n_neighb_vn);
 
-    t_cost new_cost = it_imp_lop(cost_mat_2d, mat_cost_dim, sol_1d, cost,
-                                 fptr_pivot_rule, fptr_neighborhood[k_neighb]);
+    t_cost_delta new_delta =
+        it_imp_lop(cost_mat_2d, mat_cost_dim, sol_1d, pivot_rule,
+                   fptr_delta_neigh_exploration[k_neighb]);
 
-    if (new_cost > cost && k_neighb > 0) {
+    if (new_delta && k_neighb > 0) {
       k_neighb = 0;
-      cost = new_cost;
-      PVERB("vnd_lop found better cost: old cost : %u | new cost : %u\n", cost,
-            new_cost);
+      PVERB("vnd_lop found new optimization cost: %d", new_delta);
+      cost += new_delta;
     } else {
       PVERB("vnd_lop no improvement with neighborhood %u\n", k_neighb);
       k_neighb++;

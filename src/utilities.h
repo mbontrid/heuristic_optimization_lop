@@ -42,6 +42,29 @@ typedef struct {
   double value;
 } Item;
 
+enum pivot_enum {
+  BEST = false,
+  FIRST = true,
+};
+
+enum neighb_enum {
+  TRANSPOSE,
+  INSERT,
+  EXCHANGE,
+};
+
+enum start_enum {
+  RANDOM,
+  C_AND_W,
+};
+
+typedef size_t *(*t_fptr_sol_start)(t_mat_cell *CostMat, size_t size);
+
+typedef t_cost_delta (*t_fptr_delta_neigh_exploration)(t_mat_cell *cost_mat_2d,
+                                                       size_t *const sol_1d,
+                                                       size_t size,
+                                                       bool is_first);
+
 t_mat_cell **createMatrixx(size_t i);
 int rand0N(int limit);
 
@@ -58,7 +81,7 @@ void swap(size_t *array_1d, size_t size, size_t i, size_t j);
 bool array_equal(const size_t *array_1d_1, const size_t *array_1d_2,
                  size_t size);
 
-void print_array_1d(const t_mat_cell *const array, const size_t n_columns);
+void print_array_1d(const long int *const array, const size_t n_columns);
 void print_array_2d(t_mat_cell *array_2d, size_t n_rows, size_t n_columns);
 void print_array_2d2(t_mat_cell **array_2d, size_t n_rows, size_t n_columns);
 

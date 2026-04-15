@@ -71,8 +71,8 @@ int main(int argc, char **argv) {
   /* starts time measurement */
   clock_t start = clock();
   t_cost cost =
-      vnd_lop(cost_mat_2d, mat_cost_dim, sol_1d, arguments.fptr_pivoting_rule,
-              arguments.fptrs_neighborhood, arguments.n_neighb_vnd);
+      vnd_lop(cost_mat_2d, mat_cost_dim, sol_1d, arguments.pivot_rule,
+              arguments.fptr_neighb_exploration, arguments.n_neighb_vnd);
   const double elapsed_seconds = end_clock(start);
   /* stop time measurement */
 

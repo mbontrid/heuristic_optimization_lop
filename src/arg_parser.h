@@ -1,26 +1,9 @@
 #ifndef _ARG_PARSER_H_
 #define _ARG_PARSER_H_
 
+#include "utilities.h"
 #include <stdbool.h>
 #include <values.h>
-
-#include "optimization.h"
-
-enum pivot_enum {
-  FIRST,
-  BEST,
-};
-
-enum neighb_enum {
-  TRANSPOSE,
-  INSERT,
-  EXCHANGE,
-};
-
-enum start_enum {
-  RANDOM,
-  C_AND_W,
-};
 
 struct arguments {
   bool is_pos_arg;
@@ -31,10 +14,10 @@ struct arguments {
 
   unsigned short n_neighb_vnd;
   enum pivot_enum pivot_rule;
-  enum neighb_enum neighb_rule[MAXSHORT * 2];
+  enum neighb_enum neighb_exploration[MAXSHORT * 2];
   enum start_enum start_rule;
-  t_fptr_pivot_rule fptr_pivoting_rule;
-  t_fptr_neighborhood fptrs_neighborhood[MAXSHORT * 2];
+
+  t_fptr_delta_neigh_exploration fptr_neighb_exploration[MAXSHORT * 2];
   t_fptr_sol_start fptr_sol_start;
 };
 

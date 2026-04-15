@@ -32,7 +32,7 @@
 
 /* Read a file instance, returning the data matrix.
    At the moment works with LOLIB instances */
-size_t *readInstance(const char *filename, size_t *const size) {
+t_mat_cell *readInstance(const char *filename, size_t *const size) {
   FILE *f;
   char buffer[BUFSIZE + 1];
   long int l, i, j, t;

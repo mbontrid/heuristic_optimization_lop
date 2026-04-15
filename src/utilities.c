@@ -132,23 +132,22 @@ void swap(size_t *array_1d, size_t size, size_t i, size_t j) {
   array_1d[j] = tmp;
 }
 
-bool array_equal(const size_t *const array_1d_1,
-                 const size_t *const array_1d_2, size_t size) {
+bool array_equal(const size_t *const array_1d_1, const size_t *const array_1d_2,
+                 size_t size) {
 
   int a = memcmp(array_1d_1, array_1d_2, size * sizeof(size_t));
 
   return !a;
 }
 
-void print_array_1d(const t_mat_cell *const array, const size_t n_columns) {
+void print_array_1d(const long int *const array, const size_t n_columns) {
   for (size_t i = 0; i < n_columns; i++) {
-    printf("%u ", array[i]);
+    printf("%ld ", array[i]);
   }
   printf("\n");
 }
 
-void print_array_2d(t_mat_cell *array_2d, size_t n_rows,
-                    size_t n_columns) {
+void print_array_2d(t_mat_cell *array_2d, size_t n_rows, size_t n_columns) {
   for (size_t i = 0; i < n_rows; i++) {
     for (size_t j = 0; j < n_columns; j++) {
       t_mat_cell value = array_2d[n_columns * i + j];
@@ -158,8 +157,7 @@ void print_array_2d(t_mat_cell *array_2d, size_t n_rows,
   }
 }
 
-void print_array_2d2(t_mat_cell **array_2d, size_t n_rows,
-                     size_t n_columns) {
+void print_array_2d2(t_mat_cell **array_2d, size_t n_rows, size_t n_columns) {
   for (size_t i = 0; i < n_rows; i++) {
     for (size_t j = 0; j < n_columns; j++) {
       t_mat_cell value = array_2d[i][j];
@@ -187,10 +185,8 @@ int cmp_desc(const void *a, const void *b) {
   return 0;
 }
 
-void array_apply_shuffle(size_t *const result,
-                         const size_t *const shuffle,
-                         const size_t *const to_shuffle,
-                         const size_t size) {
+void array_apply_shuffle(size_t *const result, const size_t *const shuffle,
+                         const size_t *const to_shuffle, const size_t size) {
 #pragma omp simd
   for (size_t i = 0; i < size; i++) {
     // DPRINTF("shuffle=%d | to_shuffle=%d\n", shuffle[i], to_shuffle[i]);
