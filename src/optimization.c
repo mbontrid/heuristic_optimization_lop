@@ -235,8 +235,8 @@ t_cost_delta cost_delta_exchange(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
         best_i = i;
         best_j = j;
         if (is_first) {
-          i = size - 1;
-          break;
+          swap(sol_1d, size, best_i, best_j);
+          return best_delta;
         }
       }
     }
@@ -259,7 +259,8 @@ t_cost_delta cost_delta_transpose(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
       best_delta = cost_delta;
       best_i = i;
       if (is_first) {
-        break;
+        swap(sol_1d, size, best_i, (best_i + 1) % size);
+        return best_delta;
       }
     }
   }
