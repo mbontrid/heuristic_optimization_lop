@@ -147,7 +147,9 @@ def run_solver_once(
     cost = int(match.group("cost"))
     elapsed_seconds = float(match.group("time"))
     solution = (
-        [int(i) for i in match.group("solution").strip()] if is_solution else None
+        [int(i) for i in match.group("solution").strip().split(" ")]
+        if is_solution
+        else None
     )
     return cost, elapsed_seconds, solution
 
@@ -216,13 +218,13 @@ def parse_args() -> argparse.Namespace:
         "--k",
         type=int,
         default=1,
-        help="Number of runs per algo combination (instance, pivot, neighborhood, sol_start).",
+        help="Number of runs per algo combination (instance, pivot, neighborhood, sol_start) and select the best time.",
     )
     parser.add_argument(
         "--output_it_imp",
         type=Path,
         default=Path("data/output/lop_analysis.csv"),
-        help="Output CSV path.",
+        help="Output CSV path for iterative improvement lop.",
     )
     parser.add_argument(
         "--output_vnd",
@@ -249,9 +251,10 @@ def parse_args() -> argparse.Namespace:
         help="Directory containing instance files.",
     )
     parser.add_argument(
+        "-s",
         "--solution",
-        type=bool,
-        default=False,
+        # action=argparse.BooleanOptionalAction,
+        action="store_true",
         help="Whether to include the solution in the output CSV.",
     )
     parser.add_argument(
@@ -268,6 +271,7 @@ def parse_args() -> argparse.Namespace:
         help=(
             "Number of workers used to run benchmark combinations in parallel processes. "
             "Use 1 to disable parallel execution and 0 to use all CPUs minus one."
+            "Overloading the CPU may show slower time per test measurement but will be faster if only the result matter"
         ),
     )
     return parser.parse_args()
