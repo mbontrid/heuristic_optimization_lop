@@ -17,12 +17,12 @@ add_executable(lop ${SOURCES})
 find_package(OpenMP REQUIRED)
 target_link_libraries(lop PRIVATE OpenMP::OpenMP_C)
 target_compile_options(lop PRIVATE -Ofast -Wall -fopenmp-simd -march=native)
-# target_compile_options(lop PRIVATE -Ofast -Wall -fopenmp -march=native -fopt-info-vec-missed -fopt-info-vec)
 target_compile_definitions(lop PRIVATE NDEBUG)
 
 # Debug target with -Og and no -DNDEBUG
 add_executable(lop_debug ${SOURCES})
 target_compile_options(lop_debug PRIVATE -Og -Wall)
+target_compile_definitions(lop_debug PRIVATE DEBUG)
 
 # Set output directory
 set_target_properties(lop lop_debug PROPERTIES
