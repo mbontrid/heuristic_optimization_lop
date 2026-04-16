@@ -1,6 +1,6 @@
 # Heuristic Optimization: LOP
 
-To run the full benchmark, only one command is needed:
+To run the full benchmark, only one command is needed (compilation included):
 
 ```bash
 python3 tools/benchmark_best_known.py
@@ -8,8 +8,7 @@ python3 tools/benchmark_best_known.py
 
 Dependencies: [cmake](https://cmake.org/download/) and python
 
-Warning: the full benchmark takes hours.
-Use `--workers <n>` to run benchmark combinations in parallel processes (defaults to all CPUs minus one; use `1` to run sequentially).
+Use `--workers <n>` to run benchmark combinations in parallel processes (default to all CPUs minus one; use `1` to run sequentially).
 If time measurement is important, run with the minimum number of workers.
 
 ## Project structure
@@ -124,19 +123,5 @@ To run the debug:
 ./build/bin/lop_debug -i ./instances/N-be75eec_150 -s c_and_w -n insert -p best
 
 ```
-
-To illustrate the difference of time between the lop executable and the lop_debug executable:
-
-```bash
-./build/bin/lop_debug -i ./instances/N-be75eec_150 -s c_and_w -n exchange -p best -v
-```
-
-Takes 130 seconds
-
-```bash
-./build/bin/lop -i ./instances/N-be75eec_150 -s c_and_w -n exchange -p best -v
-```
-
-Takes 0.88 seconds.
 
 ## Documentation
