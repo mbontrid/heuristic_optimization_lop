@@ -12,6 +12,17 @@ PIVOTS = ("first", "best")
 START_SOLS = ("random", "c_and_w")
 NEIGHBORHOODS = (["transpose"], ["exchange"], ["insert"])
 
+
+PATH_TO_OUT = Path("data/output/")
+PATH_TO_IN = Path("data/input/")
+
+PATH_TO_BEST_KNOWN = PATH_TO_IN / Path("best_known.txt")
+PATH_TO_INSTANCES = PATH_TO_IN / Path("instances/")
+PATH_TO_BINARY = Path("build/bin/lop")
+PATH_TO_OUTPUT_IT_IMP = PATH_TO_OUT / Path("it_im_results.csv")
+PATH_TO_OUTPUT_VND = PATH_TO_OUT / Path("lop_vnd_results.csv")
+
+
 RESULT_PATTERN = re.compile(
     r"RESULT\s+cost=(?P<cost>\d+)\s+time=(?P<time>[0-9.eE+-]+)\s+solution=(?P<solution>[\d+\s]+)"
 )
@@ -191,18 +202,15 @@ def run_benchmark_job(
     cost = max(costs)
     time = min(times)
     solution = solutions[0]
-    relative_percentage_deviation = ((cost - best_known_cost) / best_known_cost) * 100
 
     return {
         "instance": instance_name,
         "best_known_cost": best_known_cost,
+        "sol_start": sol_start,
         "pivot": pivot,
         "neighborhoods": neighborhoods,
-        "sol_start": sol_start,
         "cost": cost,
         "time_s": time,
-        "rel_percent_deviation": relative_percentage_deviation,
-        "gap_to_best": cost - best_known_cost,
         "solution": solution,
     }
 
@@ -223,31 +231,31 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output_it_imp",
         type=Path,
-        default=Path("data/output/lop_analysis.csv"),
+        default=PATH_TO_OUTPUT_IT_IMP,
         help="Output CSV path for iterative improvement lop.",
     )
     parser.add_argument(
         "--output_vnd",
         type=Path,
-        default=Path("data/output/lop_vnd_analysis.csv"),
+        default=PATH_TO_OUTPUT_VND,
         help="Output CSV path for VND results.",
     )
     parser.add_argument(
         "--binary",
         type=Path,
-        default=Path("build/bin/lop"),
+        default=PATH_TO_BINARY,
         help="Path to the solver binary.",
     )
     parser.add_argument(
-        "--best-known-file",
+        "--best_known_file",
         type=Path,
-        default=Path("data/best_known.txt"),
+        default=PATH_TO_BEST_KNOWN,
         help="Path to the best-known instances file.",
     )
     parser.add_argument(
         "--instances-dir",
         type=Path,
-        default=Path("data/input/instances"),
+        default=PATH_TO_INSTANCES,
         help="Directory containing instance files.",
     )
     parser.add_argument(
@@ -307,13 +315,11 @@ def benchmark(args, combinations: list, instances, output_path: Path):
             fieldnames=[
                 "instance",
                 "best_known_cost",
+                "sol_start",
                 "pivot",
                 "neighborhoods",
-                "sol_start",
                 "cost",
                 "time_s",
-                "rel_percent_deviation",
-                "gap_to_best",
                 "solution",
             ],
         )
