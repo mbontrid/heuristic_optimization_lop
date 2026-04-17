@@ -22,7 +22,7 @@ the linear optimization problem (LOP) is a NP-complet problem that has applicati
 = methods
 
 
-== algorithm
+== algorithms
 === Initial solution
 
 === pivot
@@ -34,6 +34,9 @@ Number of neighborhood with transpose.
 $"transposes" = n$
 $"exchange" = n!/((n-2)!2!)$
 $"insertion" =$
+
+
+== deprecated algorithms
 
 = results
 
