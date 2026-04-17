@@ -8,10 +8,37 @@
 
 #pagebreak()
 
-= Hello
+= Abstract
+
+the linear optimization problem (LOP) is a NP-complet problem that has applications in various fields, including scheduling, transportation, and assignment problems. In this report will explore the LOP algorithm, its problem description, material and methods used to solve it, results obtained from experiments, and conclusions drawn from our findings.
+
+= introduction
+
+= problem description
+
+= material
+
+
+= methods
+
+
+== algorithm
+=== Initial solution
+
+=== pivot
+
+
+=== neighborhood
+
 Number of neighborhood with transpose.
-$"transposes" = n!/((n-2)!2!)$
-$"exchange" = n$
+$"transposes" = n$
+$"exchange" = n!/((n-2)!2!)$
 $"insertion" =$
+
+= results
+
+= conclusion
+
+
 
 

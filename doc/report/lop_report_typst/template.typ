@@ -94,7 +94,6 @@
 
 
 #let title_page = {
-  text(size: 16pt)[Faculty of sciences]
   v(1fr)
   align(center)[#image("sceau-a-quadri.webp", width: 40%)]
   v(1fr)
