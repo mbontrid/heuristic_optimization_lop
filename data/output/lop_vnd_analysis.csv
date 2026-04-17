@@ -1,2 +1,0 @@
-instance,best_known_cost,pivot,neighborhoods,sol_start,cost,time_s,rel_percent_deviation,gap_to_best,solution
-N-be75eec_150,3482828,first,"['transpose', 'exchange', 'insert']",c_and_w,3399767,9.97575,-2.384872293435105,-83061,
