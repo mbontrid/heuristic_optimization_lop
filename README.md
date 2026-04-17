@@ -1,5 +1,16 @@
 # Heuristic Optimization: LOP
 
+The project is made of three executables: `analysis.ipynb`, `benchmark_best_known.py` and `lop`. The first two are used for the analysis of the results of the benchmark, while the last one is the main executable to run the algorithms.
+
+`analysis.ipynb` call `benchmark_best_known.py` to run the benchmark and then analyze the results, but `benchmark_best_known.py can also be called without analysis. It is the most complete way to analyze the results of the benchmark.
+
+To run `anaylsis.ipynb` from the project directory, you need to have uv to be installed.
+
+```bash
+uv sync
+uv run --with jupyter jupyter lab
+```
+
 To run the full benchmark, only one command is needed (compilation included):
 
 ```bash
@@ -18,33 +29,42 @@ If time measurement is important, run with the minimum number of workers.
 
 ```tree
 .
+├── analysis.ipynb
 ├── build
 │   ├── bin
 │   │   ├── lop
 │   │   └── lop_debug
 ├── CMakeLists.txt
 ├── data
-│   ├── best_known.txt
 │   ├── input
+│   │   ├── best_known.txt
 │   │   └── instances
 │   │       ├── N-be75eec_150
+│   │       ├── N-be75eec_250
 .   .       .
 .   .       .
 .   .       .
 │   └── output
-│       ├── lop_analysis.csv
-│       └── lop_vnd_analysis.csv
+│       ├── figs
+│       │   ├── it_imp_boxplot.svg
+│       │   ├── it_imp_summary.svg
+│       │   └── vnd_summary.svg
+│       ├── it_im_pairwise_tests.csv
+│       ├── it_im_results.csv
+│       ├── it_im_summary_stats.csv
+│       ├── lop_vnd_results.csv
+│       ├── vnd_stat_test.csv
+│       └── vnd_summary_stats.csv
 ├── doc
-├── include
 ├── Makefile
 ├── README.md
 ├── src
 ├── tools
-    └── benchmark_best_known.py
+│   └── benchmark_best_known.py
 ```
 
 ## Compile
-
+  
 [cmake](https://cmake.org/) is required to compile this project.
 
 ```bash
