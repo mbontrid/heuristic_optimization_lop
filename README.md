@@ -1,10 +1,10 @@
 # Heuristic Optimization: LOP
 
-The project is made of three executables: `analysis.ipynb`, `benchmark_best_known.py` and `lop`. The first two are used for the analysis of the results of the benchmark, while the last one is the main executable to run the algorithms.
+The project is made of three executables: `analysis.ipynb`, `benchmark_best_known.py` and `lop`. The first analyse the benchmark results, the second is the benchmark and de last one is the main executable to run the algorithms.
 
 `analysis.ipynb` call `benchmark_best_known.py` to run the benchmark and then analyze the results, but `benchmark_best_known.py can also be called without analysis. It is the most complete way to analyze the results of the benchmark.
 
-To run `anaylsis.ipynb` from the project directory, you need to have uv to be installed.
+To run `anaylsis.ipynb` from the project directory, uv has to be installed.
 
 ```bash
 uv sync
