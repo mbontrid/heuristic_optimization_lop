@@ -118,7 +118,7 @@ size_t *generate_random_vector(size_t dim)
 #ifndef NDEBUG
   DPRINTF("random_vector : ");
   for (size_t i = 0; i < dim; i++) {
-    printf("%d ", random_vector[i]);
+    printf("%ld ", random_vector[i]);
   }
   printf("\n");
 #endif

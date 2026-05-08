@@ -14,7 +14,7 @@ uv run --with jupyter jupyter lab
 To run the full benchmark, only one command is needed (compilation included):
 
 ```bash
-python3 tools/benchmark_best_known.py
+uv run tools/benchmark_best_known.py
 ```
 
 Dependencies: [cmake](https://cmake.org/download/) and python
