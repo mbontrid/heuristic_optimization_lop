@@ -33,8 +33,18 @@ struct matrix {
 
 extern t_mat_cell **cost_mat_2d;
 
-t_cost computeCost(const t_mat_cell *const cost_mat, const size_t *const lo,
-                   size_t size);
+/**
+ * @brief Compute the cost of a LOP. This method is not efficient as it is of
+ * complexity O((n^2)/2). It is only meant to be used when the initial cost is
+ * not yet known.
+ *
+ * @param cost_mat_2d Cost matrix of the LOP instance.
+ * @param Ordering (solution) of the LOP instance.
+ * @param size Lenght of sol_1d and shape of cost_mat_2d (size, size).
+ * @return Sum of the uper left triangle with the sol_1d applied.
+ */
+t_cost computeCost(const t_mat_cell *const cost_mat_2d,
+                   const size_t *const sol_1d, size_t size);
 
 /**
  * @brief get the cost difference if a neithberhood modification is applied to a
@@ -81,17 +91,86 @@ t_cost_delta cost_swap_delta(const t_mat_cell *const cost_mat_2d,
 t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, size_t n_rows,
                                   size_t n_columns);
 
+/**
+ * @brief Get the number of possible transpose operations on a array of size
+ * size.
+ *
+ * @param size Size of the array.
+ * @return Integral number of possible transpose operations a array of size
+ * size.
+ */
 size_t get_n_transpose(size_t size);
+/**
+ * @brief Get the number of possible insert operations on a array of size size.
+ *
+ * @param size Size of the array.
+ * @return Integral number of possible insert operations a array of size size.
+ */
 size_t get_n_inserts(size_t size);
+/**
+ * @brief Get the number of possible exchange operations on a array of size
+ * size.
+ *
+ * @param size Size of the array.
+ * @return Integral number of possible exchange operations a array of size size.
+ */
 size_t get_n_exchange(size_t size);
 
+/**
+ * @brief Compute the best or first cost difference in all possible neighborhood
+ * modifications by transpose. the initial solution is directly modified
+ * accoding the the cost difference found.
+ *
+ * @param cost_mat_2d Cost matrix of the LOP
+ * @param sol_1d Initial ordering (solution) of the LOP to be modified.
+ * Neighorhood will be searched from this initial solution.
+ * @param size lenght of sol_1d and shape (size, size) of cost_mat_2d.
+ * @param is_first If false, the best cost difference will be returned.
+ * @return The cost difference between the initial solution and the new
+ * solution.
+ */
 t_cost_delta cost_delta_transpose(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
                                   size_t size, bool is_first);
+/**
+ * @brief Compute the best or first cost difference in all possible neighborhood
+ * modifications by exchange. the initial solution is directly modified accoding
+ * the the cost difference found.
+ *
+ * @param cost_mat_2d Cost matrix of the LOP
+ * @param sol_1d Initial ordering (solution) of the LOP to be modified.
+ * Neighorhood will be searched from this initial solution.
+ * @param size lenght of sol_1d and shape (size, size) of cost_mat_2d.
+ * @param is_first If false, the best cost difference will be returned.
+ * @return The cost difference between the initial solution and the new
+ * solution.
+ */
 t_cost_delta cost_delta_exchange(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
                                  size_t size, bool is_first);
+/**
+ * @brief Compute the best or first cost difference in all possible neighborhood
+ * modifications by exchange. the initial solution is directly modified accoding
+ * the the cost difference found.
+ *
+ * @param cost_mat_2d Cost matrix of the LOP
+ * @param sol_1d Initial ordering (solution) of the LOP to be modified.
+ * Neighorhood will be searched from this initial solution.
+ * @param size lenght of sol_1d and shape (size, size) of cost_mat_2d.
+ * @param is_first If false, the best cost difference will be returned.
+ * @return The cost difference between the initial solution and the new
+ * solution.
+ */
 t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
                                size_t size, bool is_first);
 
+/**
+ * @brief Generate a random ordering (solution) for the lop problem.
+ *
+ * @param mat Cost matrix. Isn't used in this fuction. The parameter is here for
+ * the function signature.
+ * @param n_columns Size of the random vector to generate.
+ * @return A pointer of a new allocated memory array with random values ranging
+ * from 0 to n_columns-1.
+ */
 size_t *sol_start_random(t_mat_cell *mat, size_t n_columns);
 
 /**
@@ -126,13 +205,16 @@ it_imp_lop(t_mat_cell *cost_mat_2d, size_t cost_mat_dim, size_t *const sol_1d,
  * @brief Apply the variables neighborhood descent (VND) algorithm to a solution
  * of the lop, with the given neighborhood exploration function and pivot rule.
  *
- * @param cost_mat_2d [TODO:parameter]
- * @param cost_mat_dim [TODO:parameter]
- * @param sol_1d [TODO:parameter]
- * @param pivot_rule [TODO:parameter]
- * @param fptr_delta_neigh_exploration [TODO:parameter]
- * @param n_neighb_vnd [TODO:parameter]
- * @return [TODO:return]
+ * @param cost_mat_2d matrix of costs for the lop instance of shape
+ * (cost_mat_dim, cost_mat_dim).
+ * @param cost_mat_dim shape of cast_mat_2d and lenght of sol_1d.
+ * @param sol_1d initial solution of the lop problem. After execution, point to
+ * the best solution found.
+ * @param pivot_rule enum of the pivot rule to use
+ * @param fptr_delta_neigh_exploration function pointers methods of neighborhood
+ * explaration in order to be used (insert/transpose/exchange).
+ * @param n_neighb_vnd lenght of fptr_delat_neigh_explaration
+ * @return resulting lop cost of the the solution sol_1d
  */
 t_cost vnd_lop(t_mat_cell *cost_mat_2d, size_t cost_mat_dim,
                size_t *const sol_1d, enum pivot_enum pivot_rule,

@@ -287,13 +287,20 @@ t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
   size_t *constructive_sol = malloc(size * sizeof(size_t));
   memcpy(constructive_sol, sol_1d, size * sizeof(size_t));
 
+  /*
+   * As insertions from i to j includes all insertions from i to j-n (n<i) and
+   * ar simple swap until j, the number of insertions can be greatly reduced and
+   * calculated by cost difference.
+   */
   for (size_t i = 0; i < size; i++) {
     for (size_t j = 0; j < size; j++) {
       if (i == j) {
+        // reset the constructive solution and the cost delta for the next i.
         memcpy(constructive_sol, sol_1d, size * sizeof(size_t));
         const_cost_delta = 0;
       } else if (i != j + 1) {
 
+        // calculating the cost difference of the swap.
         const_cost_delta +=
             cost_swap_delta(cost_mat_2d, constructive_sol, size, i, j);
         swap(constructive_sol, size, i, j);
