@@ -110,7 +110,7 @@ To use with default parameters:
 #### Iterative improvement lop
 
 ```bash
-./build/bin/lop -i ./instances/N-be75eec_150 -s c_and_w -n exchange -p best
+./build/bin/lop -i ./data/input/instances/N-be75eec_150 -s c_and_w -n exchange -p best
 ```
 
 #### variable neighborhood descent lop
@@ -140,7 +140,7 @@ cmake --build build --target lop_debug
 To run the debug:
 
 ```bash
-./build/bin/lop_debug -i ./instances/N-be75eec_150 -s c_and_w -n insert -p best
+./build/bin/lop_debug -i ./data/input/instances/N-be75eec_150 -s c_and_w -n insert -p best
 
 ```
 
