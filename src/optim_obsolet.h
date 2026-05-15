@@ -4,6 +4,13 @@
 #include "optimization.h"
 
 /**
+ * -----------------------------------------------------------------------------
+ * functions not used anymore. Kept here just for history.
+ *
+ * -----------------------------------------------------------------------------
+ */
+
+/**
  * @brief get_all_possible transposes in a vector of size n_columns
  *
  * @param transposes 2d Vector in which all possible transposes will be filled

@@ -197,9 +197,9 @@ size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size);
  * the initial solution.
  */
 t_cost_delta
-it_imp_lop(t_mat_cell *cost_mat_2d, size_t cost_mat_dim, size_t *const sol_1d,
-           enum pivot_enum pivot_rule,
-           t_fptr_delta_neigh_exploration fptr_delta_neigh_exploration);
+lop_iter_impr(t_mat_cell *cost_mat_2d, size_t cost_mat_dim,
+              size_t *const sol_1d, enum pivot_enum pivot_rule,
+              t_fptr_delta_neigh_exploration fptr_delta_neigh_exploration);
 
 /**
  * @brief Apply the variables neighborhood descent (VND) algorithm to a solution

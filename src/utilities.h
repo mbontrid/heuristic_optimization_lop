@@ -74,15 +74,43 @@ extern double ran01(long *idum);
 
 extern int randInt(int minimum, int maximum);
 
-size_t *generate_inc_vector(size_t size);
+size_t *generate_incr_vector(size_t size);
 extern size_t *generate_random_vector(size_t dim);
 
+/**
+ * @brief Swap two element in a array
+ *
+ * @param array_1d Array to be modified.
+ * @param size Size of array_1d.
+ * @param i First index to swap.
+ * @param j Scond index to swap.
+ */
 void swap(size_t *array_1d, size_t size, size_t i, size_t j);
 bool array_equal(const size_t *array_1d_1, const size_t *array_1d_2,
                  size_t size);
 
+/**
+ * @brief Print the elmements of a 1d array.
+ *
+ * @param array Array to be printed.
+ * @param n_columns size of the array.
+ */
 void print_array_1d(const long int *const array, const size_t n_columns);
+/**
+ * @brief Print the elements of a 2d array stored as a 1d array.
+ *
+ * @param array_2d Array to be printed.
+ * @param n_rows Number of rows in the array.
+ * @param n_columns Number of columns in the array.
+ */
 void print_array_2d(t_mat_cell *array_2d, size_t n_rows, size_t n_columns);
+/**
+ * @brief Print the elements of a 2d array storsd as a pointer array of pointer.
+ *
+ * @param array_2d Array to be printed.
+ * @param n_rows Number of rows in the array.
+ * @param n_columns Number of columns in the array.
+ */
 void print_array_2d2(t_mat_cell **array_2d, size_t n_rows, size_t n_columns);
 
 unsigned int factorial(unsigned int N);

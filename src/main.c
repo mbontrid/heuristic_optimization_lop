@@ -62,6 +62,7 @@ int main(int argc, char **argv) {
       Seed += (long int)cost_mat_2d[mat_cost_dim * i + j];
   PVERB("Seed used to initialize RNG: %ld.\n", Seed);
 
+  // ----------------------------------------------------------
   // lop measurement
   // ------------------------------------------------------------
 

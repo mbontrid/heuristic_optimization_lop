@@ -220,8 +220,8 @@ size_t get_n_exchange(size_t size) {
 
 t_cost_delta cost_delta_exchange(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
                                  size_t size, bool is_first) {
-  /* set cost to MAX_COST for pivot_best*/
 
+  DPRINTF("executing cost_delta_exchange\n");
   t_cost best_delta = 0;
   size_t best_i = 0;
   size_t best_j = 0;
@@ -248,6 +248,7 @@ t_cost_delta cost_delta_exchange(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
 
 t_cost_delta cost_delta_transpose(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
                                   size_t size, bool is_first) {
+  DPRINTF("executing cost_delta_transpose\n");
   t_cost_delta best_delta = 0;
   size_t best_i = 0;
 
@@ -281,6 +282,7 @@ t_cost_delta cost_delta_transpose(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
 
 t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
                                size_t size, bool is_first) {
+  DPRINTF("executing cost_delta_insert\n");
   t_cost_delta best_delta = 0;
   size_t *best_sol = malloc(size * sizeof(size_t));
   t_cost_delta const_cost_delta = 0;
@@ -306,6 +308,8 @@ t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
         swap(constructive_sol, size, i, j);
 
         if (const_cost_delta > best_delta) {
+          DPRINTF("constructive_sol\n");
+          print_array_1d(best_sol, size);
           memcpy(best_sol, constructive_sol, size * sizeof(size_t));
           best_delta = const_cost_delta;
           if (is_first) {
@@ -319,16 +323,18 @@ t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
     const_cost_delta = 0;
   }
 
-#ifndef NDEBUG
-  t_cost cost_assert = computeCost(cost_mat_2d, sol_1d, size);
-  t_cost cost_best_sol = computeCost(cost_mat_2d, best_sol, size);
-  t_cost_delta cost_delta_assert = cost_best_sol - cost_assert;
-  assert(cost_delta_assert == best_delta);
-#endif
+  DPRINTF("best_sol\n");
+  print_array_1d(best_sol, size);
+  assert(computeCost(cost_mat_2d, best_sol, size) >= 0);
+  DPRINTF("au revoir\n");
+  assert(computeCost(cost_mat_2d, sol_1d, size) >= 0);
+  assert(best_delta == computeCost(cost_mat_2d, best_sol, size) -
+                           computeCost(cost_mat_2d, sol_1d, size));
 
   memcpy(sol_1d, best_sol, size * sizeof(size_t));
   free(best_sol);
   free(constructive_sol);
+
   return best_delta;
 }
 
@@ -354,7 +360,7 @@ size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size) {
   }
 #endif
 
-  size_t *new_best_start_1d = generate_inc_vector(size);
+  size_t *new_best_start_1d = generate_random_vector(size);
 
   for (size_t i = 0; i < size; i++) {
     size_t best_pos = i;
@@ -388,9 +394,9 @@ size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size) {
 }
 
 t_cost_delta
-it_imp_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim, size_t *const sol_1d,
-           enum pivot_enum pivot_rule,
-           t_fptr_delta_neigh_exploration fptr_cost_delta_exploration) {
+lop_iter_impr(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
+              size_t *const sol_1d, enum pivot_enum pivot_rule,
+              t_fptr_delta_neigh_exploration fptr_cost_delta_neig_exploration) {
   DPRINTF("executing lop\n");
 
   // new solution after each pivot.
@@ -405,8 +411,8 @@ it_imp_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim, size_t *const sol_1d,
     delta_total += neighb_delta;
     memcpy(sol_1d, new_sol_1d, mat_cost_dim * sizeof(size_t));
 
-    neighb_delta = fptr_cost_delta_exploration(cost_mat_2d, new_sol_1d,
-                                               mat_cost_dim, pivot_rule);
+    neighb_delta = fptr_cost_delta_neig_exploration(cost_mat_2d, new_sol_1d,
+                                                    mat_cost_dim, pivot_rule);
 
     DPRINTF("delat total=%ld | neighb delta=%ld\n", delta_total, neighb_delta);
     assert(neighb_delta == computeCost(cost_mat_2d, new_sol_1d, mat_cost_dim) -
@@ -424,13 +430,15 @@ t_cost vnd_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
 
   t_cost cost = 0;
   ushort k_neighb = 0;
+  // try all neighborhood methods in order and start again if there is
+  // improvement.
   while (k_neighb < n_neighb_vn) {
 
     DPRINTF("vnd %d of %d\n", k_neighb, n_neighb_vn);
 
     t_cost_delta new_delta =
-        it_imp_lop(cost_mat_2d, mat_cost_dim, sol_1d, pivot_rule,
-                   fptr_delta_neigh_exploration[k_neighb]);
+        lop_iter_impr(cost_mat_2d, mat_cost_dim, sol_1d, pivot_rule,
+                      fptr_delta_neigh_exploration[k_neighb]);
     cost += new_delta;
 
     if (new_delta && k_neighb > 0) {

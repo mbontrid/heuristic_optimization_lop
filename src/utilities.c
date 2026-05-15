@@ -73,7 +73,7 @@ int randInt(int minimum, int maximum) {
   return ((int)(ran01(&Seed) * (maximum - minimum + 1)) + minimum);
 }
 
-size_t *generate_inc_vector(size_t size) {
+size_t *generate_incr_vector(size_t size) {
   size_t *new_vector = malloc(size * sizeof(size));
 
   for (size_t i = 0; i < size; i++) {
