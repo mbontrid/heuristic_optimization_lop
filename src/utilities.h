@@ -81,11 +81,10 @@ extern size_t *generate_random_vector(size_t dim);
  * @brief Swap two element in a array
  *
  * @param array_1d Array to be modified.
- * @param size Size of array_1d.
  * @param i First index to swap.
  * @param j Scond index to swap.
  */
-void swap(size_t *array_1d, size_t size, size_t i, size_t j);
+void swap(size_t *array_1d, size_t i, size_t j);
 bool array_equal(const size_t *array_1d_1, const size_t *array_1d_2,
                  size_t size);
 

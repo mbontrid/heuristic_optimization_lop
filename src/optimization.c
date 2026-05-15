@@ -157,11 +157,12 @@ t_cost_delta cost_swap_delta(const t_mat_cell *const cost_mat_2d,
   //   size_t *new_sol_assert = malloc(size * sizeof(size_t));
   //   assert(new_sol_assert);
   //   memcpy(new_sol_assert, sol_1d, size * sizeof(size_t));
-  //   swap(new_sol_assert, size, left, right);
+  //   swap(new_sol_assert, left, right);
   //   t_cost sol_cost = computeCost(cost_mat_2d, sol_1d, size);
   //   t_cost new_sol_assert_cost = computeCost(cost_mat_2d, new_sol_assert,
-  //   size); assert((long int)sol_cost + delta == (long
-  //   int)new_sol_assert_cost); free(new_sol_assert);
+  //   size);
+  //   assert((long int)sol_cost + delta == (long int)new_sol_assert_cost);
+  //   free(new_sol_assert);
   // #endif
 
   return delta;
@@ -235,14 +236,14 @@ t_cost_delta cost_delta_exchange(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
         best_i = i;
         best_j = j;
         if (is_first) {
-          swap(sol_1d, size, best_i, best_j);
+          swap(sol_1d, best_i, best_j);
           return best_delta;
         }
       }
     }
   }
 
-  swap(sol_1d, size, best_i, best_j);
+  swap(sol_1d, best_i, best_j);
   return best_delta;
 }
 
@@ -260,7 +261,7 @@ t_cost_delta cost_delta_transpose(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
       best_delta = cost_delta;
       best_i = i;
       if (is_first) {
-        swap(sol_1d, size, best_i, (best_i + 1) % size);
+        swap(sol_1d, best_i, (best_i + 1) % size);
         return best_delta;
       }
     }
@@ -270,13 +271,13 @@ t_cost_delta cost_delta_transpose(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
   size_t *new_sol_assert = malloc(size * sizeof(size_t));
   memcpy(new_sol_assert, sol_1d, size * sizeof(size_t));
   t_cost cost_before = computeCost(cost_mat_2d, sol_1d, size);
-  swap(new_sol_assert, size, best_i, (best_i + 1) % size);
+  swap(new_sol_assert, best_i, (best_i + 1) % size);
   t_cost cost_after = computeCost(cost_mat_2d, new_sol_assert, size);
   assert(cost_before + best_delta == cost_after);
   free(new_sol_assert);
 #endif
 
-  swap(sol_1d, size, best_i, (best_i + 1) % size);
+  swap(sol_1d, best_i, (best_i + 1) % size);
   return best_delta;
 }
 
@@ -285,6 +286,7 @@ t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
   DPRINTF("executing cost_delta_insert\n");
   t_cost_delta best_delta = 0;
   size_t *best_sol = malloc(size * sizeof(size_t));
+
   t_cost_delta const_cost_delta = 0;
   size_t *constructive_sol = malloc(size * sizeof(size_t));
   memcpy(constructive_sol, sol_1d, size * sizeof(size_t));
@@ -305,7 +307,7 @@ t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
         // calculating the cost difference of the swap.
         const_cost_delta +=
             cost_swap_delta(cost_mat_2d, constructive_sol, size, i, j);
-        swap(constructive_sol, size, i, j);
+        swap(constructive_sol, i, j);
 
         if (const_cost_delta > best_delta) {
           DPRINTF("constructive_sol\n");

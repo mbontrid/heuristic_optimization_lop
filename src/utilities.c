@@ -126,7 +126,7 @@ size_t *generate_random_vector(size_t dim)
   return random_vector;
 }
 
-void swap(size_t *array_1d, size_t size, size_t i, size_t j) {
+void swap(size_t *array_1d, size_t i, size_t j) {
   size_t tmp = array_1d[i];
   array_1d[i] = array_1d[j];
   array_1d[j] = tmp;
