@@ -37,6 +37,9 @@ typedef long int t_cost_delta;
 #define MAX_COST_CELL UINT_MAX
 #define MAX_SIZEMAT UINT_MAX
 
+#define max(A, B) ((A) > (B) ? (A) : (B))
+#define min(A, B) ((A) < (B) ? (A) : (B))
+
 typedef struct {
   int index;
   double value;
@@ -73,6 +76,8 @@ extern void fatal(char *s);
 extern double ran01(long *idum);
 
 extern int randInt(int minimum, int maximum);
+
+extern bool rand_bool();
 
 size_t *generate_incr_vector(size_t size);
 extern size_t *generate_random_vector(size_t dim);
@@ -121,10 +126,13 @@ double end_clock(clock_t start);
 
 /**
  * @brief reorder an array based on the indice of another array. The resulting
- * array and the shuffle array have to of the same size.
+ * array and the shuffle array have to be of the same size.
  */
 void array_apply_shuffle(size_t *const modified, const size_t *const shuffle,
                          const size_t *const to_shuffle, const size_t size);
+
+size_t get_max_array(const size_t *const array, const size_t size);
+size_t get_min_array(const size_t *const array, const size_t size);
 
 /* constants for a pseudo-random number generator, taken from
    Numerical Recipes in C book --- never trust the standard C random

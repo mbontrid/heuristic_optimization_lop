@@ -73,6 +73,8 @@ int randInt(int minimum, int maximum) {
   return ((int)(ran01(&Seed) * (maximum - minimum + 1)) + minimum);
 }
 
+extern bool rand_bool() { return randInt(0, 1) == 1; }
+
 size_t *generate_incr_vector(size_t size) {
   size_t *new_vector = malloc(size * sizeof(size));
 
@@ -185,17 +187,37 @@ int cmp_desc(const void *a, const void *b) {
   return 0;
 }
 
+double end_clock(clock_t start) {
+  clock_t end = clock();
+  return (double)(end - start) / CLOCKS_PER_SEC;
+}
+
 void array_apply_shuffle(size_t *const result, const size_t *const shuffle,
                          const size_t *const to_shuffle, const size_t size) {
 #pragma omp simd
   for (size_t i = 0; i < size; i++) {
     // DPRINTF("shuffle=%d | to_shuffle=%d\n", shuffle[i], to_shuffle[i]);
-    assert(shuffle[i] <= size);
+    assert(shuffle[i] < size);
     result[shuffle[i]] = to_shuffle[i];
   }
 }
 
-double end_clock(clock_t start) {
-  clock_t end = clock();
-  return (double)(end - start) / CLOCKS_PER_SEC;
+size_t get_max_array(const size_t *const array, const size_t size) {
+  size_t max = 0;
+  for (size_t i = 0; i < size; i++) {
+    if (array[i] > max) {
+      max = array[i];
+    }
+  }
+  return max;
+}
+
+size_t get_min_array(const size_t *const array, const size_t size) {
+  size_t min = UINT_MAX;
+  for (size_t i = 0; i < size; i++) {
+    if (array[i] < min) {
+      min = array[i];
+    }
+  }
+  return min;
 }
