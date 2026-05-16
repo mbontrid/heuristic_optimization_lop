@@ -290,3 +290,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+.virtual_documents/
+
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# IPython
+profile_default/
+ipython_config.py
