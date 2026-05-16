@@ -26,8 +26,12 @@ t_cost_delta dpx_crossover(const t_cost *const cost_mat, size_t *p1_offspring,
                            size_t *p2, size_t size) {
   assert(p1_offspring);
   assert(p2);
+#ifndef NDEBUG
+  t_cost assert_cost_before = computeCost(cost_mat, p1_offspring, size);
+#endif
 
   size_t *indexes = malloc(size * sizeof(size_t));
+  assert(indexes);
   size_t to_move = 0;
 
   for (size_t i = 0; i < size; i++) {
@@ -52,6 +56,9 @@ t_cost_delta dpx_crossover(const t_cost *const cost_mat, size_t *p1_offspring,
   }
 
   free(indexes);
+
+  assert(assert_cost_before + delta ==
+         computeCost(cost_mat, p1_offspring, size));
   return delta;
 }
 
