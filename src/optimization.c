@@ -123,18 +123,14 @@ t_cost_delta cost_swap_delta(const t_mat_cell *const cost_mat_2d,
   assert(sol_1d);
   assert(i < size);
   assert(j < size);
+  assert(get_max_array(sol_1d, size) < size);
 
   if (size < 2 || i == j) {
     return 0;
   }
 
-  size_t left = i;
-  size_t right = j;
-  if (left > right) {
-    size_t tmp = left;
-    left = right;
-    right = tmp;
-  }
+  size_t left = min(i, j);
+  size_t right = max(i, j);
 
   const size_t left_sol = sol_1d[left];
   const size_t right_sol = sol_1d[right];
@@ -222,7 +218,6 @@ size_t get_n_exchange(size_t size) {
 t_cost_delta cost_delta_exchange(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
                                  size_t size, bool is_first) {
 
-  DPRINTF("executing cost_delta_exchange\n");
   t_cost best_delta = 0;
   size_t best_i = 0;
   size_t best_j = 0;
@@ -243,51 +238,50 @@ t_cost_delta cost_delta_exchange(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
     }
   }
 
+  assert(best_delta ==
+         cost_swap_delta(cost_mat_2d, sol_1d, size, best_i, best_j));
+  assert(get_max_array(sol_1d, size) < size);
   swap(sol_1d, best_i, best_j);
   return best_delta;
 }
 
 t_cost_delta cost_delta_transpose(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
                                   size_t size, bool is_first) {
-  DPRINTF("executing cost_delta_transpose\n");
+  assert(get_max_array(sol_1d, size) < size);
   t_cost_delta best_delta = 0;
   size_t best_i = 0;
+  // best_j necessary as to prevent to a bug with swap if there is no better sol
+  // found before the end of the for.
+  size_t best_j = 0;
 
   for (size_t i = 0; i < size; i++) {
-    t_cost_delta cost_delta =
-        cost_swap_delta(cost_mat_2d, sol_1d, size, i, (i + 1) % size);
+    size_t j = (i + 1) % size;
+    t_cost_delta cost_delta = cost_swap_delta(cost_mat_2d, sol_1d, size, i, j);
 
     if (cost_delta > best_delta) {
       best_delta = cost_delta;
       best_i = i;
+      best_j = j;
       if (is_first) {
-        swap(sol_1d, best_i, (best_i + 1) % size);
-        return best_delta;
+        break;
       }
     }
   }
+  assert(best_delta ==
+         cost_swap_delta(cost_mat_2d, sol_1d, size, best_i, best_j));
+  assert(get_max_array(sol_1d, size) < size);
 
-#ifndef NDEBUG
-  size_t *new_sol_assert = malloc(size * sizeof(size_t));
-  memcpy(new_sol_assert, sol_1d, size * sizeof(size_t));
-  t_cost cost_before = computeCost(cost_mat_2d, sol_1d, size);
-  swap(new_sol_assert, best_i, (best_i + 1) % size);
-  t_cost cost_after = computeCost(cost_mat_2d, new_sol_assert, size);
-  assert(cost_before + best_delta == cost_after);
-  free(new_sol_assert);
-#endif
-
-  swap(sol_1d, best_i, (best_i + 1) % size);
+  swap(sol_1d, best_i, best_j);
   return best_delta;
 }
 
 t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
                                size_t size, bool is_first) {
-  DPRINTF("executing cost_delta_insert\n");
   t_cost_delta best_delta = 0;
   size_t *best_sol = malloc(size * sizeof(size_t));
+  memcpy(best_sol, sol_1d, size * sizeof(size_t));
 
-  t_cost_delta const_cost_delta = 0;
+  t_cost_delta construction_cost_delta = 0;
   size_t *constructive_sol = malloc(size * sizeof(size_t));
   memcpy(constructive_sol, sol_1d, size * sizeof(size_t));
 
@@ -301,19 +295,23 @@ t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
       if (i == j) {
         // reset the constructive solution and the cost delta for the next i.
         memcpy(constructive_sol, sol_1d, size * sizeof(size_t));
-        const_cost_delta = 0;
+
+        construction_cost_delta = 0;
       } else if (i != j + 1) {
+        // i != j + 1 avoid to redundant swap of adjacent element, which is a
+        // transpose and already tested in cost_delta_transpose.
 
         // calculating the cost difference of the swap.
-        const_cost_delta +=
+        construction_cost_delta +=
             cost_swap_delta(cost_mat_2d, constructive_sol, size, i, j);
         swap(constructive_sol, i, j);
 
-        if (const_cost_delta > best_delta) {
-          DPRINTF("constructive_sol\n");
-          print_array_1d(best_sol, size);
+        assert(get_max_array(best_sol, size) < size);
+        assert(get_max_array(sol_1d, size) < size);
+
+        if (construction_cost_delta > best_delta) {
           memcpy(best_sol, constructive_sol, size * sizeof(size_t));
-          best_delta = const_cost_delta;
+          best_delta = construction_cost_delta;
           if (is_first) {
             i = size;
             break;
@@ -322,17 +320,13 @@ t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
       }
     }
     memcpy(constructive_sol, sol_1d, size * sizeof(size_t));
-    const_cost_delta = 0;
+    construction_cost_delta = 0;
   }
 
-  DPRINTF("best_sol\n");
-  print_array_1d(best_sol, size);
-  assert(computeCost(cost_mat_2d, best_sol, size) >= 0);
-  DPRINTF("au revoir\n");
-  assert(computeCost(cost_mat_2d, sol_1d, size) >= 0);
   assert(best_delta == computeCost(cost_mat_2d, best_sol, size) -
                            computeCost(cost_mat_2d, sol_1d, size));
-
+  assert(get_max_array(best_sol, size) < size);
+  assert(get_max_array(sol_1d, size) < size);
   memcpy(sol_1d, best_sol, size * sizeof(size_t));
   free(best_sol);
   free(constructive_sol);
@@ -383,9 +377,7 @@ size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size) {
     }
     // DPRINTF("best at %u : %u for value %u\n", i, best_pos, best);
 
-    size_t tmp = new_best_start_1d[i];
-    new_best_start_1d[i] = new_best_start_1d[best_pos];
-    new_best_start_1d[best_pos] = tmp;
+    swap(new_best_start_1d, i, best_pos);
   }
 
   DPRINTF("C_and_W solution\n");
@@ -399,7 +391,6 @@ t_cost_delta
 lop_iter_impr(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
               size_t *const sol_1d, enum pivot_enum pivot_rule,
               t_fptr_delta_neigh_exploration fptr_cost_delta_neig_exploration) {
-  DPRINTF("executing lop\n");
 
   // new solution after each pivot.
   size_t *new_sol_1d = malloc(mat_cost_dim * sizeof(size_t));
@@ -416,9 +407,11 @@ lop_iter_impr(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
     neighb_delta = fptr_cost_delta_neig_exploration(cost_mat_2d, new_sol_1d,
                                                     mat_cost_dim, pivot_rule);
 
-    DPRINTF("delat total=%ld | neighb delta=%ld\n", delta_total, neighb_delta);
+    // DPRINTF("delta total=%ld | neighb delta=%ld\n", delta_total,
+    // neighb_delta);
     assert(neighb_delta == computeCost(cost_mat_2d, new_sol_1d, mat_cost_dim) -
                                computeCost(cost_mat_2d, sol_1d, mat_cost_dim));
+    assert(get_max_array(sol_1d, mat_cost_dim) < mat_cost_dim);
   } while (neighb_delta);
 
   free(new_sol_1d);
@@ -436,8 +429,6 @@ t_cost vnd_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
   // improvement.
   while (k_neighb < n_neighb_vn) {
 
-    DPRINTF("vnd %d of %d\n", k_neighb, n_neighb_vn);
-
     t_cost_delta new_delta =
         lop_iter_impr(cost_mat_2d, mat_cost_dim, sol_1d, pivot_rule,
                       fptr_delta_neigh_exploration[k_neighb]);
@@ -446,7 +437,7 @@ t_cost vnd_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
     if (new_delta && k_neighb > 0) {
       k_neighb = 0;
       PVERB("Found a new optimization of %d with neighborhood method %u\n",
-            k_neighb, new_delta);
+            new_delta, k_neighb);
     } else {
       PVERB("No improvement with neighborhood method %u\n", k_neighb);
       k_neighb++;
