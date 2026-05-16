@@ -30,6 +30,14 @@ BenchmarkJob = tuple[str, int, Path, str, list[str], str]
 
 
 def parse_best_known(path: Path) -> list[tuple[str, int]]:
+    """Retrieves the list of bes_know solutions of instances.
+
+    Args:
+        path: Path to list of best-Known.
+
+    Returns:
+        list[tuple["name", "bset_cost"]]
+    """
     instances: list[tuple[str, int]] = []
 
     for line_num, raw_line in enumerate(
@@ -282,7 +290,8 @@ def parse_args() -> argparse.Namespace:
             "Overloading the CPU may show slower time per test measurement but will be faster if only the result matter"
         ),
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    return args
 
 
 def benchmark(args, combinations: list, instances, output_path: Path):
@@ -358,7 +367,7 @@ def main() -> int:
         )
     print(f"{args.workers} processors allocated")
     if not args.binary.is_file():
-        args.binary = run_compile_target()
+        run_compile_target()
         if not args.binary.is_file():
             raise FileNotFoundError(f"Solver binary not found: {args.binary}")
     if not args.best_known_file.is_file():
@@ -370,15 +379,18 @@ def main() -> int:
     if not instances:
         raise RuntimeError("No instances loaded from best-known file")
 
+    #####################################################################################
     # iterative improvement benchmark with all pivot/neighborhood/sol_start combinations
-
+    #####################################################################################
     combinations = list(itertools.product(PIVOTS, NEIGHBORHOODS, START_SOLS))
 
     benchmark(args, combinations, instances, args.output_it_imp)
 
     print(f"Wrote iterative improvment benchmark results to: {args.output_it_imp}")
 
+    #####################################################################################
     # variant neighborhood descent benchmark with two different neighborhood orderings
+    #####################################################################################
 
     vnd_neighborhoods = [
         ["transpose", "exchange", "insert"],
