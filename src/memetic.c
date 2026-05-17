@@ -8,7 +8,8 @@
 #include "utilities.h"
 
 size_t *memetic(const t_cost *const cost_mat, size_t **population,
-                size_t size_pop, size_t size) {
+                size_t size_pop, size_t size,
+                const t_fptr_memetic_local_search fptr_local_search) {
 
   size_t n_offspring = size / 2;
   size_t *offspring_2d = malloc(size * sizeof(size_t) * n_offspring);
@@ -82,7 +83,8 @@ t_cost_delta ob_crossover(const t_cost *const cost_mat,
   }
 
 #ifndef NDEBUG
-  const t_cost cost_before = computeCost(cost_mat, p1_offspring, size);
+  size_t *const assert_p1_offspring_before = malloc(size * sizeof(size_t));
+  memcpy(assert_p1_offspring_before, p1_offspring, size * sizeof(size_t));
 #endif
 
   size_t *const to_cross = generate_random_vector(size);
@@ -123,27 +125,13 @@ t_cost_delta ob_crossover(const t_cost *const cost_mat,
   free(selected_positions);
   free(to_cross);
 
-#ifndef NDEBUG
+  assert(delta == 0 ||
+         !array_equal(p1_offspring, assert_p1_offspring_before, size));
   assert((t_cost_delta)computeCost(cost_mat, p1_offspring, size) -
-             (t_cost_delta)cost_before ==
+             (t_cost_delta)computeCost(assert_p1_offspring_before) ==
          delta);
-  free(cost_before);
+#ifndef NDEBUG
+  free(assert_p1_offspring_before);
 #endif
-  return delta;
-}
-
-t_cost_delta mutate_swap(const t_cost *const cost_mat, size_t *const array,
-                         const size_t size, const float rate) {
-  assert(rate <= 1 || rate >= 0);
-  assert(array);
-
-  t_cost_delta delta = 0;
-  const size_t n_mutate = (size_t)(rate * size);
-  for (size_t i = 0; i < n_mutate; i++) {
-    size_t j = randInt(0, size - 1);
-    size_t k = randInt(0, size - 1);
-    delta += cost_swap_delta(cost_mat, array, size, j, k);
-    swap(array, j, k);
-  }
   return delta;
 }
