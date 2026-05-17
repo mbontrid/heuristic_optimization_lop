@@ -142,6 +142,10 @@ bool array_equal(const size_t *const array_1d_1, const size_t *const array_1d_2,
   return !a;
 }
 
+void ascending_sort(size_t *const array, const size_t size) {
+  qsort(array, size, sizeof(size_t), cmp_asc);
+}
+
 void print_array_1d(const long int *const array, const size_t n_columns) {
   for (size_t i = 0; i < n_columns; i++) {
     printf("%ld ", array[i]);
@@ -186,6 +190,8 @@ int cmp_desc(const void *a, const void *b) {
     return -1;
   return 0;
 }
+
+int cmp_asc(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
 
 double end_clock(clock_t start) {
   clock_t end = clock();

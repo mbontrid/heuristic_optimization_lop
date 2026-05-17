@@ -93,6 +93,8 @@ void swap(size_t *array_1d, size_t i, size_t j);
 bool array_equal(const size_t *array_1d_1, const size_t *array_1d_2,
                  size_t size);
 
+void ascending_sort(size_t *const array, const size_t size);
+
 /**
  * @brief Print the elmements of a 1d array.
  *
@@ -121,6 +123,8 @@ unsigned int factorial(unsigned int N);
 
 // Comparator for descending order
 int cmp_desc(const void *a, const void *b);
+// Comparator for ascending order
+int cmp_asc(const void *a, const void *b);
 
 double end_clock(clock_t start);
 
