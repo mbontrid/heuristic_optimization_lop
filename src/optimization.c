@@ -231,8 +231,9 @@ size_t get_n_exchange(size_t size) {
   return size * (size - 1) / 2;
 }
 
-t_cost_delta cost_delta_exchange(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
-                                 size_t size, bool is_first) {
+t_cost_delta cost_delta_exchange(const t_mat_cell *const cost_mat_2d,
+                                 size_t *const sol_1d, size_t size,
+                                 bool is_first) {
 
   t_cost best_delta = 0;
   size_t best_i = 0;
@@ -261,8 +262,9 @@ t_cost_delta cost_delta_exchange(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
   return best_delta;
 }
 
-t_cost_delta cost_delta_transpose(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
-                                  size_t size, bool is_first) {
+t_cost_delta cost_delta_transpose(const t_mat_cell *const cost_mat_2d,
+                                  size_t *const sol_1d, size_t size,
+                                  bool is_first) {
   assert(get_max_array(sol_1d, size) < size);
   t_cost_delta best_delta = 0;
   size_t best_i = 0;
@@ -291,8 +293,9 @@ t_cost_delta cost_delta_transpose(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
   return best_delta;
 }
 
-t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
-                               size_t size, bool is_first) {
+t_cost_delta cost_delta_insert(const t_mat_cell *const cost_mat_2d,
+                               size_t *const sol_1d, size_t size,
+                               bool is_first) {
   t_cost_delta best_delta = 0;
   size_t *best_sol = malloc(size * sizeof(size_t));
   memcpy(best_sol, sol_1d, size * sizeof(size_t));
@@ -404,7 +407,7 @@ size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size) {
 }
 
 t_cost_delta
-lop_iter_impr(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
+lop_iter_impr(const t_mat_cell *const cost_mat_2d, size_t mat_cost_dim,
               size_t *const sol_1d, enum pivot_enum pivot_rule,
               t_fptr_delta_neigh_exploration fptr_cost_delta_neig_exploration) {
 
@@ -435,8 +438,8 @@ lop_iter_impr(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
 }
 
 t_cost_delta
-vnd_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim, size_t *const sol_1d,
-        enum pivot_enum pivot_rule,
+vnd_lop(const t_mat_cell *const cost_mat_2d, size_t mat_cost_dim,
+        size_t *const sol_1d, enum pivot_enum pivot_rule,
         t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
         const ushort n_neighb_vn) {
 

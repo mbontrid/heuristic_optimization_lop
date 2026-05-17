@@ -132,8 +132,9 @@ size_t get_n_exchange(size_t size);
  * @return The cost difference between the initial solution and the new
  * solution.
  */
-t_cost_delta cost_delta_transpose(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
-                                  size_t size, bool is_first);
+t_cost_delta cost_delta_transpose(const t_mat_cell *const cost_mat_2d,
+                                  size_t *const sol_1d, size_t size,
+                                  bool is_first);
 /**
  * @brief Compute the best or first cost difference in all possible neighborhood
  * modifications by exchange. the initial solution is directly modified accoding
@@ -147,8 +148,9 @@ t_cost_delta cost_delta_transpose(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
  * @return The cost difference between the initial solution and the new
  * solution.
  */
-t_cost_delta cost_delta_exchange(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
-                                 size_t size, bool is_first);
+t_cost_delta cost_delta_exchange(const t_mat_cell *const cost_mat_2d,
+                                 size_t *const sol_1d, size_t size,
+                                 bool is_first);
 /**
  * @brief Compute the best or first cost difference in all possible neighborhood
  * modifications by exchange. the initial solution is directly modified accoding
@@ -162,8 +164,9 @@ t_cost_delta cost_delta_exchange(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
  * @return The cost difference between the initial solution and the new
  * solution.
  */
-t_cost_delta cost_delta_insert(t_mat_cell *cost_mat_2d, size_t *const sol_1d,
-                               size_t size, bool is_first);
+t_cost_delta cost_delta_insert(const t_mat_cell *const cost_mat_2d,
+                               size_t *const sol_1d, size_t size,
+                               bool is_first);
 
 /**
  * @brief Generate a random ordering (solution) for the lop problem.
@@ -200,7 +203,7 @@ size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size);
  * the initial solution.
  */
 t_cost_delta
-lop_iter_impr(t_mat_cell *cost_mat_2d, size_t cost_mat_dim,
+lop_iter_impr(const t_mat_cell *const cost_mat_2d, size_t cost_mat_dim,
               size_t *const sol_1d, enum pivot_enum pivot_rule,
               t_fptr_delta_neigh_exploration fptr_delta_neigh_exploration);
 
@@ -220,8 +223,8 @@ lop_iter_impr(t_mat_cell *cost_mat_2d, size_t cost_mat_dim,
  * @return resulting lop cost of the the solution sol_1d
  */
 t_cost_delta
-vnd_lop(t_mat_cell *cost_mat_2d, size_t cost_mat_dim, size_t *const sol_1d,
-        enum pivot_enum pivot_rule,
+vnd_lop(const t_mat_cell *const cost_mat_2d, size_t cost_mat_dim,
+        size_t *const sol_1d, enum pivot_enum pivot_rule,
         t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
         const ushort n_neighb_vnd);
 
