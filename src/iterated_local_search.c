@@ -9,11 +9,9 @@
 
 t_cost_delta ils(const t_cost *const cost_mat, size_t *const sol_1d,
                  size_t size, const float perturb_rate, const size_t n_try,
-                 const t_fptr_vnd_lop fptr_vnd_lop, enum pivot_enum pivot_rule,
+                 enum pivot_enum pivot_rule, const t_cost worse,
                  t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
                  ushort n_neighb_vn) {
-
-  t_cost_delta worse_bracket = 0;
 
   t_cost_delta delta = 0;
 #ifndef NDEBUG
@@ -28,10 +26,10 @@ t_cost_delta ils(const t_cost *const cost_mat, size_t *const sol_1d,
   while (try--) {
     t_cost_delta new_delta =
         rand_swap(cost_mat, new_sol_1d, size, perturb_rate);
-    new_delta += fptr_vnd_lop(cost_mat, size, sol_1d, pivot_rule,
-                              fptr_delta_neigh_exploration, n_neighb_vn);
+    new_delta += vnd_lop(cost_mat, size, sol_1d, pivot_rule,
+                         fptr_delta_neigh_exploration, n_neighb_vn);
 
-    if (accept_worse(new_delta, worse_bracket)) {
+    if (accept_worse(new_delta, worse)) {
       memcpy(sol_1d, new_sol_1d, size * sizeof(size_t));
       delta += new_delta;
       try = n_try;
@@ -49,6 +47,7 @@ t_cost_delta ils(const t_cost *const cost_mat, size_t *const sol_1d,
   return delta;
 }
 
-bool accept_worse(const t_cost_delta delta, const t_cost_delta worse_bracket) {
+bool accept_worse(const t_cost_delta delta, const t_cost worse_bracket) {
+  assert(worse_bracket >= 0);
   return delta > worse_bracket;
 }
