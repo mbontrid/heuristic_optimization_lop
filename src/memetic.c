@@ -7,12 +7,44 @@
 #include "optimization.h"
 #include "utilities.h"
 
-size_t *memetic(const t_cost *const cost_mat, size_t **population,
-                size_t size_pop, size_t size,
-                const t_fptr_memetic_local_search fptr_local_search) {
+t_cost_delta
+memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
+        const size_t n_population, const float mutation_rate,
+        const float cross_rate, enum pivot_enum pivot_rule,
+        t_fptr_delta_neigh_exploration *fptr_delta_neigh_explaration,
+        ushort n_neighb_vn) {
 
-  size_t n_offspring = size / 2;
-  size_t *offspring_2d = malloc(size * sizeof(size_t) * n_offspring);
+  // starting point of population generation
+  size_t *const tmp_sol_1d = malloc(size * sizeof(size_t));
+  for (size_t i = 0; i < size; i++) {
+    tmp_sol_1d[i] = i;
+  }
+  t_cost incr_sol_cost = computeCost(cost_mat, tmp_sol_1d, size);
+
+  // generate random population
+  size_t *pop_1d = malloc(size * sizeof(size_t) * n_population);
+  t_cost *pop_cost_1d = malloc(n_population * sizeof(t_cost));
+  for (size_t i = 0; i < n_population; i++) {
+    size_t *current = &pop_1d[i * size];
+    t_cost *current_cost = &pop_cost_1d[i];
+    bool already_exist = true;
+    do {
+      memcpy(current, tmp_sol_1d, size * sizeof(size_t));
+      *current_cost = incr_sol_cost;
+      *current_cost += rand_swap(cost_mat, current, size, 1);
+      *current_cost += vnd_lop(cost_mat, size, current, pivot_rule,
+                               fptr_delta_neigh_explaration, n_neighb_vn);
+
+      for (size_t j = 0; j < i; j++) {
+        if (array_equal(current, &pop_1d[j * size], size)) {
+          already_exist = true;
+          break;
+        }
+        already_exist = false;
+      }
+
+    } while (already_exist);
+  }
 
   for (size_t i = 0; i < n_offspring; i++) {
     size_t *p1 = population[randInt(0, size_pop - 1)];
@@ -127,8 +159,8 @@ t_cost_delta ob_crossover(const t_cost *const cost_mat,
 
   assert(delta == 0 ||
          !array_equal(p1_offspring, assert_p1_offspring_before, size));
-  assert((t_cost_delta)computeCost(cost_mat, p1_offspring, size) -
-             (t_cost_delta)computeCost(assert_p1_offspring_before) ==
+  assert(computeCost(cost_mat, p1_offspring, size) -
+             computeCost(cost_mat, assert_p1_offspring_before, size) ==
          delta);
 #ifndef NDEBUG
   free(assert_p1_offspring_before);
