@@ -119,9 +119,13 @@ The difference with iterative improvement is just the number of `-n` called.
 
 ```bash
  ./build/bin/lop -i ./data/input/instances/N-be75eec_150 -s c_and_w -p first -n transpose -n exchange -n insert -v
-```
 
 ```
+
+#### iterated local search
+
+```bash
+ ./build/bin/lop -i ./data/input/instances/N-be75eec_150 -s c_and_w -p first -n transpose -n exchange -n insert -a ils -t 20 -r 0.1 -w 1000
 ```
 
 ## development
