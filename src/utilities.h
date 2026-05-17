@@ -81,6 +81,7 @@ extern bool rand_bool();
 
 size_t *generate_incr_vector(size_t size);
 extern size_t *generate_random_vector(size_t dim);
+size_t *gener_no_rep_rand(size_t min, size_t max);
 
 /**
  * @brief Swap two element in a array

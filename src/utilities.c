@@ -128,6 +128,14 @@ size_t *generate_random_vector(size_t dim)
   return random_vector;
 }
 
+size_t *gener_no_rep_rand(size_t min, size_t max) {
+  size_t *random_vector = generate_random_vector(max - min + 1);
+  for (size_t i = 0; i < max - min + 1; i++) {
+    random_vector[i] += min;
+  }
+  return random_vector;
+}
+
 void swap(size_t *array_1d, size_t i, size_t j) {
   size_t tmp = array_1d[i];
   array_1d[i] = array_1d[j];
