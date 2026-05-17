@@ -164,6 +164,22 @@ t_cost_delta cost_swap_delta(const t_mat_cell *const cost_mat_2d,
   return delta;
 }
 
+t_cost_delta rand_swap(const t_cost *const cost_mat, size_t *const array,
+                       const size_t size, const float rate) {
+  assert(rate <= 1 || rate >= 0);
+  assert(array);
+
+  t_cost_delta delta = 0;
+  const size_t n_mutate = (size_t)(rate * size);
+  for (size_t i = 0; i < n_mutate; i++) {
+    size_t j = randInt(0, size - 1);
+    size_t k = randInt(0, size - 1);
+    delta += cost_swap_delta(cost_mat, array, size, j, k);
+    swap(array, j, k);
+  }
+  return delta;
+}
+
 t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, size_t n_rows,
                                   size_t n_columns) {
 
@@ -418,12 +434,13 @@ lop_iter_impr(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
   return delta_total;
 }
 
-t_cost vnd_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
-               size_t *const sol_1d, enum pivot_enum pivot_rule,
-               t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
-               const ushort n_neighb_vn) {
+t_cost_delta
+vnd_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim, size_t *const sol_1d,
+        enum pivot_enum pivot_rule,
+        t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
+        const ushort n_neighb_vn) {
 
-  t_cost cost = 0;
+  t_cost_delta cost_delta = 0;
   ushort k_neighb = 0;
   // try all neighborhood methods in order and start again if there is
   // improvement.
@@ -432,7 +449,7 @@ t_cost vnd_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
     t_cost_delta new_delta =
         lop_iter_impr(cost_mat_2d, mat_cost_dim, sol_1d, pivot_rule,
                       fptr_delta_neigh_exploration[k_neighb]);
-    cost += new_delta;
+    cost_delta += new_delta;
 
     if (new_delta && k_neighb > 0) {
       k_neighb = 0;
@@ -443,5 +460,5 @@ t_cost vnd_lop(t_mat_cell *cost_mat_2d, size_t mat_cost_dim,
       k_neighb++;
     }
   }
-  return cost;
+  return cost_delta;
 }

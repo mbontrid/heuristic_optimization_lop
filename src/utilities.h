@@ -91,6 +91,7 @@ size_t *gener_no_rep_rand(size_t min, size_t max);
  * @param j Scond index to swap.
  */
 void swap(size_t *array_1d, size_t i, size_t j);
+
 bool array_equal(const size_t *array_1d_1, const size_t *array_1d_2,
                  size_t size);
 

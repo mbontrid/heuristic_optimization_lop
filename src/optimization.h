@@ -79,6 +79,9 @@ t_cost_delta cost_swap_delta(const t_mat_cell *const cost_mat_2d,
                              const size_t *const sol_1d, const size_t size,
                              const size_t i, const size_t j);
 
+t_cost_delta rand_swap(const t_cost *const cost_mat, size_t *const array,
+                       const size_t size, const float rate);
+
 /**
  * @brief Compute the prefix sum of each row of a matrix independently.
  * 0 1 2 3 4 5 6 7 8 9 -> 0 1 3 6 10 17 25 34
@@ -216,8 +219,16 @@ lop_iter_impr(t_mat_cell *cost_mat_2d, size_t cost_mat_dim,
  * @param n_neighb_vnd lenght of fptr_delat_neigh_explaration
  * @return resulting lop cost of the the solution sol_1d
  */
-t_cost vnd_lop(t_mat_cell *cost_mat_2d, size_t cost_mat_dim,
-               size_t *const sol_1d, enum pivot_enum pivot_rule,
-               t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
-               const ushort n_neighb_vnd);
+t_cost_delta
+vnd_lop(t_mat_cell *cost_mat_2d, size_t cost_mat_dim, size_t *const sol_1d,
+        enum pivot_enum pivot_rule,
+        t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
+        const ushort n_neighb_vnd);
+
+typedef t_cost_delta (*t_fptr_vnd_lop)(
+    const t_mat_cell *const cost_mat_2d, size_t mat_cost_dim,
+    size_t *const sol_1d, enum pivot_enum pivot_rule,
+    t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
+    const ushort n_neighb_vn);
+
 #endif

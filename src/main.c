@@ -71,13 +71,13 @@ int main(int argc, char **argv) {
 
   /* starts time measurement */
   clock_t start = clock();
-  t_cost cost =
+  t_cost_delta cost_delta =
       vnd_lop(cost_mat_2d, mat_cost_dim, sol_1d, arguments.pivot_rule,
               arguments.fptr_neighb_exploration, arguments.n_neighb_vnd);
   const double elapsed_seconds = end_clock(start);
   /* stop time measurement */
 
-  printf("RESULT cost=%u time=%g solution=", cost, elapsed_seconds);
+  printf("RESULT cost=%ld time=%g solution=", cost_delta, elapsed_seconds);
   print_array_1d((long int *)sol_1d, mat_cost_dim);
 
   free(sol_1d);
