@@ -100,6 +100,10 @@ void swap(size_t *array_1d, size_t i, size_t j);
 bool array_equal(const size_t *array_1d_1, const size_t *array_1d_2,
                  size_t size);
 
+bool is_array_in_array(const size_t *const array,
+                       const size_t *const array_of_array, const size_t size,
+                       const size_t n_arrays);
+
 void ascending_sort(size_t *const array, const size_t size);
 
 /**

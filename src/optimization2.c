@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "memetic.h"
+#include "arg_parser.h"
 #include "optimization.h"
+#include "optimization2.h"
 #include "utilities.h"
 
 t_cost_delta ils(const t_cost *const cost_mat, size_t *const sol_1d,
@@ -52,11 +53,19 @@ t_cost_delta ils(const t_cost *const cost_mat, size_t *const sol_1d,
 
 t_cost_delta
 memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
-        const size_t n_population, const float mutation_rate,
-        const float cross_rate, enum pivot_enum pivot_rule,
+        const size_t n_population, const size_t generation,
+        const float offspring_cross_mut, const size_t n_offspring,
+        const float mutation_rate, const float cross_rate,
+        enum pivot_enum pivot_rule,
         t_fptr_delta_neigh_exploration *fptr_delta_neigh_explaration,
         ushort n_neighb_vn) {
 
+  t_cost_delta cost_delta = 0;
+  size_t *pop_1d = malloc(size * sizeof(size_t) * n_population);
+  t_cost *pop_cost_1d = malloc(n_population * sizeof(t_cost));
+  ///////////////////////////////
+  // generate random population
+  ////////////////////////////////
   // starting point of population generation
   size_t *const tmp_sol_1d = malloc(size * sizeof(size_t));
   for (size_t i = 0; i < size; i++) {
@@ -64,13 +73,11 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   }
   t_cost incr_sol_cost = computeCost(cost_mat, tmp_sol_1d, size);
 
-  // generate random population
-  size_t *pop_1d = malloc(size * sizeof(size_t) * n_population);
-  t_cost *pop_cost_1d = malloc(n_population * sizeof(t_cost));
+  // generating population
   for (size_t i = 0; i < n_population; i++) {
     size_t *current = &pop_1d[i * size];
     t_cost *current_cost = &pop_cost_1d[i];
-    bool already_exist = true;
+
     do {
       memcpy(current, tmp_sol_1d, size * sizeof(size_t));
       *current_cost = incr_sol_cost;
@@ -78,24 +85,114 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
       *current_cost += vnd_lop(cost_mat, size, current, pivot_rule,
                                fptr_delta_neigh_explaration, n_neighb_vn);
 
-      for (size_t j = 0; j < i; j++) {
-        if (array_equal(current, &pop_1d[j * size], size)) {
-          already_exist = true;
-          break;
+    } while (is_array_in_array(current, pop_1d, size, i));
+  }
+  free(tmp_sol_1d);
+  // gneration of random non identical population done
+
+  const size_t n_crossover = (size_t)(offspring_cross_mut * n_population);
+  const size_t n_mutation = (size_t)(offspring_cross_mut * n_population);
+  size_t *const offspring_1d = malloc(size * sizeof(size_t) * n_offspring);
+  t_cost_delta *const offspring_cost_1d =
+      malloc(n_offspring * sizeof(t_cost_delta));
+
+  ///////////////////////////
+  /// generation of offspring
+  ///////////////////////////
+  for (size_t gen = 0; gen < generation; gen++) {
+    size_t *p1_new_offspring = malloc(size * sizeof(size_t));
+    /////////////////////
+    /// crossover
+    ////////////////////
+    for (size_t cross = 0; cross < n_crossover; cross++) {
+      t_cost_delta p1_cost = 0;
+      do {
+        size_t rand_index_1 = randInt(0, n_population - 1);
+        size_t rand_index_2 = randInt(0, n_population - 1);
+        size_t *p1 = &pop_1d[rand_index_1 * size];
+        size_t *p2 = &pop_1d[rand_index_2 * size];
+        p1_cost = pop_cost_1d[rand_index_1];
+        memcpy(p1_new_offspring, p1, size * sizeof(size_t));
+        p1_cost += dpx_crossover(cost_mat, p1_new_offspring, p2, size);
+        p1_cost += vnd_lop(cost_mat, size, p1_new_offspring, pivot_rule,
+                           fptr_delta_neigh_explaration, n_neighb_vn);
+      } while (is_array_in_array(p1_new_offspring, offspring_1d, size, cross));
+      offspring_cost_1d[cross] = p1_cost;
+    }
+    ////////////////////
+    /// mutation
+    ///////////////////
+    for (size_t mut = 0; mut < n_mutation; mut++) {
+      t_cost_delta p1_cost = 0;
+      do {
+        size_t rand_index = randInt(0, n_population - 1);
+        size_t *p1 = &pop_1d[rand_index * size];
+        memcpy(p1_new_offspring, p1, size * sizeof(size_t));
+        p1_cost = pop_cost_1d[rand_index];
+        p1_cost += rand_swap(cost_mat, p1_new_offspring, size, mutation_rate);
+        p1_cost += vnd_lop(cost_mat, size, p1_new_offspring, pivot_rule,
+                           fptr_delta_neigh_explaration, n_neighb_vn);
+      } while (is_array_in_array(p1_new_offspring, offspring_1d, size,
+                                 n_crossover + mut));
+
+      offspring_cost_1d[n_crossover + mut] = p1_cost;
+    }
+
+#ifndef NDEBUG
+    for (size_t i = 0; i < n_offspring; i++) {
+      assert(offspring_cost_1d[i] ==
+             computeCost(cost_mat, &offspring_1d[i * size], size));
+    }
+#endif
+
+    ////////////////////////
+    /// best selection
+    ///////////////////////
+
+    t_cost_delta *cost_delta_all =
+        malloc((n_population + n_offspring) * sizeof(t_cost_delta));
+    size_t *index_all = malloc((n_population + n_offspring) * sizeof(size_t));
+    memcpy(cost_delta_all, pop_cost_1d, n_population * sizeof(t_cost_delta));
+    memcpy(&cost_delta_all[n_population], offspring_cost_1d,
+           n_offspring * sizeof(t_cost_delta));
+    memcpy(index_all, pop_1d, n_population * size * sizeof(size_t));
+    memcpy(&index_all[n_population * size], offspring_1d,
+           n_offspring * size * sizeof(size_t));
+
+    size_t *new_pop_1d = malloc(size * sizeof(size_t) * n_population);
+    t_cost *new_pop_cost_1d = malloc(n_population * sizeof(t_cost));
+
+    {
+      size_t best_index = 0;
+      for (size_t i = 0; i < n_population + n_offspring; i++) {
+        if (cost_delta_all[i] < cost_delta_all[best_index]) {
+          best_index = i;
         }
-        already_exist = false;
       }
+      memcpy(&new_pop_1d[0], &index_all[best_index * size],
+             size * sizeof(size_t));
+      memcpy(&new_pop_cost_1d[0], &cost_delta_all[best_index], sizeof(t_cost));
+    }
 
-    } while (already_exist);
+    {
+      size_t last_best_index = 0;
+      for (size_t i = 1; i < n_population; i++) {
+        for (size_t j = i + 1; j < n_population + n_offspring; j++) {
+          if (cost_delta_all[j] > cost_delta_all[last_best_index] &&
+              cost_delta_all[j] < new_pop_cost_1d[i - 1]) {
+            last_best_index = j;
+          }
+        }
+        memcpy(&new_pop_1d[i * size], &index_all[last_best_index * size],
+               size * sizeof(size_t));
+        memcpy(&new_pop_cost_1d[i], &cost_delta_all[last_best_index],
+               sizeof(t_cost));
+      }
+    }
+    free(cost_delta_all);
+    free(index_all);
   }
-
-  for (size_t i = 0; i < n_offspring; i++) {
-    size_t *p1 = population[randInt(0, size_pop - 1)];
-    size_t *p2 = population[randInt(0, size_pop - 1)];
-    size_t *p1_offspring = malloc(size * sizeof(size_t));
-    memcpy(p1_offspring, p1, size * sizeof(size_t));
-    t_cost_delta delta_spring = dpx_crossover(cost_mat, p1_offspring, p2, size);
-  }
+  return cost_delta;
 }
 
 t_cost_delta dpx_crossover(const t_cost *const cost_mat, size_t *p1_offspring,

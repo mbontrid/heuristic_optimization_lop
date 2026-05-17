@@ -150,6 +150,17 @@ bool array_equal(const size_t *const array_1d_1, const size_t *const array_1d_2,
   return !a;
 }
 
+bool is_array_in_array(const size_t *const array,
+                       const size_t *const array_of_array, const size_t size,
+                       const size_t n_arrays) {
+  for (size_t i = 0; i < n_arrays; i++) {
+    if (array_equal(array, &array_of_array[i * size], size)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void ascending_sort(size_t *const array, const size_t size) {
   qsort(array, size, sizeof(size_t), cmp_asc);
 }
