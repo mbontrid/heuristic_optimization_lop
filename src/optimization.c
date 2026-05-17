@@ -168,6 +168,10 @@ t_cost_delta rand_swap(const t_cost *const cost_mat, size_t *const array,
                        const size_t size, const float rate) {
   assert(rate <= 1 || rate >= 0);
   assert(array);
+#ifndef NDEBUG
+  size_t *const assert_old_sol = malloc(size * sizeof(size_t));
+  memcpy(assert_old_sol, array, size * sizeof(size_t));
+#endif
 
   t_cost_delta delta = 0;
   const size_t n_mutate = (size_t)(rate * size);
@@ -177,6 +181,14 @@ t_cost_delta rand_swap(const t_cost *const cost_mat, size_t *const array,
     delta += cost_swap_delta(cost_mat, array, size, j, k);
     swap(array, j, k);
   }
+
+  assert(get_max_array(array, size) < size);
+  assert(delta ==
+         (t_cost_delta)computeCost(cost_mat, array, size) -
+             (t_cost_delta)computeCost(cost_mat, assert_old_sol, size));
+#ifndef NDEBUG
+  free(assert_old_sol);
+#endif
   return delta;
 }
 
@@ -440,7 +452,7 @@ lop_iter_impr(const t_mat_cell *const cost_mat_2d, size_t mat_cost_dim,
 t_cost_delta
 vnd_lop(const t_mat_cell *const cost_mat_2d, size_t mat_cost_dim,
         size_t *const sol_1d, enum pivot_enum pivot_rule,
-        t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
+        t_fptr_delta_neigh_exploration *const fptr_delta_neigh_exploration,
         const ushort n_neighb_vn) {
 
   t_cost_delta cost_delta = 0;

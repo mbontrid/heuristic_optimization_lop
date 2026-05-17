@@ -225,7 +225,7 @@ lop_iter_impr(const t_mat_cell *const cost_mat_2d, size_t cost_mat_dim,
 t_cost_delta
 vnd_lop(const t_mat_cell *const cost_mat_2d, size_t cost_mat_dim,
         size_t *const sol_1d, enum pivot_enum pivot_rule,
-        t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
+        t_fptr_delta_neigh_exploration *const fptr_delta_neigh_exploration,
         const ushort n_neighb_vnd);
 
 typedef t_cost_delta (*t_fptr_vnd_lop)(

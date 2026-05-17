@@ -27,8 +27,8 @@
 
 #include "arg_parser.h"
 #include "instance.h"
-#include "iterated_local_search.h"
 #include "optimization.h"
+#include "optimization2.h"
 #include "utilities.h"
 
 int main(int argc, char **argv) {

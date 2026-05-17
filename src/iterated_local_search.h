@@ -1,6 +1,5 @@
 #pragma once
 
-#include "optimization.h"
 #include "utilities.h"
 #include <sys/types.h>
 
