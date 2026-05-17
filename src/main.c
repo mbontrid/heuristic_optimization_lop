@@ -27,6 +27,7 @@
 
 #include "arg_parser.h"
 #include "instance.h"
+#include "iterated_local_search.h"
 #include "optimization.h"
 #include "utilities.h"
 
@@ -47,8 +48,8 @@ int main(int argc, char **argv) {
 
   /* Read instance file */
   size_t mat_cost_dim = 0;
-  t_mat_cell *const cost_mat_2d =
-      readInstance(arguments.instance_file, &mat_cost_dim);
+  const t_mat_cell *const cost_mat_2d = (const t_mat_cell *const)readInstance(
+      arguments.instance_file, &mat_cost_dim);
   PVERB("Data have been read from instance file. Size of instance = %u.\n\n",
         mat_cost_dim);
 
@@ -69,17 +70,49 @@ int main(int argc, char **argv) {
   // generating first solution
   size_t *sol_1d = arguments.fptr_sol_start(cost_mat_2d, mat_cost_dim);
 
+  t_cost_delta cost = computeCost(cost_mat_2d, sol_1d, mat_cost_dim);
+
   /* starts time measurement */
   clock_t start = clock();
-  t_cost_delta cost_delta =
-      vnd_lop(cost_mat_2d, mat_cost_dim, sol_1d, arguments.pivot_rule,
-              arguments.fptr_neighb_exploration, arguments.n_neighb_vnd);
+
+  if (arguments.algo == ILS) {
+
+    const float perturb_rate = arguments.ils_perturb_rate;
+    const size_t n_try = arguments.ils_n_try;
+
+    PVERB("Running iterated local search algorithm\n");
+
+    cost += ils(cost_mat_2d, sol_1d, mat_cost_dim, perturb_rate, n_try,
+                arguments.ils_worse, arguments.pivot_rule,
+                arguments.fptr_neighb_exploration, arguments.n_neighb_vnd);
+
+  } else if (arguments.algo == MEMETIC) {
+
+    PVERB("Running memetic algorithm\n");
+    assert(false);
+
+  } else if (arguments.algo == VND) {
+
+    PVERB("Running variable neighborhood descent algorithm with pivot rule %s "
+          "and %zu neighborhood(s).\n",
+          arguments.pivot_rule == FIRST ? "first" : "best",
+          arguments.n_neighb_vnd);
+
+    cost += vnd_lop(cost_mat_2d, mat_cost_dim, sol_1d, arguments.pivot_rule,
+                    arguments.fptr_neighb_exploration, arguments.n_neighb_vnd);
+  }
   const double elapsed_seconds = end_clock(start);
   /* stop time measurement */
 
-  printf("RESULT cost=%ld time=%g solution=", cost_delta, elapsed_seconds);
+  assert(cost == computeCost(cost_mat_2d, sol_1d, mat_cost_dim));
+
+  //////////////////////////////////////////////////////////////////////////////
+  // print results
+  //////////////////////////////////////////////////////////////////////////////
+  printf("RESULT cost=%ld time=%g solution=", cost, elapsed_seconds);
   print_array_1d((long int *)sol_1d, mat_cost_dim);
 
   free(sol_1d);
+  free((size_t *const)cost_mat_2d);
   return 0;
 }

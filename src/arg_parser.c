@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "arg_parser.h"
@@ -24,6 +25,14 @@ static struct argp_option options[] = {
      "Neighborhood strategy: (transpose|exchange|insert). Multiple -n CHOICE "
      "can be set for a VND algorith. Default : exahange"},
     {"sol_start", 's', "CHOICE", 0, "Initial solution: random|c_and_w"},
+    {"algo", 'a', "CHOICE", 0, "Algorithme to use. (vnd|ils|memetic)"},
+    {"ils_perturb_rate", 'r', "FLOAT", 0,
+     "Perturbation rate for iterated local search. Default : 0.1"},
+    {"ils_n_try", 't', "SIZE_T", 0,
+     "Number of tries for iterated local search. Default : 10"},
+    {"worst", 'w', "COST", 0,
+     "Worst bracket for accepting worse solution in iterated local search. "
+     "Default : 0"},
     {0},
 };
 
@@ -79,6 +88,32 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
       argp_error(state, "Invalid initial solution option: %s", arg);
     }
     break;
+  case 'a':
+    if (strcmp(arg, "vnd") == 0) {
+      args->algo = VND;
+      DPRINTF("algorithm set to vnd\n");
+    } else if (strcmp(arg, "ils") == 0) {
+      args->algo = ILS;
+      DPRINTF("algorithm set to ils\n");
+    } else if (strcmp(arg, "memetic") == 0) {
+      args->algo = MEMETIC;
+      DPRINTF("algorithm set to memetic\n");
+    } else {
+      argp_error(state, "Invalid algorithm option: %s", arg);
+    }
+    break;
+  case 'r':
+    args->ils_perturb_rate = strtof(arg, NULL);
+    DPRINTF("ILS perturbation rate set to %f\n", args->ils_perturb_rate);
+    break;
+  case 't':
+    args->ils_n_try = (size_t)strtoul(arg, NULL, 10);
+    DPRINTF("ILS number of try set to %zu\n", args->ils_n_try);
+    break;
+  case 'w':
+    args->ils_worse = (t_cost)strtoul(arg, NULL, 10);
+    DPRINTF("ILS worse bracket set to %lu\n", args->ils_worse);
+    break;
   case ARGP_KEY_ARG:
     if (!args->is_pos_arg) {
       argp_usage(state);
@@ -117,6 +152,10 @@ void init_arguments(struct arguments *args) {
   args->neighb_exploration[0] = EXCHANGE;
   args->fptr_neighb_exploration[0] = cost_delta_exchange;
   args->fptr_sol_start = sol_start_cw;
+  args->algo = VND;
+  args->ils_perturb_rate = 0.1;
+  args->ils_n_try = 10;
+  args->ils_worse = 0;
 }
 
 void parse_arguments(int argc, char **argv, struct arguments *args) {

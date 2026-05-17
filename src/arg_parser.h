@@ -19,6 +19,12 @@ struct arguments {
 
   t_fptr_delta_neigh_exploration fptr_neighb_exploration[MAXSHORT * 2];
   t_fptr_sol_start fptr_sol_start;
+
+  enum algo_enum algo;
+
+  float ils_perturb_rate;
+  size_t ils_n_try;
+  t_cost ils_worse;
 };
 
 extern struct arguments arguments;
