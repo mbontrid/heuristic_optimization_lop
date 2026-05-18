@@ -227,22 +227,30 @@ void array_apply_shuffle(size_t *const result, const size_t *const shuffle,
   }
 }
 
-size_t get_max_array(const size_t *const array, const size_t size) {
+size_t get_max_id(const size_t *restrict array, const size_t size) {
   size_t max = 0;
   for (size_t i = 0; i < size; i++) {
-    if (array[i] > max) {
-      max = array[i];
+    if (array[i] > array[max]) {
+      max = i;
     }
   }
   return max;
 }
 
-size_t get_min_array(const size_t *const array, const size_t size) {
-  size_t min = UINT_MAX;
+size_t get_min_id(const size_t *restrict array, const size_t size) {
+  size_t min = 0;
   for (size_t i = 0; i < size; i++) {
-    if (array[i] < min) {
-      min = array[i];
+    if (array[i] < array[min]) {
+      min = i;
     }
   }
   return min;
+}
+
+size_t get_max_array(const size_t *const array, const size_t size) {
+  return array[get_max_id(array, size)];
+}
+
+size_t get_min_array(const size_t *const array, const size_t size) {
+  return array[get_min_id(array, size)];
 }

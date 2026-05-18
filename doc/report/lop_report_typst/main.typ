@@ -8,9 +8,15 @@
 
 #pagebreak()
 
+= Foreword
+
+This report is based on the report of the previous implementation task. This allow to presents VND on which the memetic and iterated local search are using.
+
+During the last month and a half, I had 6 concurrent course projects. Morover, I accumulated 110 hours of writing code on this project but didn't manage to finish it due to obvious time constraint. As I have profs of the cumulated times spend on this. I'll will ask by email for a chance to rentabilize this work with a time extension. Best regards.
+
 = Abstract
 
-This report presents the implementation and analysis of local-search methods for the Linear Ordering Problem (LOP). This report analyse the implementation of iterative improvement with first- and best-improvement pivot rules on three neighborhoods (transpose, exchange, insert), each combined with two initialization methods (random and Chenery-Watanabe, CW). There is 12 combination of algorithm variants. Variable Neighborhood Descent (VND) with two neighborhood orders is also studied.
+This report presents the implementation and analysis of local-search, local-search with perturbation and population search methods for the Linear Ordering Problem (LOP). This report analyse the implementation of iterative improvement with first- and best-improvement pivot rules on three neighborhoods (transpose, exchange, insert), each combined with two initialization methods (random and Chenery-Watanabe, CW). There is 12 combination of algorithm variants. Variable Neighborhood Descent (VND) with two neighborhood orders is also studied.
 
 Across the 78 benchmark instances, exchange and insert neighborhoods clearly dominate transpose in solution quality. The best average deviation among the 12 iterative-improvement variants is obtained by random-first-exchange (67.141% average deviation). For VND, the order transpose-exchange-insert performs better than transpose-insert-exchange (79.417% vs 80.617% average deviation). Statistical tests (paired Student t-test and Wilcoxon signed-rank test) show a great differences for 65 out of 66 iterative-improvement comparisons.
 
@@ -64,6 +70,7 @@ Two VND variants were implemented with first-improvement local search and CW ini
 - transpose -> exchange -> insert
 - transpose -> insert -> exchange
 
+=== Iterated local search
 
 == Speedup implementation
 

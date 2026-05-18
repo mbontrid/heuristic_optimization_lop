@@ -146,6 +146,8 @@ double end_clock(clock_t start);
 void array_apply_shuffle(size_t *const modified, const size_t *const shuffle,
                          const size_t *const to_shuffle, const size_t size);
 
+size_t get_max_id(const size_t *restrict array, const size_t size);
+size_t get_min_id(const size_t *restrict array, const size_t size);
 size_t get_max_array(const size_t *const array, const size_t size);
 size_t get_min_array(const size_t *const array, const size_t size);
 
