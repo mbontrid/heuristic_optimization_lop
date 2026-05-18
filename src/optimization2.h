@@ -21,6 +21,17 @@
  * @param n_neighb_vn numvber of neighborhood to explore in vnd.
  * @return cost_delta
  */
+
+t_cost_delta dpx_crossover(const t_cost *const cost_mat,
+                           size_t *const p1_offspring, const size_t *const p2,
+                           size_t size);
+
+t_cost_delta ob_crossover(const t_cost *const cost_mat,
+                          size_t *const p1_offspring, const size_t *const p2,
+                          const size_t size, const float cross_rate);
+
+bool accept_worse(const t_cost_delta delta, const t_cost worse_bracket);
+
 t_cost_delta ils(const t_cost *const cost_mat, size_t *const sol_1d,
                  size_t size, const float perturb_rate, const size_t n_try,
                  const t_cost worse, enum pivot_enum pivot_rule,
@@ -35,12 +46,3 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
         enum pivot_enum pivot_rule,
         t_fptr_delta_neigh_exploration *fptr_delta_neigh_explaration,
         ushort n_neighb_vn);
-
-t_cost_delta dpx_crossover(const t_cost *const cost_mat, size_t *p1_offspring,
-                           size_t *p2, size_t size);
-
-t_cost_delta ob_crossover(const t_cost *const cost_mat,
-                          size_t *const p1_offspring, const size_t *const p2,
-                          const size_t size, const float cross_rate);
-
-bool accept_worse(const t_cost_delta delta, const t_cost worse_bracket);
