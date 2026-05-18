@@ -100,6 +100,10 @@ void swap(size_t *array_1d, size_t i, size_t j);
 bool array_equal(const size_t *array_1d_1, const size_t *array_1d_2,
                  size_t size);
 
+size_t find_array_in_arrays(const size_t *const array,
+                            const size_t *const array_of_arrays,
+                            const size_t size, const size_t n_arrays);
+
 bool is_array_in_arrays(const size_t *const array,
                         const size_t *const array_of_array, const size_t size,
                         const size_t n_arrays);
@@ -150,6 +154,11 @@ size_t get_max_id(const size_t *restrict array, const size_t size);
 size_t get_min_id(const size_t *restrict array, const size_t size);
 size_t get_max_array(const size_t *const array, const size_t size);
 size_t get_min_array(const size_t *const array, const size_t size);
+
+size_t *get_n_best_sorted(const size_t *restrict const array, const size_t n,
+                          const size_t size);
+
+double get_mean(const t_cost *restrict const array, const size_t size);
 
 /* constants for a pseudo-random number generator, taken from
    Numerical Recipes in C book --- never trust the standard C random

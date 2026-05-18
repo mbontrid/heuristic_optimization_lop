@@ -150,15 +150,22 @@ bool array_equal(const size_t *const array_1d_1, const size_t *const array_1d_2,
   return !a;
 }
 
+size_t find_array_in_arrays(const size_t *const array,
+                            const size_t *const array_of_arrays,
+                            const size_t size, const size_t n_arrays) {
+  for (size_t i = 0; i < n_arrays; i++) {
+    if (array_equal(array, &array_of_arrays[i * size], size)) {
+      return i;
+    }
+  }
+  return n_arrays;
+}
+
 bool is_array_in_arrays(const size_t *const array,
                         const size_t *const array_of_arrays, const size_t size,
                         const size_t n_arrays) {
-  for (size_t i = 0; i < n_arrays; i++) {
-    if (array_equal(array, &array_of_arrays[i * size], size)) {
-      return true;
-    }
-  }
-  return false;
+  return find_array_in_arrays(array, array_of_arrays, size, n_arrays) <
+         n_arrays;
 }
 
 void ascending_sort(size_t *const array, const size_t size) {
@@ -253,4 +260,26 @@ size_t get_max_array(const size_t *const array, const size_t size) {
 
 size_t get_min_array(const size_t *const array, const size_t size) {
   return array[get_min_id(array, size)];
+}
+
+size_t *get_n_best_sorted(const size_t *restrict const array, const size_t n,
+                          const size_t size) {
+  size_t *restrict const best_indexes = malloc(n * sizeof(size_t));
+  size_t *restrict const tmp_array = malloc(size * sizeof(tmp_array));
+  memcpy(tmp_array, array, size * sizeof(size_t));
+
+  for (size_t i = 0; i < n; i++) {
+    best_indexes[i] = get_max_id(tmp_array, size);
+    tmp_array[i] = 0;
+  }
+  free(tmp_array);
+  return best_indexes;
+}
+
+double get_mean(const t_cost *restrict const array, const size_t size) {
+  double mean = 0;
+  for (size_t i = 0; i < size; i++) {
+    mean += array[i];
+  }
+  return mean / size;
 }
