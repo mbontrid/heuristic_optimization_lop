@@ -7,6 +7,83 @@
 #include "optimization2.h"
 #include "utilities.h"
 
+bool accept_worse(const t_cost_delta delta, const t_cost worse_bracket) {
+  assert(worse_bracket >= 0);
+  return delta > worse_bracket;
+}
+
+t_cost_delta ils(const t_cost *const cost_mat, size_t *const sol_1d,
+                 size_t size, const float perturb_rate, const size_t n_try,
+                 const t_cost worse, enum pivot_enum pivot_rule,
+                 t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
+                 ushort n_neighb_vn) {
+
+  t_cost_delta delta = 0;
+#ifndef NDEBUG
+  size_t *const assert_sol_1d_old = malloc(size * sizeof(size_t));
+  memcpy(assert_sol_1d_old, sol_1d, size * sizeof(size_t));
+#endif
+
+  size_t try = n_try;
+  size_t *const new_sol_1d = malloc(size * sizeof(size_t));
+  memcpy(new_sol_1d, sol_1d, size * sizeof(size_t));
+
+  while (try--) {
+    t_cost_delta new_delta = 0;
+    new_delta += rand_swap(cost_mat, new_sol_1d, size, perturb_rate);
+    new_delta += vnd_lop(cost_mat, size, new_sol_1d, pivot_rule,
+                         fptr_delta_neigh_exploration, n_neighb_vn);
+
+    if (accept_worse(new_delta - delta, worse)) {
+      PVERB("Accepting new solution with delta %ld\n", new_delta);
+      memcpy(sol_1d, new_sol_1d, size * sizeof(size_t));
+      delta += new_delta;
+      try = n_try;
+    } else {
+      PVERB("Rejecting new solution with delta %ld and %zu tries left\n",
+            new_delta, try);
+      memcpy(new_sol_1d, sol_1d, size * sizeof(size_t));
+    }
+  }
+
+  assert(delta ==
+         (t_cost_delta)computeCost(cost_mat, sol_1d, size) -
+             (t_cost_delta)computeCost(cost_mat, assert_sol_1d_old, size));
+#ifndef NDEBUG
+  free(assert_sol_1d_old);
+#endif
+
+  return delta;
+}
+
+void populate(
+    const t_cost *const cost_mat, size_t *const pop_2d,
+    t_cost *const pop_cost_2d, const size_t size, const size_t n_population,
+    const enum pivot_enum pivot_rule, const ushort n_neighb_vn,
+    t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration) {
+
+  // generating incremental solution and its cost as base for all individuals
+  const size_t *const tmp_sol_1d = generate_incr_vector(size);
+  t_cost incr_sol_cost = computeCost(cost_mat, tmp_sol_1d, size);
+
+  // generating population
+  for (size_t i = 0; i < n_population; i++) {
+    size_t *current = &pop_2d[i * size];
+    t_cost *const current_cost = &pop_cost_2d[i];
+
+    do {
+      memcpy(current, tmp_sol_1d, size * sizeof(size_t));
+      *current_cost = incr_sol_cost;
+      // random swap with rate 1 make a random solution
+      *current_cost += rand_swap(cost_mat, current, size, 1);
+      *current_cost += vnd_lop(cost_mat, size, current, pivot_rule,
+                               fptr_delta_neigh_explaration, n_neighb_vn);
+
+    } while (is_array_in_arrays(current, pop_2d, size, i));
+  }
+  free((size_t *)tmp_sol_1d);
+}
+
 t_cost_delta dpx_crossover(const t_cost *const cost_mat,
                            size_t *const p1_offspring, const size_t *const p2,
                            size_t size) {
@@ -119,83 +196,6 @@ t_cost_delta ob_crossover(const t_cost *const cost_mat,
   free(assert_p1_offspring_before);
 #endif
   return delta;
-}
-
-bool accept_worse(const t_cost_delta delta, const t_cost worse_bracket) {
-  assert(worse_bracket >= 0);
-  return delta > worse_bracket;
-}
-
-t_cost_delta ils(const t_cost *const cost_mat, size_t *const sol_1d,
-                 size_t size, const float perturb_rate, const size_t n_try,
-                 const t_cost worse, enum pivot_enum pivot_rule,
-                 t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
-                 ushort n_neighb_vn) {
-
-  t_cost_delta delta = 0;
-#ifndef NDEBUG
-  size_t *const assert_sol_1d_old = malloc(size * sizeof(size_t));
-  memcpy(assert_sol_1d_old, sol_1d, size * sizeof(size_t));
-#endif
-
-  size_t try = n_try;
-  size_t *const new_sol_1d = malloc(size * sizeof(size_t));
-  memcpy(new_sol_1d, sol_1d, size * sizeof(size_t));
-
-  while (try--) {
-    t_cost_delta new_delta = 0;
-    new_delta += rand_swap(cost_mat, new_sol_1d, size, perturb_rate);
-    new_delta += vnd_lop(cost_mat, size, new_sol_1d, pivot_rule,
-                         fptr_delta_neigh_exploration, n_neighb_vn);
-
-    if (accept_worse(new_delta - delta, worse)) {
-      PVERB("Accepting new solution with delta %ld\n", new_delta);
-      memcpy(sol_1d, new_sol_1d, size * sizeof(size_t));
-      delta += new_delta;
-      try = n_try;
-    } else {
-      PVERB("Rejecting new solution with delta %ld and %zu tries left\n",
-            new_delta, try);
-      memcpy(new_sol_1d, sol_1d, size * sizeof(size_t));
-    }
-  }
-
-  assert(delta ==
-         (t_cost_delta)computeCost(cost_mat, sol_1d, size) -
-             (t_cost_delta)computeCost(cost_mat, assert_sol_1d_old, size));
-#ifndef NDEBUG
-  free(assert_sol_1d_old);
-#endif
-
-  return delta;
-}
-
-void populate(
-    const t_cost *const cost_mat, size_t *const pop_2d,
-    t_cost *const pop_cost_2d, const size_t size, const size_t n_population,
-    const enum pivot_enum pivot_rule, const ushort n_neighb_vn,
-    t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration) {
-
-  // generating incremental solution and its cost as base for all individuals
-  const size_t *const tmp_sol_1d = generate_incr_vector(size);
-  t_cost incr_sol_cost = computeCost(cost_mat, tmp_sol_1d, size);
-
-  // generating population
-  for (size_t i = 0; i < n_population; i++) {
-    size_t *current = &pop_2d[i * size];
-    t_cost *const current_cost = &pop_cost_2d[i];
-
-    do {
-      memcpy(current, tmp_sol_1d, size * sizeof(size_t));
-      *current_cost = incr_sol_cost;
-      // random swap with rate 1 make a random solution
-      *current_cost += rand_swap(cost_mat, current, size, 1);
-      *current_cost += vnd_lop(cost_mat, size, current, pivot_rule,
-                               fptr_delta_neigh_explaration, n_neighb_vn);
-
-    } while (is_array_in_arrays(current, pop_2d, size, i));
-  }
-  free((size_t *)tmp_sol_1d);
 }
 
 void crossover(
@@ -388,6 +388,7 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   } while (diversi_try < n_diversi_try);
   memcpy(sol_1d, &pop_2d[0], size * sizeof(size_t));
   const t_cost best_cost = pop_cost_2d[0];
+  assert(best_cost == computeCost(cost_mat, sol_1d, size));
 
   free(pop_off_2d);
   free(pop_off_cost_2d);
