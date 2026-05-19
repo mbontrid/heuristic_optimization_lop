@@ -320,41 +320,37 @@ void offspring(
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn, float mutation_rate) {
 
-  assert(cost_mat);
-  assert(pop_2d);
-  assert(pop_cost_1d);
-  assert(offspring_2d);
-  assert(offspring_cost_2d);
   assert(offspring_cross_mut >= 0 && offspring_cross_mut <= 1);
   assert(!is_array_overlap(pop_2d, ARRAY_BYTES(pop_2d, size * n_population),
                            offspring_2d,
                            ARRAY_BYTES(offspring_2d, size * n_offspring)));
 
+  // calculating number of crossover and muatation offsprnig.
   const size_t n_crossover = (size_t)(offspring_cross_mut * n_offspring);
   const size_t n_mutation = n_offspring - n_crossover;
   assert(n_crossover + n_mutation == n_offspring);
 
+  // attribute pointers to the offspring array between crossover and mutaation.
   size_t *restrict const crossover_2d = &offspring_2d[0];
   size_t *restrict const mutation_2d = &offspring_2d[n_crossover * size];
   assert(!is_array_overlap(
       crossover_2d, ARRAY_BYTES(crossover_2d, size * n_crossover), mutation_2d,
       ARRAY_BYTES(mutation_2d, size * n_mutation)));
 
+  // same as above for cost arrays.
   t_cost *restrict const crossover_cost_2d = &offspring_cost_2d[0];
   t_cost *restrict const mutation_cost_2d = &offspring_cost_2d[n_crossover];
   assert(!is_array_overlap(
       crossover_cost_2d, ARRAY_BYTES(crossover_cost_2d, n_crossover),
       mutation_cost_2d, ARRAY_BYTES(mutation_cost_2d, n_mutation)));
 
-#ifndef NDEBUG
-  for (size_t i = 0; i < n_population; i++) {
-    assert(pop_cost_1d[i] == computeCost(cost_mat, &pop_2d[i * size], size));
-  }
-#endif
-
+  // populate the first n_crossover elements of offspring with crossover.
+  PVERB("Generating %zu crossover offspring\n", n_crossover);
   crossover(cost_mat, size, pop_2d, pop_cost_1d, n_population, crossover_2d,
             crossover_cost_2d, n_crossover, pivot_rule,
             fptr_delta_neigh_explaration, n_neighb_vn);
+  // populate the rest of offspring with mutation.
+  PVERB("Generating %zu mutation offspring\n", n_mutation);
   mutation(cost_mat, size, pop_2d, pop_cost_1d, n_population, mutation_2d,
            mutation_cost_2d, n_mutation, mutation_rate, pivot_rule,
            fptr_delta_neigh_explaration, n_neighb_vn);
@@ -367,39 +363,37 @@ void offspring(
 #endif
 }
 
-void select_best_pop(size_t *restrict const pop_2d,
-                     t_cost *restrict const pop_cost_1d,
-                     const size_t *restrict const pop_off_2d,
-                     const t_cost *restrict const pop_off_cost_1d,
-                     const size_t n_pop, const size_t n_pop_off,
-                     const size_t size) {
-  assert(n_pop < n_pop_off);
-  // assert(!is_array_overlap(pop_2d, ARRAY_BYTES(pop_2d, size * n_pop),
-  //                          pop_off_2d,
-  //                          ARRAY_BYTES(pop_off_2d, size * n_pop_off)));
+void select_n_best(size_t *restrict const best_2d,
+                   t_cost *restrict const best_cost_1d,
+                   const size_t *restrict const all_2d,
+                   const t_cost *restrict const all_cost_1d,
+                   const size_t n_best, const size_t n_all,
+                   const size_t size_elem) {
+  assert(n_best < n_all);
 
   // get the n best cost indices.
   const size_t *const best_pop_id =
-      get_n_best_sorted_cost(pop_off_cost_1d, n_pop, n_pop_off);
+      get_n_best_sorted_cost(all_cost_1d, n_best, n_all);
 
-  size_t *restrict const new_pop_2d = malloc(size * n_pop * sizeof(size_t));
-  t_cost *restrict const new_pop_cost_1d = malloc(n_pop * sizeof(t_cost));
+  size_t *restrict const new_pop_2d =
+      malloc(size_elem * n_best * sizeof(size_t));
+  t_cost *restrict const new_pop_cost_1d = malloc(n_best * sizeof(t_cost));
   // populate pop_2d with the sortede best.
-  for (size_t i = 0; i < n_pop; i++) {
-    memcpy(&new_pop_2d[i * size], &pop_off_2d[best_pop_id[i] * size],
-           size * sizeof(*new_pop_2d));
-    new_pop_cost_1d[i] = pop_off_cost_1d[best_pop_id[i]];
+  for (size_t i = 0; i < n_best; i++) {
+    memcpy(&new_pop_2d[i * size_elem], &all_2d[best_pop_id[i] * size_elem],
+           size_elem * sizeof(*new_pop_2d));
+    new_pop_cost_1d[i] = all_cost_1d[best_pop_id[i]];
   }
-  memcpy(pop_2d, new_pop_2d, size * n_pop * sizeof(size_t));
-  memcpy(pop_cost_1d, new_pop_cost_1d, n_pop * sizeof(t_cost));
+  memcpy(best_2d, new_pop_2d, size_elem * n_best * sizeof(size_t));
+  memcpy(best_cost_1d, new_pop_cost_1d, n_best * sizeof(t_cost));
 
-  assert(pop_cost_1d[0] >= get_max_array_cost(pop_off_cost_1d, n_pop_off));
+  assert(best_cost_1d[0] >= get_max_array_cost(all_cost_1d, n_all));
 
   free((size_t *const)best_pop_id);
   free(new_pop_2d);
   free(new_pop_cost_1d);
-  DPRINTF("Selected best %zu from %zu population with best cost %ld\n", n_pop,
-          n_pop_off, pop_cost_1d[0]);
+  DPRINTF("Selected best %zu from %zu population with best cost %u\n", n_best,
+          n_all, best_cost_1d[0]);
 }
 
 void diversification(
@@ -472,8 +466,8 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
 
     PVERB("Selecting best population\n");
     // the best sols will be in descending order.
-    select_best_pop(pop_2d, pop_cost_1d, pop_off_2d, pop_off_cost_2d,
-                    n_population, n_offspring + n_population, size);
+    select_n_best(pop_2d, pop_cost_1d, pop_off_2d, pop_off_cost_2d,
+                  n_population, n_offspring + n_population, size);
 
     ///////////////////////////
     /// is diversification needed?
