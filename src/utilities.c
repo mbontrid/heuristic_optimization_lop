@@ -76,7 +76,7 @@ int randInt(int minimum, int maximum) {
 extern bool rand_bool() { return randInt(0, 1) == 1; }
 
 size_t *generate_incr_vector(size_t size) {
-  size_t *new_vector = malloc(size * sizeof(size));
+  size_t *new_vector = malloc(size * sizeof(*new_vector));
 
   for (size_t i = 0; i < size; i++) {
     new_vector[i] = i;
@@ -84,21 +84,12 @@ size_t *generate_incr_vector(size_t size) {
   return new_vector;
 }
 
-size_t *generate_random_vector(size_t dim)
+size_t *generate_random_no_rep(size_t dim)
 /* Generates a random vector, quick and dirty */
 {
-  size_t *random_vector;
+  size_t *random_vector = generate_incr_vector(dim);
   int i, help, node, tot_assigned = 0;
   double rnd;
-
-  random_vector = malloc(dim * sizeof(size_t));
-
-  if (!random_vector) {
-    fatal("Error on random_vector malloc\n");
-  }
-
-  for (i = 0; i < dim; i++)
-    random_vector[i] = i;
 
   for (i = 0; i < dim; i++) {
     /* find (randomly) an index for a free unit */
@@ -108,28 +99,14 @@ size_t *generate_random_vector(size_t dim)
     random_vector[i] = random_vector[i + node];
     random_vector[i + node] = help;
     tot_assigned++;
-    // #ifndef NDEBUG
-    //     DPRINTF("Construction of randome vector at step %i: ", i);
-    //     for (size_t j = 0; j < dim; j++) {
-    //       printf("%du ", random_vector[j]);
-    //     }
-    //     printf("\n");
-    // #endif
   }
 
-#ifndef NDEBUG
-  DPRINTF("random_vector : ");
-  for (size_t i = 0; i < dim; i++) {
-    printf("%ld ", random_vector[i]);
-  }
-  printf("\n");
-#endif
-
+  assert(get_max_array(random_vector, dim) < dim);
   return random_vector;
 }
 
 size_t *gener_no_rep_rand(size_t min, size_t max) {
-  size_t *random_vector = generate_random_vector(max - min + 1);
+  size_t *random_vector = generate_random_no_rep(max - min + 1);
   for (size_t i = 0; i < max - min + 1; i++) {
     random_vector[i] += min;
   }
@@ -140,6 +117,13 @@ void swap(size_t *array_1d, size_t i, size_t j) {
   size_t tmp = array_1d[i];
   array_1d[i] = array_1d[j];
   array_1d[j] = tmp;
+}
+
+void rand_swap(size_t *restrict const array, const size_t size, size_t *i,
+               size_t *j) {
+  *i = randInt(0, size - 1);
+  *j = randInt(0, size - 1);
+  swap(array, *i, *j);
 }
 
 bool array_equal(const size_t *const array_1d_1, const size_t *const array_1d_2,

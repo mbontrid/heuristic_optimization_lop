@@ -79,8 +79,8 @@ t_cost_delta cost_swap_delta(const t_mat_cell *const cost_mat_2d,
                              const size_t *const sol_1d, const size_t size,
                              const size_t i, const size_t j);
 
-t_cost_delta rand_swap(const t_cost *const cost_mat, size_t *const array,
-                       const size_t size, const float rate);
+t_cost_delta rand_swaps(const t_cost *const cost_mat, size_t *const array,
+                        const size_t size, const float rate);
 
 /**
  * @brief Compute the prefix sum of each row of a matrix independently.

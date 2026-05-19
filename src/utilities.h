@@ -85,7 +85,7 @@ extern int randInt(int minimum, int maximum);
 extern bool rand_bool();
 
 size_t *generate_incr_vector(size_t size);
-extern size_t *generate_random_vector(size_t dim);
+extern size_t *generate_random_no_rep(size_t dim);
 size_t *gener_no_rep_rand(size_t min, size_t max);
 
 /**
@@ -96,6 +96,9 @@ size_t *gener_no_rep_rand(size_t min, size_t max);
  * @param j Scond index to swap.
  */
 void swap(size_t *array_1d, size_t i, size_t j);
+
+void rand_swap(size_t *restrict const array, const size_t size, size_t *i,
+               size_t *j);
 
 bool array_equal(const size_t *array_1d_1, const size_t *array_1d_2,
                  size_t size);

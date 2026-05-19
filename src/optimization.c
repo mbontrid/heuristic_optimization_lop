@@ -164,8 +164,8 @@ t_cost_delta cost_swap_delta(const t_mat_cell *const cost_mat_2d,
   return delta;
 }
 
-t_cost_delta rand_swap(const t_cost *const cost_mat, size_t *const array,
-                       const size_t size, const float rate) {
+t_cost_delta rand_swaps(const t_cost *const cost_mat, size_t *const array,
+                        const size_t size, const float rate) {
   assert(rate <= 1 || rate >= 0);
   assert(array);
 #ifndef NDEBUG
@@ -368,7 +368,7 @@ t_cost_delta cost_delta_insert(const t_mat_cell *const cost_mat_2d,
 size_t *sol_start_random(t_mat_cell *mat, size_t n_columns) {
   DPRINTF("executing sol_start_random\n");
 
-  size_t *new_random_vector = generate_random_vector(n_columns);
+  size_t *new_random_vector = generate_random_no_rep(n_columns);
 
   return new_random_vector;
 }
@@ -387,7 +387,7 @@ size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size) {
   }
 #endif
 
-  size_t *new_best_start_1d = generate_random_vector(size);
+  size_t *new_best_start_1d = generate_random_no_rep(size);
 
   for (size_t i = 0; i < size; i++) {
     size_t best_pos = i;
