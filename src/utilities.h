@@ -69,7 +69,8 @@ enum algo_enum {
   VND,
 };
 
-typedef size_t *(*t_fptr_sol_start)(t_mat_cell *CostMat, size_t size);
+typedef size_t *(*t_fptr_sol_start)(const t_mat_cell *restrict const CostMat,
+                                    size_t size);
 
 typedef t_cost_delta (*t_fptr_delta_neigh_exploration)(
     const t_mat_cell *const cost_mat_2d, size_t *const sol_1d, size_t size,

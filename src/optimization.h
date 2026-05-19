@@ -92,8 +92,8 @@ t_cost_delta rand_swaps(const t_cost *restrict const cost_mat,
  * @param n_columns dimension of mat
  * @return A new 2d matrix pointer.
  */
-t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, size_t n_rows,
-                                  size_t n_columns);
+t_mat_cell *prefix_sum_per_row_2d(const t_mat_cell *const mat, size_t n_rows,
+                                  const size_t n_columns);
 
 /**
  * @brief Get the number of possible transpose operations on a array of size
@@ -103,14 +103,14 @@ t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, size_t n_rows,
  * @return Integral number of possible transpose operations a array of size
  * size.
  */
-size_t get_n_transpose(size_t size);
+size_t get_n_transpose(const size_t size);
 /**
  * @brief Get the number of possible insert operations on a array of size size.
  *
  * @param size Size of the array.
  * @return Integral number of possible insert operations a array of size size.
  */
-size_t get_n_inserts(size_t size);
+size_t get_n_inserts(const size_t size);
 /**
  * @brief Get the number of possible exchange operations on a array of size
  * size.
@@ -118,7 +118,7 @@ size_t get_n_inserts(size_t size);
  * @param size Size of the array.
  * @return Integral number of possible exchange operations a array of size size.
  */
-size_t get_n_exchange(size_t size);
+size_t get_n_exchange(const size_t size);
 
 /**
  * @brief Compute the best or first cost difference in all possible neighborhood
@@ -178,7 +178,7 @@ t_cost_delta cost_delta_insert(const t_mat_cell *const cost_mat_2d,
  * @return A pointer of a new allocated memory array with random values ranging
  * from 0 to n_columns-1.
  */
-size_t *sol_start_random(t_mat_cell *mat, size_t n_columns);
+size_t *sol_start_random(const t_mat_cell *const mat, size_t n_columns);
 
 /**
  * @brief Chenery and Watanabe (CW) greedy heuristic.
@@ -187,7 +187,7 @@ size_t *sol_start_random(t_mat_cell *mat, size_t n_columns);
  * @param size Dimension of the square matrix
  * @return A array of the CW ordering.
  */
-size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size);
+size_t *sol_start_cw(const t_mat_cell *const cost_mat_2d, size_t size);
 
 /**
  * @brief Apply the pivot_rule neighb by neighb until a local optimum is

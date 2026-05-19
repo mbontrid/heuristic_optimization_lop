@@ -103,9 +103,6 @@ int main(int argc, char **argv) {
         arguments.memetic_mutation_rate, arguments.memetic_cross_rate,
         arguments.pivot_rule, arguments.fptr_neighb_exploration,
         arguments.n_neighb_vnd);
-
-  } else {
-    assert(false);
   }
 
   const double elapsed_seconds = end_clock(start);

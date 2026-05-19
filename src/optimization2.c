@@ -170,21 +170,14 @@ t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
   memcpy(assert_p1_offspring_before, p1_offspring, size * sizeof(size_t));
 #endif
 
-  const size_t *const to_cross = generate_random_no_rep(size);
-  size_t *const selected_positions = malloc(n_cross * sizeof(size_t));
-  size_t *const selected_values = malloc(n_cross * sizeof(size_t));
+  size_t *const selected_positions = generate_random_no_rep(size);
   bool *const is_selected_value = calloc(size, sizeof(bool));
-  size_t *const ordered_values = malloc(n_cross * sizeof(size_t));
-  assert(to_cross);
   assert(selected_positions);
-  assert(selected_values);
   assert(is_selected_value);
-  assert(ordered_values);
 
   for (size_t i = 0; i < n_cross; i++) {
-    selected_positions[i] = to_cross[i];
-    selected_values[i] = p1_offspring[selected_positions[i]];
-    is_selected_value[selected_values[i]] = true;
+    const size_t position = selected_positions[i];
+    is_selected_value[p1_offspring[position]] = true;
   }
 
   ascending_sort(selected_positions, n_cross);
@@ -193,27 +186,22 @@ t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
   for (size_t i = 0; i < size; i++) {
     const size_t value = p2[i];
     if (is_selected_value[value]) {
-      ordered_values[ordered_count++] = value;
+      p1_offspring[selected_positions[ordered_count++]] = value;
+      if (ordered_count == n_cross) {
+        break;
+      }
     }
   }
   assert(ordered_count == n_cross);
-
-  for (size_t i = 0; i < n_cross; i++) {
-    p1_offspring[selected_positions[i]] = ordered_values[i];
-  }
-
-  free(ordered_values);
   free(is_selected_value);
-  free(selected_values);
   free(selected_positions);
-  free((size_t *const)to_cross);
 
+#ifndef NDEBUG
   assert(delta == 0 ||
          !array_equal(p1_offspring, assert_p1_offspring_before, size));
   assert(computeCost(cost_mat, p1_offspring, size) -
              computeCost(cost_mat, assert_p1_offspring_before, size) ==
          delta);
-#ifndef NDEBUG
   free(assert_p1_offspring_before);
 #endif
   return delta;

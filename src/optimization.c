@@ -193,8 +193,8 @@ t_cost_delta rand_swaps(const t_cost *restrict const cost_mat,
   return delta;
 }
 
-t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, size_t n_rows,
-                                  size_t n_columns) {
+t_mat_cell *prefix_sum_per_row_2d(const t_mat_cell *const mat, size_t n_rows,
+                                  const size_t n_columns) {
 
   t_mat_cell *sum_row_2d = malloc(n_columns * n_columns * sizeof(t_mat_cell));
   assert(sum_row_2d);
@@ -211,7 +211,7 @@ t_mat_cell *prefix_sum_per_row_2d(t_mat_cell *mat, size_t n_rows,
   return sum_row_2d;
 }
 
-size_t get_n_transpose(size_t size) {
+size_t get_n_transpose(const size_t size) {
 
   if (size < 2) {
     return 0;
@@ -223,7 +223,7 @@ size_t get_n_transpose(size_t size) {
   return size;
 }
 
-size_t get_n_inserts(size_t size) {
+size_t get_n_inserts(const size_t size) {
   assert(MAX_SIZEMAT - (size - 1) * (size - 1) >= 0);
   size_t n_inserts = (size - 1) * (size - 1);
   if (size < 2) {
@@ -237,7 +237,7 @@ size_t get_n_inserts(size_t size) {
   return n_inserts;
 }
 
-size_t get_n_exchange(size_t size) {
+size_t get_n_exchange(const size_t size) {
   if (size < 2) {
     return 0;
   }
@@ -366,7 +366,7 @@ t_cost_delta cost_delta_insert(const t_mat_cell *const cost_mat_2d,
   return best_delta;
 }
 
-size_t *sol_start_random(t_mat_cell *mat, size_t n_columns) {
+size_t *sol_start_random(const t_mat_cell *const mat, size_t n_columns) {
   DPRINTF("executing sol_start_random\n");
 
   size_t *new_random_vector = generate_random_no_rep(n_columns);
@@ -374,7 +374,7 @@ size_t *sol_start_random(t_mat_cell *mat, size_t n_columns) {
   return new_random_vector;
 }
 
-size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size) {
+size_t *sol_start_cw(const t_mat_cell *const cost_mat_2d, size_t size) {
   DPRINTF("executing sol_start_c_and_w\n");
 
   t_mat_cell *sum_row_2d = prefix_sum_per_row_2d(cost_mat_2d, size, size);
