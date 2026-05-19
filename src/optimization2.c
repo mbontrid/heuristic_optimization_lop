@@ -271,23 +271,21 @@ void offspring(
     const t_cost *const cost_mat, size_t size, size_t *const pop_2d,
     t_cost *const pop_cost_2d, size_t n_population, size_t *const offspring_2d,
     t_cost *const offspring_cost_2d, const size_t n_offspring,
-    const float offspring_cross_mut, enum pivot_enum pivot_rule,
+    const float offspring_cross_mut, const enum pivot_enum pivot_rule,
     t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
-    ushort n_neighb_vn, float mutation_rate) {
+    const ushort n_neighb_vn, float mutation_rate) {
 
   assert(offspring_cross_mut >= 0 && offspring_cross_mut <= 1);
 
   const size_t n_crossover = (size_t)(offspring_cross_mut * n_offspring);
   const size_t n_mutation = n_offspring - n_crossover;
+  assert(n_crossover + n_mutation == n_offspring);
 
-  size_t *restrict const crossover_2d =
-      malloc(size * sizeof(size_t) * n_crossover);
-  size_t *restrict const mutation_2d =
-      malloc(size * sizeof(size_t) * n_mutation);
+  size_t *restrict const crossover_2d = &offspring_2d[0];
+  size_t *restrict const mutation_2d = &offspring_2d[n_crossover * size];
 
-  t_cost *restrict const crossover_cost_2d =
-      malloc(n_crossover * sizeof(t_cost));
-  t_cost *restrict const mutation_cost_2d = malloc(n_mutation * sizeof(t_cost));
+  t_cost *restrict const crossover_cost_2d = &offspring_cost_2d[0];
+  t_cost *restrict const mutation_cost_2d = &offspring_cost_2d[n_crossover];
 
   crossover(cost_mat, size, pop_2d, pop_cost_2d, n_population, crossover_2d,
             crossover_cost_2d, n_crossover, pivot_rule,
@@ -296,25 +294,12 @@ void offspring(
            mutation_cost_2d, n_mutation, mutation_rate, pivot_rule,
            fptr_delta_neigh_explaration, n_neighb_vn);
 
-  memcpy(offspring_2d, crossover_2d, size * sizeof(size_t) * n_crossover);
-  memcpy(&offspring_2d[size * n_crossover], mutation_2d,
-         size * sizeof(size_t) * n_mutation);
-
-  memcpy(offspring_cost_2d, crossover_cost_2d, n_crossover * sizeof(t_cost));
-  memcpy(&offspring_cost_2d[size * n_crossover], mutation_cost_2d,
-         n_mutation * sizeof(t_cost));
-
 #ifndef NDEBUG
   for (size_t i = 0; i < n_offspring; i++) {
     assert(offspring_cost_2d[i] ==
            computeCost(cost_mat, &offspring_2d[i * size], size));
   }
 #endif
-  free(crossover_2d);
-  free(mutation_2d);
-
-  free(crossover_cost_2d);
-  free(mutation_cost_2d);
 }
 
 void select_best_pop(size_t *restrict const pop_2d,

@@ -64,9 +64,9 @@ void offspring(
     const t_cost *const cost_mat, size_t size, size_t *const pop_2d,
     t_cost *const pop_cost_2d, size_t n_population, size_t *const offspring_2d,
     t_cost *const offspring_cost_2d, const size_t n_offspring,
-    const float offspring_cross_mut, enum pivot_enum pivot_rule,
+    const float offspring_cross_mut, const enum pivot_enum pivot_rule,
     t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
-    ushort n_neighb_vn, float mutation_rate);
+    const ushort n_neighb_vn, float mutation_rate);
 
 void select_best_pop(size_t *restrict const pop_2d,
                      const size_t *restrict const pop_off_2d,
