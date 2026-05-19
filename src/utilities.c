@@ -256,6 +256,11 @@ size_t *get_n_best_sorted(const size_t *restrict const array, const size_t n,
     best_indexes[i] = get_max_id(tmp_array, size);
     tmp_array[i] = 0;
   }
+#ifndef NDEBUG
+  for (size_t i = 0; i < n - 1; i++) {
+    assert(array[best_indexes[i]] >= array[best_indexes[i + 1]]);
+  }
+#endif
   free(tmp_array);
   return best_indexes;
 }

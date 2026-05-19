@@ -363,6 +363,11 @@ void offspring(
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn, float mutation_rate) {
 
+  assert(cost_mat);
+  assert(pop_2d);
+  assert(pop_cost_1d);
+  assert(offspring_2d);
+  assert(offspring_cost_2d);
   assert(offspring_cross_mut >= 0 && offspring_cross_mut <= 1);
   assert(!is_array_overlap(pop_2d, ARRAY_BYTES(pop_2d, size * n_population),
                            offspring_2d,
@@ -408,7 +413,7 @@ void offspring(
 void select_best_pop(size_t *restrict const pop_2d,
                      t_cost *restrict const pop_cost_1d,
                      const size_t *restrict const pop_off_2d,
-                     const t_cost *restrict const pop_off_cost_2d,
+                     const t_cost *restrict const pop_off_cost_1d,
                      const size_t n_pop, const size_t n_pop_off,
                      const size_t size) {
   assert(n_pop < n_pop_off);
@@ -418,17 +423,20 @@ void select_best_pop(size_t *restrict const pop_2d,
 
   // get the n best cost indices.
   const size_t *const best_pop_id = get_n_best_sorted(
-      (const size_t *restrict const)pop_off_cost_2d, n_pop, n_pop_off);
+      (const size_t *restrict const)pop_off_cost_1d, n_pop, n_pop_off);
 
   size_t *restrict const new_pop_2d = malloc(size * n_pop * sizeof(size_t));
   t_cost *restrict const new_pop_cost_1d = malloc(n_pop * sizeof(t_cost));
   // populate pop_2d with the sortede best.
   for (size_t i = 0; i < n_pop; i++) {
     new_pop_2d[i] = pop_off_2d[best_pop_id[i] * size];
-    new_pop_cost_1d[i] = pop_off_cost_2d[best_pop_id[i]];
+    new_pop_cost_1d[i] = pop_off_cost_1d[best_pop_id[i]];
   }
   memcpy(pop_2d, new_pop_2d, size * n_pop * sizeof(size_t));
   memcpy(pop_cost_1d, new_pop_cost_1d, n_pop * sizeof(t_cost));
+
+  assert(pop_cost_1d[0] >=
+         get_max_array((const size_t *const)pop_off_cost_1d, n_pop_off));
 
   free((size_t *const)best_pop_id);
   free(new_pop_2d);
