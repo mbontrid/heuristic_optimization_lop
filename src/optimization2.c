@@ -422,21 +422,21 @@ void select_best_pop(size_t *restrict const pop_2d,
   //                          ARRAY_BYTES(pop_off_2d, size * n_pop_off)));
 
   // get the n best cost indices.
-  const size_t *const best_pop_id = get_n_best_sorted(
-      (const size_t *restrict const)pop_off_cost_1d, n_pop, n_pop_off);
+  const size_t *const best_pop_id =
+      get_n_best_sorted_cost(pop_off_cost_1d, n_pop, n_pop_off);
 
   size_t *restrict const new_pop_2d = malloc(size * n_pop * sizeof(size_t));
   t_cost *restrict const new_pop_cost_1d = malloc(n_pop * sizeof(t_cost));
   // populate pop_2d with the sortede best.
   for (size_t i = 0; i < n_pop; i++) {
-    new_pop_2d[i] = pop_off_2d[best_pop_id[i] * size];
+    memcpy(&new_pop_2d[i * size], &pop_off_2d[best_pop_id[i] * size],
+           size * sizeof(*new_pop_2d));
     new_pop_cost_1d[i] = pop_off_cost_1d[best_pop_id[i]];
   }
   memcpy(pop_2d, new_pop_2d, size * n_pop * sizeof(size_t));
   memcpy(pop_cost_1d, new_pop_cost_1d, n_pop * sizeof(t_cost));
 
-  assert(pop_cost_1d[0] >=
-         get_max_array((const size_t *const)pop_off_cost_1d, n_pop_off));
+  assert(pop_cost_1d[0] >= get_max_array_cost(pop_off_cost_1d, n_pop_off));
 
   free((size_t *const)best_pop_id);
   free(new_pop_2d);

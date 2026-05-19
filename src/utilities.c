@@ -249,19 +249,70 @@ size_t get_min_array(const size_t *const array, const size_t size) {
 size_t *get_n_best_sorted(const size_t *restrict const array, const size_t n,
                           const size_t size) {
   size_t *restrict const best_indexes = malloc(n * sizeof(size_t));
-  size_t *restrict const tmp_array = malloc(size * sizeof(tmp_array));
-  memcpy(tmp_array, array, size * sizeof(size_t));
+  bool *restrict const selected = calloc(size, sizeof(*selected));
 
   for (size_t i = 0; i < n; i++) {
-    best_indexes[i] = get_max_id(tmp_array, size);
-    tmp_array[i] = 0;
+    size_t best_id = 0;
+    bool found = false;
+    for (size_t j = 0; j < size; j++) {
+      if (selected[j]) {
+        continue;
+      }
+      if (!found || array[j] > array[best_id]) {
+        best_id = j;
+        found = true;
+      }
+    }
+    assert(found);
+    selected[best_id] = true;
+    best_indexes[i] = best_id;
   }
 #ifndef NDEBUG
   for (size_t i = 0; i < n - 1; i++) {
     assert(array[best_indexes[i]] >= array[best_indexes[i + 1]]);
   }
 #endif
-  free(tmp_array);
+  free(selected);
+  return best_indexes;
+}
+
+t_cost get_max_array_cost(const t_cost *const array, const size_t size) {
+  size_t max_id = 0;
+  for (size_t i = 1; i < size; i++) {
+    if (array[i] > array[max_id]) {
+      max_id = i;
+    }
+  }
+  return array[max_id];
+}
+
+size_t *get_n_best_sorted_cost(const t_cost *restrict const array,
+                               const size_t n, const size_t size) {
+  size_t *restrict const best_indexes = malloc(n * sizeof(size_t));
+  bool *restrict const selected = calloc(size, sizeof(*selected));
+
+  for (size_t i = 0; i < n; i++) {
+    size_t best_id = 0;
+    bool found = false;
+    for (size_t j = 0; j < size; j++) {
+      if (selected[j]) {
+        continue;
+      }
+      if (!found || array[j] > array[best_id]) {
+        best_id = j;
+        found = true;
+      }
+    }
+    assert(found);
+    selected[best_id] = true;
+    best_indexes[i] = best_id;
+  }
+#ifndef NDEBUG
+  for (size_t i = 0; i + 1 < n; i++) {
+    assert(array[best_indexes[i]] >= array[best_indexes[i + 1]]);
+  }
+#endif
+  free(selected);
   return best_indexes;
 }
 

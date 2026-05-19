@@ -162,6 +162,9 @@ size_t get_min_array(const size_t *const array, const size_t size);
 
 size_t *get_n_best_sorted(const size_t *restrict const array, const size_t n,
                           const size_t size);
+t_cost get_max_array_cost(const t_cost *const array, const size_t size);
+size_t *get_n_best_sorted_cost(const t_cost *restrict const array,
+                               const size_t n, const size_t size);
 
 double get_mean(const t_cost *restrict const array, const size_t size);
 
