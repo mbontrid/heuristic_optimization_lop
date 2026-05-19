@@ -40,20 +40,20 @@ t_cost_delta dpx_crossover(const t_cost *const cost_mat,
                            size_t *const p1_offspring, const size_t *const p2,
                            size_t size);
 
-t_cost_delta ob_crossover(const t_cost *const cost_mat,
+t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
                           size_t *const p1_offspring, const size_t *const p2,
                           const size_t size, const float cross_rate);
 
 void crossover(
-    const t_cost *const cost_mat, const size_t size, size_t *const pop_2d,
-    t_cost *const pop_cost_2d, const size_t n_population,
+    const t_cost *restrict const cost_mat, const size_t size,
+    size_t *const pop_2d, t_cost *const pop_cost_2d, const size_t n_population,
     size_t *const crossover_2d, t_cost *const crossover_cost_2d,
     const size_t n_crossover, enum pivot_enum pivot_rule,
     t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     ushort n_neighb_vn);
 
 void mutation(
-    const t_cost *const cost_mat, size_t size, size_t *const pop_2d,
+    const t_cost *restrict const cost_mat, size_t size, size_t *const pop_2d,
     t_cost *const pop_cost_2d, const size_t n_population,
     size_t *const mutation_2d, t_cost *const mutation_cost_2d,
     const size_t n_mutation, float mutation_rate, enum pivot_enum pivot_rule,

@@ -30,18 +30,20 @@ t_cost_delta ils(const t_cost *const cost_mat, size_t *const sol_1d,
 
   while (try--) {
     t_cost_delta new_delta = 0;
-    new_delta += rand_swap(cost_mat, new_sol_1d, size, perturb_rate);
+    new_delta += rand_swaps(cost_mat, new_sol_1d, size, perturb_rate);
     new_delta += vnd_lop(cost_mat, size, new_sol_1d, pivot_rule,
                          fptr_delta_neigh_exploration, n_neighb_vn);
 
     if (accept_worse(new_delta - delta, worse)) {
       PVERB("Accepting new solution with delta %ld\n", new_delta);
+      // copy the new sol to sol
       memcpy(sol_1d, new_sol_1d, size * sizeof(size_t));
       delta += new_delta;
       try = n_try;
     } else {
       PVERB("Rejecting new solution with delta %ld and %zu tries left\n",
             new_delta, try);
+      // revert new_sol to old sol
       memcpy(new_sol_1d, sol_1d, size * sizeof(size_t));
     }
   }
@@ -75,7 +77,7 @@ void populate(
       memcpy(current, tmp_sol_1d, size * sizeof(size_t));
       *current_cost = incr_sol_cost;
       // random swap with rate 1 make a random solution
-      *current_cost += rand_swap(cost_mat, current, size, 1);
+      *current_cost += rand_swaps(cost_mat, current, size, 1);
       *current_cost += vnd_lop(cost_mat, size, current, pivot_rule,
                                fptr_delta_neigh_explaration, n_neighb_vn);
 
@@ -125,7 +127,7 @@ t_cost_delta dpx_crossover(const t_cost *const cost_mat,
   return delta;
 }
 
-t_cost_delta ob_crossover(const t_cost *const cost_mat,
+t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
                           size_t *const p1_offspring, const size_t *const p2,
                           const size_t size, const float cross_rate) {
   assert(p1_offspring);
@@ -149,7 +151,7 @@ t_cost_delta ob_crossover(const t_cost *const cost_mat,
   memcpy(assert_p1_offspring_before, p1_offspring, size * sizeof(size_t));
 #endif
 
-  size_t *const to_cross = generate_random_vector(size);
+  size_t *const to_cross = generate_random_no_rep(size);
   size_t *const selected_positions = malloc(n_cross * sizeof(size_t));
   size_t *const selected_values = malloc(n_cross * sizeof(size_t));
   bool *const is_selected_value = calloc(size, sizeof(bool));
@@ -199,8 +201,8 @@ t_cost_delta ob_crossover(const t_cost *const cost_mat,
 }
 
 void crossover(
-    const t_cost *const cost_mat, const size_t size, size_t *const pop_2d,
-    t_cost *const pop_cost_2d, const size_t n_population,
+    const t_cost *restrict const cost_mat, const size_t size,
+    size_t *const pop_2d, t_cost *const pop_cost_2d, const size_t n_population,
     size_t *const crossover_2d, t_cost *const crossover_cost_2d,
     const size_t n_crossover, enum pivot_enum pivot_rule,
     t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
@@ -208,14 +210,17 @@ void crossover(
 
   for (size_t cross_id = 0; cross_id < n_crossover; cross_id++) {
     t_cost_delta p1_cost = 0;
+    // search for a non existing crossover solution until found
     do {
-      size_t rand_index_1 = randInt(0, n_population - 1);
-      size_t rand_index_2 = randInt(0, n_population - 1);
+      // select two random parents
+      const size_t rand_index_1 = randInt(0, n_population - 1);
+      const size_t rand_index_2 = randInt(0, n_population - 1);
 
       const size_t *const p1 = &pop_2d[rand_index_1 * size];
       const size_t *const p2 = &pop_2d[rand_index_2 * size];
       p1_cost = pop_cost_2d[rand_index_1];
 
+      // crossover and local search
       memcpy(&crossover_2d[cross_id * size], p1, size * sizeof(size_t));
       p1_cost +=
           dpx_crossover(cost_mat, &crossover_2d[cross_id * size], p2, size);
@@ -224,11 +229,14 @@ void crossover(
     } while (is_array_in_arrays(&crossover_2d[cross_id * size], crossover_2d,
                                 size, cross_id));
     crossover_cost_2d[cross_id] = p1_cost;
+
+    assert(crossover_cost_2d[cross_id] ==
+           computeCost(cost_mat, &crossover_2d[cross_id * size], size));
   }
 }
 
 void mutation(
-    const t_cost *const cost_mat, size_t size, size_t *const pop_2d,
+    const t_cost *restrict const cost_mat, size_t size, size_t *const pop_2d,
     t_cost *const pop_cost_2d, const size_t n_population,
     size_t *const mutation_2d, t_cost *const mutation_cost_2d,
     const size_t n_mutation, float mutation_rate, enum pivot_enum pivot_rule,
@@ -237,18 +245,25 @@ void mutation(
 
   for (size_t mut_id = 0; mut_id < n_mutation; mut_id++) {
     t_cost_delta p1_cost = 0;
+    // make a random mutation on a random parent until a non existing solution
+    // is found
     do {
       const size_t rand_index = randInt(0, n_population - 1);
+      // copy parent
       const size_t *const p1 = &pop_2d[rand_index * size];
       memcpy(&mutation_2d[mut_id * size], p1, size * sizeof(size_t));
       p1_cost = pop_cost_2d[rand_index];
-      p1_cost +=
-          rand_swap(cost_mat, &mutation_2d[mut_id * size], size, mutation_rate);
+      // apply mutation and local search
+      p1_cost += rand_swaps(cost_mat, &mutation_2d[mut_id * size], size,
+                            mutation_rate);
       p1_cost += vnd_lop(cost_mat, size, &mutation_2d[mut_id * size],
                          pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
     } while (is_array_in_arrays(&mutation_2d[mut_id * size], mutation_2d, size,
                                 mut_id));
     mutation_cost_2d[mut_id] = p1_cost;
+
+    assert(mutation_cost_2d[mut_id] ==
+           computeCost(cost_mat, &mutation_2d[mut_id * size], size));
   }
 }
 
