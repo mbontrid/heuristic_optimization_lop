@@ -224,19 +224,8 @@ void crossover(
                            crossover_2d,
                            ARRAY_BYTES(crossover_2d, size * n_crossover)));
 
-#ifndef NDEBUG
-  for (size_t i = 0; i < n_population; i++) {
-    assert(pop_cost_1d[i] == computeCost(cost_mat, &pop_2d[i * size], size));
-  }
-#endif
-
   for (size_t cross_id = 0; cross_id < n_crossover; cross_id++) {
     t_cost_delta p1_cost = 0;
-#ifndef NDEBUG
-    for (size_t i = 0; i < n_population; i++) {
-      assert(pop_cost_1d[i] == computeCost(cost_mat, &pop_2d[i * size], size));
-    }
-#endif
     // search for a non existing crossover solution until found
     do {
       // select two different random parents
@@ -247,15 +236,6 @@ void crossover(
         p2_index = randInt(0, n_population - 1);
       } while (p1_index == p2_index);
 
-      DPRINTF("Selected parents %zu and %zu for crossover %zu\n", p1_index,
-              p2_index, cross_id);
-
-#ifndef NDEBUG
-      for (size_t i = 0; i < n_population; i++) {
-        assert(pop_cost_1d[i] ==
-               computeCost(cost_mat, &pop_2d[i * size], size));
-      }
-#endif
       // retrieve parents and their cost
       const size_t *const p1_1d = &pop_2d[p1_index * size];
       const size_t *const p2_1d = &pop_2d[p2_index * size];
@@ -269,12 +249,6 @@ void crossover(
                                ARRAY_BYTES(crossover_2d, size * n_crossover),
                                p2_1d, ARRAY_BYTES(p2_1d, size)));
 
-#ifndef NDEBUG
-      for (size_t i = 0; i < n_population; i++) {
-        assert(pop_cost_1d[i] ==
-               computeCost(cost_mat, &pop_2d[i * size], size));
-      }
-#endif
       // crossover and local search
       assert(!is_array_overlap(crossover_2d,
                                ARRAY_BYTES(crossover_2d, size * n_crossover),
@@ -282,20 +256,8 @@ void crossover(
       memcpy(&crossover_2d[cross_id * size], p1_1d, size * sizeof(*p1_1d));
       assert(computeCost(cost_mat, &crossover_2d[cross_id * size], size) ==
              computeCost(cost_mat, p1_1d, size));
-#ifndef NDEBUG
-      for (size_t i = 0; i < n_population; i++) {
-        assert(pop_cost_1d[i] ==
-               computeCost(cost_mat, &pop_2d[i * size], size));
-      }
-#endif
       p1_cost +=
           dpx_crossover(cost_mat, &crossover_2d[cross_id * size], p2_1d, size);
-#ifndef NDEBUG
-      for (size_t i = 0; i < n_population; i++) {
-        assert(pop_cost_1d[i] ==
-               computeCost(cost_mat, &pop_2d[i * size], size));
-      }
-#endif
       assert(p1_cost ==
              computeCost(cost_mat, &crossover_2d[cross_id * size], size));
       p1_cost += vnd_lop(cost_mat, size, &crossover_2d[cross_id * size],
@@ -310,11 +272,6 @@ void crossover(
 
     assert(crossover_cost_2d[cross_id] ==
            computeCost(cost_mat, &crossover_2d[cross_id * size], size));
-#ifndef NDEBUG
-    for (size_t i = 0; i < n_population; i++) {
-      assert(pop_cost_1d[i] == computeCost(cost_mat, &pop_2d[i * size], size));
-    }
-#endif
   }
 }
 
@@ -524,6 +481,10 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     const t_cost new_mean_pop_cost = get_mean(pop_cost_1d, n_population);
     if (new_mean_pop_cost <= mean_pop_cost) {
       mean_try++;
+      PVERB("Mean cost of population is not improving for %zu/%zu tries with "
+            "mean "
+            "cost %ld\n",
+            mean_try, n_mean_try, new_mean_pop_cost);
     } else {
       mean_try = 0;
       mean_pop_cost = new_mean_pop_cost;
@@ -542,9 +503,9 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     } else {
       diversi_try = 0;
     }
-    PVERB(
-        "Mean cost of population is %ld with best cost %ld at dversi_try %ld\n",
-        mean_pop_cost, pop_cost_1d[0], diversi_try);
+    PVERB("Mean cost of population is %ld with best cost %ld at diversity try "
+          "%ld/%ld\n",
+          mean_pop_cost, pop_cost_1d[0], diversi_try, n_diversi_try);
   } while (diversi_try < n_diversi_try);
   ////////////////////////////////////////////////////////////////////
   /// end of generations, return the first element of the population
