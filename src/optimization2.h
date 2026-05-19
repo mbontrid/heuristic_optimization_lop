@@ -22,8 +22,34 @@
  * @return cost_delta
  */
 
+/**
+ * @brief Acceptance heuristic. Can accept worse solution than previous
+ * solution.
+ *
+ * @param delta Delta between the new solution and the previous solution.
+ * @param worse_bracket negative dalta accetpable.
+ * @return Acceted or not.
+ */
 bool accept_worse(const t_cost_delta delta, const t_cost worse_bracket);
 
+/**
+ * @brief Iteratid local search for the LOP.
+ *
+ * @param cost_mat Cost matrix of the LOP.
+ * @param sol_1d Sol of the LOP on which the ILS will start. After execution,
+ * the result will stored at this location.
+ * @param size Size of the array sol_1d and shape of cost_mat (size, size).
+ * @param perturb_rate Perturbation rate to apply at solution when needed. Rate
+ * of swap applied to solution.
+ * @param n_try Number of try to escape the local optimum before giving up.
+ * @param worse Worse solution acceptance.
+ * @param pivot_rule Pivoting rule for the VND on LOP. First or Best
+ * @param fptr_delta_neigh_exploration List of neighborhood exploration function
+ * pointer for VND to apply iteratively.
+ * @param n_neighb_vn size of fptr_delta_neigh_exploration, i.e. number of
+ * neighborhood to explore in VND.
+ * @return cost_delat of sol_1d before and after ILS.
+ */
 t_cost_delta
 ils(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     const float perturb_rate, const size_t n_try, const t_cost worse,
