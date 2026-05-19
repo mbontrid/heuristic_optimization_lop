@@ -260,8 +260,10 @@ void offspring(
     t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     ushort n_neighb_vn, float mutation_rate) {
 
+  assert(offspring_cross_mut >= 0 && offspring_cross_mut <= 1);
+
   const size_t n_crossover = (size_t)(offspring_cross_mut * n_offspring);
-  const size_t n_mutation = (size_t)(offspring_cross_mut * n_offspring);
+  const size_t n_mutation = n_offspring - n_crossover;
 
   size_t *restrict const crossover_2d =
       malloc(size * sizeof(size_t) * n_crossover);
@@ -336,7 +338,7 @@ void diversification(
 t_cost_delta
 memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
         const size_t n_population, const size_t n_diversi_try,
-        const ushort n_mean_try, const float offspring_cross_mut,
+        const size_t n_mean_try, const float offspring_cross_mut,
         const size_t n_offspring, const float mutation_rate,
         const float cross_rate, enum pivot_enum pivot_rule,
         t_fptr_delta_neigh_exploration *fptr_delta_neigh_explaration,
@@ -357,8 +359,8 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
            n_neighb_vn, fptr_delta_neigh_explaration);
 
   t_cost mean_pop_cost = 0;
-  ushort mean_try = 0;
-  ushort diversi_try = 0;
+  size_t mean_try = 0;
+  size_t diversi_try = 0;
   do {
 
     offspring(cost_mat, size, pop_2d, pop_cost_2d, n_population, offspring_2d,

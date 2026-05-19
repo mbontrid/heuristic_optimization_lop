@@ -84,7 +84,7 @@ void diversification(
 t_cost_delta
 memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
         const size_t n_population, const size_t generation,
-        const ushort mean_try, const float offspring_cross_mut,
+        const size_t mean_try, const float offspring_cross_mut,
         const size_t n_offspring, const float mutation_rate,
         const float cross_rate, enum pivot_enum pivot_rule,
         t_fptr_delta_neigh_exploration *fptr_delta_neigh_explaration,

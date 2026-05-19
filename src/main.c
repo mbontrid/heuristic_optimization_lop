@@ -75,23 +75,7 @@ int main(int argc, char **argv) {
   /* starts time measurement */
   clock_t start = clock();
 
-  if (arguments.algo == ILS) {
-
-    const float perturb_rate = arguments.ils_perturb_rate;
-    const size_t n_try = arguments.ils_n_try;
-
-    PVERB("Running iterated local search algorithm\n");
-
-    cost += ils(cost_mat_2d, sol_1d, mat_cost_dim, perturb_rate, n_try,
-                arguments.ils_worse, arguments.pivot_rule,
-                arguments.fptr_neighb_exploration, arguments.n_neighb_vnd);
-
-  } else if (arguments.algo == MEMETIC) {
-
-    PVERB("Running memetic algorithm\n");
-    assert(false);
-
-  } else if (arguments.algo == VND) {
+  if (arguments.algo == VND) {
 
     PVERB("Running variable neighborhood descent algorithm with pivot rule %s "
           "and %zu neighborhood(s).\n",
@@ -100,7 +84,30 @@ int main(int argc, char **argv) {
 
     cost += vnd_lop(cost_mat_2d, mat_cost_dim, sol_1d, arguments.pivot_rule,
                     arguments.fptr_neighb_exploration, arguments.n_neighb_vnd);
+
+  } else if (arguments.algo == ILS) {
+
+    PVERB("Running iterated local search algorithm\n");
+
+    cost += ils(cost_mat_2d, sol_1d, mat_cost_dim, arguments.ils_perturb_rate,
+                arguments.ils_n_try, arguments.ils_worse, arguments.pivot_rule,
+                arguments.fptr_neighb_exploration, arguments.n_neighb_vnd);
+
+  } else if (arguments.algo == MEMETIC) {
+
+    PVERB("Running memetic algorithm\n");
+    cost = memetic(
+        cost_mat_2d, sol_1d, mat_cost_dim, arguments.memetic_n_population,
+        arguments.memetic_n_diversi_try, arguments.memetic_n_mean_try,
+        arguments.memetic_offspring_cross_mut, arguments.memetic_n_offspring,
+        arguments.memetic_mutation_rate, arguments.memetic_cross_rate,
+        arguments.pivot_rule, arguments.fptr_neighb_exploration,
+        arguments.n_neighb_vnd);
+
+  } else {
+    assert(false);
   }
+
   const double elapsed_seconds = end_clock(start);
   /* stop time measurement */
 

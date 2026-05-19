@@ -2,8 +2,13 @@
 #define _ARG_PARSER_H_
 
 #include "utilities.h"
+#include <argp.h>
 #include <stdbool.h>
+#include <sys/types.h>
 #include <values.h>
+
+static const char doc[] = "Variable neighborhood descent LOP instance resolver";
+static const char args_doc[] = "";
 
 struct arguments {
   bool is_pos_arg;
@@ -25,6 +30,35 @@ struct arguments {
   float ils_perturb_rate;
   size_t ils_n_try;
   t_cost ils_worse;
+
+  size_t memetic_n_population;
+  size_t memetic_n_diversi_try;
+  ushort memetic_n_mean_try;
+  float memetic_offspring_cross_mut;
+  size_t memetic_n_offspring;
+  float memetic_mutation_rate;
+  float memetic_cross_rate;
+};
+
+enum {
+  KEY_VERBOSE = 'v',
+  KEY_INSTNACE = 'i',
+  KEY_PIVOT = 'p',
+  KEY_NEIGHB = 'n',
+  KEY_SOL_START = 's',
+  KEY_ALGO = 'a',
+
+  KEY_ILS_PETURB_RATE = 128,
+  KEY_ILS_N_TRY,
+  KEY_ILS_WORST,
+
+  KEY_MEMETIC_N_POPULATION,
+  KEY_MEMETIC_N_DIVERSI_TRY,
+  KEY_MEMETIC_N_MEAN_TRY,
+  KEY_MEMETIC_OFFSPRING_CROSS_MUT,
+  KEY_MEMETIC_N_OFFSPRING,
+  KEY_MEMETIC_MUTATION_RATE,
+  KEY_MEMETIC_CROSS_RATE,
 };
 
 extern struct arguments arguments;
