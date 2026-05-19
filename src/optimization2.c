@@ -342,6 +342,8 @@ void mutation(
                             mutation_rate);
       p1_cost += vnd_lop(cost_mat, size, &mutation_2d[mut_id * size],
                          pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
+      DPRINTF("Mutation %zu with parent %zu has cost %ld\n", mut_id, rand_index,
+              p1_cost);
     } while (is_array_in_arrays(&mutation_2d[mut_id * size], mutation_2d, size,
                                 mut_id));
     mutation_cost_2d[mut_id] = p1_cost;
@@ -404,34 +406,35 @@ void offspring(
 }
 
 void select_best_pop(size_t *restrict const pop_2d,
+                     t_cost *restrict const pop_cost_1d,
                      const size_t *restrict const pop_off_2d,
                      const t_cost *restrict const pop_off_cost_2d,
                      const size_t n_pop, const size_t n_pop_off,
                      const size_t size) {
   assert(n_pop < n_pop_off);
+  // assert(!is_array_overlap(pop_2d, ARRAY_BYTES(pop_2d, size * n_pop),
+  //                          pop_off_2d,
+  //                          ARRAY_BYTES(pop_off_2d, size * n_pop_off)));
 
   // get the n best cost indices.
   const size_t *const best_pop_id = get_n_best_sorted(
-      (size_t *restrict const)pop_off_cost_2d, n_pop, n_pop_off);
+      (const size_t *restrict const)pop_off_cost_2d, n_pop, n_pop_off);
 
+  size_t *restrict const new_pop_2d = malloc(size * n_pop * sizeof(size_t));
+  t_cost *restrict const new_pop_cost_1d = malloc(n_pop * sizeof(t_cost));
   // populate pop_2d with the sortede best.
   for (size_t i = 0; i < n_pop; i++) {
-    pop_2d[i] = pop_off_2d[best_pop_id[i] * size];
+    new_pop_2d[i] = pop_off_2d[best_pop_id[i] * size];
+    new_pop_cost_1d[i] = pop_off_cost_2d[best_pop_id[i]];
   }
-
-#ifndef NDEBUG
-  for (size_t i = 0; i < n_pop - 1; i++) {
-    assert(pop_off_cost_2d[best_pop_id[i]] >=
-           pop_off_cost_2d[best_pop_id[i + 1]]); // check if sorted
-  }
-  for (size_t i = n_pop; i < n_pop_off - 1; i++) {
-    assert(pop_off_cost_2d[best_pop_id[n_pop - 1]] >=
-           pop_off_cost_2d[best_pop_id[i]]); // check if the rest is worse than
-                                             // the worst of the best
-  }
-#endif
+  memcpy(pop_2d, new_pop_2d, size * n_pop * sizeof(size_t));
+  memcpy(pop_cost_1d, new_pop_cost_1d, n_pop * sizeof(t_cost));
 
   free((size_t *const)best_pop_id);
+  free(new_pop_2d);
+  free(new_pop_cost_1d);
+  DPRINTF("Selected best %zu from %zu population with best cost %ld\n", n_pop,
+          n_pop_off, pop_cost_1d[0]);
 }
 
 void diversification(
@@ -454,6 +457,9 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
         const t_fptr_delta_neigh_exploration *fptr_delta_neigh_explaration,
         const ushort n_neighb_vn) {
 
+  //////////////////////////////////
+  /// assing overlaping memory
+  //////////////////////////////////
   size_t *const pop_off_2d =
       malloc(size * (n_population + n_offspring) * sizeof(*pop_off_2d));
   t_cost *const pop_off_cost_2d =
@@ -464,11 +470,6 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
 
   size_t *const offspring_2d = &pop_off_2d[size * n_population];
   t_cost *const offspring_cost_2d = &pop_off_cost_2d[n_population];
-
-  for (size_t i = 0; i < n_population + n_offspring; i++) {
-    pop_off_2d[i] = 0;
-    pop_off_cost_2d[i] = 0;
-  }
 
   assert(is_array_overlap(
       pop_off_2d, ARRAY_BYTES(pop_off_2d, size * (n_population + n_offspring)),
@@ -483,10 +484,17 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
       pop_off_cost_2d, ARRAY_BYTES(pop_off_cost_2d, n_population + n_offspring),
       offspring_cost_2d, ARRAY_BYTES(offspring_cost_2d, n_offspring)));
 
+  ///////////////////////////////
+  /// populating initial population
+  ///////////////////////////////
+
   PVERB("Populating initial population\n");
   populate(cost_mat, pop_2d, pop_cost_1d, size, n_population, 0, pivot_rule,
            n_neighb_vn, fptr_delta_neigh_explaration);
 
+  /////////////////////////////////////
+  /// generations of individuals
+  ////////////////////////////////////
   t_cost mean_pop_cost = 0;
   size_t mean_try = 0;
   size_t diversi_try = 0;
@@ -499,9 +507,12 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
 
     PVERB("Selecting best population\n");
     // the best sols will be in descending order.
-    select_best_pop(pop_2d, pop_off_2d, pop_off_cost_2d, n_population,
-                    n_offspring + n_population, size);
+    select_best_pop(pop_2d, pop_cost_1d, pop_off_2d, pop_off_cost_2d,
+                    n_population, n_offspring + n_population, size);
 
+    ///////////////////////////
+    /// is diversification needed?
+    /////////////////////////////
     const t_cost new_mean_pop_cost = get_mean(pop_cost_1d, n_population);
     if (new_mean_pop_cost <= mean_pop_cost) {
       mean_try++;
@@ -510,6 +521,9 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
       mean_pop_cost = new_mean_pop_cost;
     }
 
+    /////////////////////////////////////////
+    /// diversify
+    ////////////////////////////////////////
     if (mean_try >= n_mean_try) {
       PVERB("Diversification try %zu/%zu with mean cost %ld\n", diversi_try + 1,
             n_diversi_try, mean_pop_cost);
@@ -524,6 +538,9 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
         "Mean cost of population is %ld with best cost %ld at dversi_try %ld\n",
         mean_pop_cost, pop_cost_1d[0], diversi_try);
   } while (diversi_try < n_diversi_try);
+  ////////////////////////////////////////////////////////////////////
+  /// end of generations, return the first element of the population
+  //////////////////////////////////////////////////////////////////////
   memcpy(sol_1d, &pop_2d[0], size * sizeof(size_t));
   const t_cost best_cost = pop_cost_1d[0];
   assert(best_cost == computeCost(cost_mat, sol_1d, size));

@@ -75,9 +75,10 @@ void offspring(
     const ushort n_neighb_vn, float mutation_rate);
 
 void select_best_pop(size_t *restrict const pop_2d,
+                     t_cost *restrict const pop_cost_1d,
                      const size_t *restrict const pop_off_2d,
                      const t_cost *restrict const pop_off_cost_2d,
-                     const size_t n_population, const size_t n_offspring,
+                     const size_t n_pop, const size_t n_pop_off,
                      const size_t size);
 
 void diversification(
