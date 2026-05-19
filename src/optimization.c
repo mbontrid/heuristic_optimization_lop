@@ -468,10 +468,10 @@ vnd_lop(const t_mat_cell *const cost_mat_2d, size_t mat_cost_dim,
 
     if (new_delta && k_neighb > 0) {
       k_neighb = 0;
-      PVERB("Found a new optimization of %d with neighborhood method %u\n",
-            new_delta, k_neighb);
+      // PVERB("Found a new optimization of %d with neighborhood method %u\n",
+      //       new_delta, k_neighb);
     } else {
-      PVERB("No improvement with neighborhood method %u\n", k_neighb);
+      // PVERB("No improvement with neighborhood method %u\n", k_neighb);
       k_neighb++;
     }
   }

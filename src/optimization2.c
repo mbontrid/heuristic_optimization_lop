@@ -60,7 +60,7 @@ t_cost_delta ils(const t_cost *const cost_mat, size_t *const sol_1d,
 
 void populate(
     const t_cost *const cost_mat, size_t *const pop_2d,
-    t_cost *const pop_cost_2d, const size_t size, const size_t n_population,
+    t_cost *const pop_cost_1d, const size_t size, const size_t n_population,
     const size_t from, const enum pivot_enum pivot_rule,
     const ushort n_neighb_vn,
     t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration) {
@@ -74,9 +74,10 @@ void populate(
   // generating population
   for (size_t i = from; i < n_population; i++) {
     size_t *current = &pop_2d[i * size];
-    t_cost *const current_cost = &pop_cost_2d[i];
+    t_cost *const current_cost = &pop_cost_1d[i];
 
     do {
+      DPRINTF("Generating solution for individual %zu\n", i);
       memcpy(current, tmp_sol_1d, size * sizeof(size_t));
       *current_cost = incr_sol_cost;
       // random swap with rate 1 make a random solution
@@ -87,6 +88,12 @@ void populate(
     } while (is_array_in_arrays(current, pop_2d, size, i));
   }
   free((size_t *)tmp_sol_1d);
+
+#ifndef NDEBUG
+  for (size_t i = from; i < n_population - from; i++) {
+    assert(pop_cost_1d[i] == computeCost(cost_mat, &pop_2d[i * size], size));
+  }
+#endif
 }
 
 t_cost_delta dpx_crossover(const t_cost *const cost_mat,
@@ -205,11 +212,18 @@ t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
 
 void crossover(
     const t_cost *restrict const cost_mat, const size_t size,
-    size_t *const pop_2d, t_cost *const pop_cost_2d, const size_t n_population,
-    size_t *const crossover_2d, t_cost *const crossover_cost_2d,
-    const size_t n_crossover, enum pivot_enum pivot_rule,
+    const size_t *const pop_2d, const t_cost *const pop_cost_1d,
+    const size_t n_population, size_t *const crossover_2d,
+    t_cost *const crossover_cost_2d, const size_t n_crossover,
+    const enum pivot_enum pivot_rule,
     t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
-    ushort n_neighb_vn) {
+    const ushort n_neighb_vn) {
+
+#ifndef NDEBUG
+  for (size_t i = 0; i < n_population; i++) {
+    assert(pop_cost_1d[i] == computeCost(cost_mat, &pop_2d[i * size], size));
+  }
+#endif
 
   for (size_t cross_id = 0; cross_id < n_crossover; cross_id++) {
     t_cost_delta p1_cost = 0;
@@ -221,14 +235,21 @@ void crossover(
 
       const size_t *const p1 = &pop_2d[rand_index_1 * size];
       const size_t *const p2 = &pop_2d[rand_index_2 * size];
-      p1_cost = pop_cost_2d[rand_index_1];
+      p1_cost = pop_cost_1d[rand_index_1];
+      assert(pop_cost_1d[rand_index_2] ==
+             computeCost(cost_mat, &pop_2d[rand_index_2 * size], size));
+      assert(p1_cost == computeCost(cost_mat, p1, size));
 
       // crossover and local search
       memcpy(&crossover_2d[cross_id * size], p1, size * sizeof(size_t));
       p1_cost +=
           dpx_crossover(cost_mat, &crossover_2d[cross_id * size], p2, size);
+      assert(p1_cost ==
+             computeCost(cost_mat, &crossover_2d[cross_id * size], size));
       p1_cost += vnd_lop(cost_mat, size, &crossover_2d[cross_id * size],
                          pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
+      assert(p1_cost ==
+             computeCost(cost_mat, &crossover_2d[cross_id * size], size));
     } while (is_array_in_arrays(&crossover_2d[cross_id * size], crossover_2d,
                                 size, cross_id));
     crossover_cost_2d[cross_id] = p1_cost;
@@ -239,10 +260,11 @@ void crossover(
 }
 
 void mutation(
-    const t_cost *restrict const cost_mat, size_t size, size_t *const pop_2d,
-    t_cost *const pop_cost_2d, const size_t n_population,
-    size_t *const mutation_2d, t_cost *const mutation_cost_2d,
-    const size_t n_mutation, float mutation_rate, enum pivot_enum pivot_rule,
+    const t_cost *restrict const cost_mat, size_t size,
+    const size_t *const pop_2d, const t_cost *const pop_cost_1d,
+    const size_t n_population, size_t *const mutation_2d,
+    t_cost *const mutation_cost_2d, const size_t n_mutation,
+    float mutation_rate, enum pivot_enum pivot_rule,
     t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     ushort n_neighb_vn) {
 
@@ -255,7 +277,7 @@ void mutation(
       // copy parent
       const size_t *const p1 = &pop_2d[rand_index * size];
       memcpy(&mutation_2d[mut_id * size], p1, size * sizeof(size_t));
-      p1_cost = pop_cost_2d[rand_index];
+      p1_cost = pop_cost_1d[rand_index];
       // apply mutation and local search
       p1_cost += rand_swaps(cost_mat, &mutation_2d[mut_id * size], size,
                             mutation_rate);
@@ -271,10 +293,12 @@ void mutation(
 }
 
 void offspring(
-    const t_cost *const cost_mat, size_t size, size_t *const pop_2d,
-    t_cost *const pop_cost_2d, size_t n_population, size_t *const offspring_2d,
-    t_cost *const offspring_cost_2d, const size_t n_offspring,
-    const float offspring_cross_mut, const enum pivot_enum pivot_rule,
+    const t_cost *restrict const cost_mat, const size_t size,
+    const size_t *restrict const pop_2d,
+    const t_cost *restrict const pop_cost_1d, const size_t n_population,
+    size_t *const offspring_2d, t_cost *const offspring_cost_2d,
+    const size_t n_offspring, const float offspring_cross_mut,
+    const enum pivot_enum pivot_rule,
     t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn, float mutation_rate) {
 
@@ -290,10 +314,16 @@ void offspring(
   t_cost *restrict const crossover_cost_2d = &offspring_cost_2d[0];
   t_cost *restrict const mutation_cost_2d = &offspring_cost_2d[n_crossover];
 
-  crossover(cost_mat, size, pop_2d, pop_cost_2d, n_population, crossover_2d,
+#ifndef NDEBUG
+  for (size_t i = 0; i < n_population; i++) {
+    assert(pop_cost_1d[i] == computeCost(cost_mat, &pop_2d[i * size], size));
+  }
+#endif
+
+  crossover(cost_mat, size, pop_2d, pop_cost_1d, n_population, crossover_2d,
             crossover_cost_2d, n_crossover, pivot_rule,
             fptr_delta_neigh_explaration, n_neighb_vn);
-  mutation(cost_mat, size, pop_2d, pop_cost_2d, n_population, mutation_2d,
+  mutation(cost_mat, size, pop_2d, pop_cost_1d, n_population, mutation_2d,
            mutation_cost_2d, n_mutation, mutation_rate, pivot_rule,
            fptr_delta_neigh_explaration, n_neighb_vn);
 
@@ -338,12 +368,12 @@ void select_best_pop(size_t *restrict const pop_2d,
 
 void diversification(
     const t_cost *restrict const cost_mat, size_t size, size_t *const pop_2d,
-    t_cost *const pop_cost_2d, const size_t n_population,
+    t_cost *const pop_cost_1d, const size_t n_population,
     const size_t n_keep_front, const enum pivot_enum pivot_rule,
     t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn) {
 
-  populate(cost_mat, pop_2d, pop_cost_2d, size, n_population, n_keep_front,
+  populate(cost_mat, pop_2d, pop_cost_1d, size, n_population, n_keep_front,
            pivot_rule, n_neighb_vn, fptr_delta_neigh_explaration);
 }
 
@@ -362,12 +392,13 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
       malloc((n_population + n_offspring) * sizeof(*pop_off_cost_2d));
 
   size_t *const pop_2d = &pop_off_2d[0];
-  t_cost *const pop_cost_2d = &pop_off_cost_2d[0];
+  t_cost *const pop_cost_1d = &pop_off_cost_2d[0];
 
   size_t *const offspring_2d = &pop_off_2d[n_population];
   t_cost *const offspring_cost_2d = &pop_off_cost_2d[n_population];
 
-  populate(cost_mat, pop_2d, pop_cost_2d, size, n_population, pivot_rule, 1,
+  PVERB("Populating initial population\n");
+  populate(cost_mat, pop_2d, pop_cost_1d, size, n_population, 0, pivot_rule,
            n_neighb_vn, fptr_delta_neigh_explaration);
 
   t_cost mean_pop_cost = 0;
@@ -375,15 +406,17 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   size_t diversi_try = 0;
   do {
 
-    offspring(cost_mat, size, pop_2d, pop_cost_2d, n_population, offspring_2d,
+    PVERB("Generating offspring\n");
+    offspring(cost_mat, size, pop_2d, pop_cost_1d, n_population, offspring_2d,
               offspring_cost_2d, n_offspring, offspring_cross_mut, pivot_rule,
               fptr_delta_neigh_explaration, n_neighb_vn, mutation_rate);
 
+    PVERB("Selecting best population\n");
     // the best sols will be in descending order.
     select_best_pop(pop_2d, pop_off_2d, pop_off_cost_2d, n_population,
                     n_offspring + n_population, size);
 
-    const t_cost new_mean_pop_cost = get_mean(pop_cost_2d, n_population);
+    const t_cost new_mean_pop_cost = get_mean(pop_cost_1d, n_population);
     if (new_mean_pop_cost <= mean_pop_cost) {
       mean_try++;
     } else {
@@ -392,16 +425,21 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     }
 
     if (mean_try >= n_mean_try) {
+      PVERB("Diversification try %zu/%zu with mean cost %ld\n", diversi_try + 1,
+            n_diversi_try, mean_pop_cost);
       mean_try = n_mean_try;
       diversi_try++;
-      diversification(cost_mat, size, pop_2d, pop_cost_2d, n_population, 1,
+      diversification(cost_mat, size, pop_2d, pop_cost_1d, n_population, 1,
                       pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
     } else {
       diversi_try = 0;
     }
+    PVERB(
+        "Mean cost of population is %ld with best cost %ld at dversi_try %ld\n",
+        mean_pop_cost, pop_cost_1d[0], diversi_try);
   } while (diversi_try < n_diversi_try);
   memcpy(sol_1d, &pop_2d[0], size * sizeof(size_t));
-  const t_cost best_cost = pop_cost_2d[0];
+  const t_cost best_cost = pop_cost_1d[0];
   assert(best_cost == computeCost(cost_mat, sol_1d, size));
 
   free(pop_off_2d);
