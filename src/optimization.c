@@ -418,10 +418,10 @@ size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size) {
   return new_best_start_1d;
 }
 
-t_cost_delta
-lop_iter_impr(const t_mat_cell *const cost_mat_2d, size_t mat_cost_dim,
-              size_t *const sol_1d, enum pivot_enum pivot_rule,
-              t_fptr_delta_neigh_exploration fptr_cost_delta_neig_exploration) {
+t_cost_delta lop_iter_impr(
+    const t_mat_cell *const cost_mat_2d, const size_t mat_cost_dim,
+    size_t *const sol_1d, const enum pivot_enum pivot_rule,
+    const t_fptr_delta_neigh_exploration fptr_cost_delta_neig_exploration) {
 
   // new solution after each pivot.
   size_t *new_sol_1d = malloc(mat_cost_dim * sizeof(size_t));
@@ -449,11 +449,11 @@ lop_iter_impr(const t_mat_cell *const cost_mat_2d, size_t mat_cost_dim,
   return delta_total;
 }
 
-t_cost_delta
-vnd_lop(const t_mat_cell *const cost_mat_2d, size_t mat_cost_dim,
-        size_t *const sol_1d, enum pivot_enum pivot_rule,
-        t_fptr_delta_neigh_exploration *const fptr_delta_neigh_exploration,
-        const ushort n_neighb_vn) {
+t_cost_delta vnd_lop(
+    const t_mat_cell *const cost_mat_2d, size_t mat_cost_dim,
+    size_t *const sol_1d, enum pivot_enum pivot_rule,
+    const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_exploration,
+    const ushort n_neighb_vn) {
 
   t_cost_delta cost_delta = 0;
   ushort k_neighb = 0;

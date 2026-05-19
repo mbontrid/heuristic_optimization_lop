@@ -12,11 +12,12 @@ bool accept_worse(const t_cost_delta delta, const t_cost worse_bracket) {
   return delta > worse_bracket;
 }
 
-t_cost_delta ils(const t_cost *const cost_mat, size_t *const sol_1d,
-                 size_t size, const float perturb_rate, const size_t n_try,
-                 const t_cost worse, enum pivot_enum pivot_rule,
-                 t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
-                 ushort n_neighb_vn) {
+t_cost_delta
+ils(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
+    const float perturb_rate, const size_t n_try, const t_cost worse,
+    enum pivot_enum pivot_rule,
+    const t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
+    ushort n_neighb_vn) {
 
   t_cost_delta delta = 0;
 #ifndef NDEBUG
@@ -63,7 +64,7 @@ void populate(
     t_cost *const pop_cost_1d, const size_t size, const size_t n_population,
     const size_t from, const enum pivot_enum pivot_rule,
     const ushort n_neighb_vn,
-    t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration) {
+    const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration) {
 
   assert(from >= 0 && from <= n_population);
 
@@ -216,7 +217,7 @@ void crossover(
     const size_t n_population, size_t *const crossover_2d,
     t_cost *const crossover_cost_2d, const size_t n_crossover,
     const enum pivot_enum pivot_rule,
-    t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
+    const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn) {
 
 #ifndef NDEBUG
@@ -235,9 +236,9 @@ void crossover(
 
       const size_t *const p1 = &pop_2d[rand_index_1 * size];
       const size_t *const p2 = &pop_2d[rand_index_2 * size];
+      assert(p1);
+      assert(p2);
       p1_cost = pop_cost_1d[rand_index_1];
-      assert(pop_cost_1d[rand_index_2] ==
-             computeCost(cost_mat, &pop_2d[rand_index_2 * size], size));
       assert(p1_cost == computeCost(cost_mat, p1, size));
 
       // crossover and local search
@@ -265,7 +266,7 @@ void mutation(
     const size_t n_population, size_t *const mutation_2d,
     t_cost *const mutation_cost_2d, const size_t n_mutation,
     float mutation_rate, enum pivot_enum pivot_rule,
-    t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
+    const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     ushort n_neighb_vn) {
 
   for (size_t mut_id = 0; mut_id < n_mutation; mut_id++) {
@@ -299,7 +300,7 @@ void offspring(
     size_t *const offspring_2d, t_cost *const offspring_cost_2d,
     const size_t n_offspring, const float offspring_cross_mut,
     const enum pivot_enum pivot_rule,
-    t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
+    const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn, float mutation_rate) {
 
   assert(offspring_cross_mut >= 0 && offspring_cross_mut <= 1);
@@ -370,7 +371,7 @@ void diversification(
     const t_cost *restrict const cost_mat, size_t size, size_t *const pop_2d,
     t_cost *const pop_cost_1d, const size_t n_population,
     const size_t n_keep_front, const enum pivot_enum pivot_rule,
-    t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
+    const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn) {
 
   populate(cost_mat, pop_2d, pop_cost_1d, size, n_population, n_keep_front,
@@ -383,7 +384,7 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
         const size_t n_mean_try, const float offspring_cross_mut,
         const size_t n_offspring, const float mutation_rate,
         const float cross_rate, const enum pivot_enum pivot_rule,
-        t_fptr_delta_neigh_exploration *fptr_delta_neigh_explaration,
+        const t_fptr_delta_neigh_exploration *fptr_delta_neigh_explaration,
         const ushort n_neighb_vn) {
 
   size_t *const pop_off_2d =

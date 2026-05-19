@@ -202,10 +202,10 @@ size_t *sol_start_cw(t_mat_cell *cost_mat_2d, size_t size);
  * @return difference in cost for sol_1d between the local optimum reached and
  * the initial solution.
  */
-t_cost_delta
-lop_iter_impr(const t_mat_cell *const cost_mat_2d, size_t cost_mat_dim,
-              size_t *const sol_1d, enum pivot_enum pivot_rule,
-              t_fptr_delta_neigh_exploration fptr_delta_neigh_exploration);
+t_cost_delta lop_iter_impr(
+    const t_mat_cell *const cost_mat_2d, const size_t mat_cost_dim,
+    size_t *const sol_1d, const enum pivot_enum pivot_rule,
+    const t_fptr_delta_neigh_exploration fptr_delta_neigh_exploration);
 
 /**
  * @brief Apply the variables neighborhood descent (VND) algorithm to a solution
@@ -222,16 +222,16 @@ lop_iter_impr(const t_mat_cell *const cost_mat_2d, size_t cost_mat_dim,
  * @param n_neighb_vnd lenght of fptr_delat_neigh_explaration
  * @return resulting lop cost of the the solution sol_1d
  */
-t_cost_delta
-vnd_lop(const t_mat_cell *const cost_mat_2d, size_t cost_mat_dim,
-        size_t *const sol_1d, enum pivot_enum pivot_rule,
-        t_fptr_delta_neigh_exploration *const fptr_delta_neigh_exploration,
-        const ushort n_neighb_vnd);
+t_cost_delta vnd_lop(
+    const t_mat_cell *const cost_mat_2d, size_t cost_mat_dim,
+    size_t *const sol_1d, enum pivot_enum pivot_rule,
+    const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_exploration,
+    const ushort n_neighb_vnd);
 
 typedef t_cost_delta (*t_fptr_vnd_lop)(
     const t_mat_cell *const cost_mat_2d, size_t mat_cost_dim,
     size_t *const sol_1d, enum pivot_enum pivot_rule,
-    t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
+    const t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
     const ushort n_neighb_vn);
 
 #endif
