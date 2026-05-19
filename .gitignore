@@ -4,6 +4,7 @@ data/output/
 
 # Project defined
 build/
+out/
 
 CMakeLists.txt.user
 CMakeCache.txt
