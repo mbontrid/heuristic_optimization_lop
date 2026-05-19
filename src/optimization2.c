@@ -220,6 +220,8 @@ void crossover(
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn) {
 
+  assert(!is_array_overlap(pop_2d, n_population, crossover_2d, n_crossover));
+
 #ifndef NDEBUG
   for (size_t i = 0; i < n_population; i++) {
     assert(pop_cost_1d[i] == computeCost(cost_mat, &pop_2d[i * size], size));
@@ -228,17 +230,29 @@ void crossover(
 
   for (size_t cross_id = 0; cross_id < n_crossover; cross_id++) {
     t_cost_delta p1_cost = 0;
+#ifndef NDEBUG
+    for (size_t i = 0; i < n_population; i++) {
+      assert(pop_cost_1d[i] == computeCost(cost_mat, &pop_2d[i * size], size));
+    }
+#endif
     // search for a non existing crossover solution until found
     do {
-      // select two random parents
-      const size_t rand_index_1 = randInt(0, n_population - 1);
-      const size_t rand_index_2 = randInt(0, n_population - 1);
+      // select two different random parents
+      size_t p1_index = 0;
+      size_t p2_index = 0;
+      do {
+        p1_index = randInt(0, n_population - 1);
+        p2_index = randInt(0, n_population - 1);
+      } while (p1_index == p2_index);
 
-      const size_t *const p1 = &pop_2d[rand_index_1 * size];
-      const size_t *const p2 = &pop_2d[rand_index_2 * size];
-      assert(p1);
-      assert(p2);
-      p1_cost = pop_cost_1d[rand_index_1];
+      DPRINTF("Selected parents %zu and %zu for crossover %zu\n", p1_index,
+              p2_index, cross_id);
+
+      // retrieve parents and their cost
+      const size_t *const p1 = &pop_2d[p1_index * size];
+      const size_t *const p2 = &pop_2d[p2_index * size];
+      p1_cost = pop_cost_1d[p1_index];
+      assert(pop_cost_1d[p2_index] == computeCost(cost_mat, p2, size));
       assert(p1_cost == computeCost(cost_mat, p1, size));
 
       // crossover and local search
@@ -251,6 +265,8 @@ void crossover(
                          pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
       assert(p1_cost ==
              computeCost(cost_mat, &crossover_2d[cross_id * size], size));
+      DPRINTF("Crossover %zu with parents %zu and %zu has cost %ld\n", cross_id,
+              p1_index, p2_index, p1_cost);
     } while (is_array_in_arrays(&crossover_2d[cross_id * size], crossover_2d,
                                 size, cross_id));
     crossover_cost_2d[cross_id] = p1_cost;

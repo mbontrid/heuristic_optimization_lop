@@ -163,6 +163,9 @@ size_t *get_n_best_sorted(const size_t *restrict const array, const size_t n,
 
 double get_mean(const t_cost *restrict const array, const size_t size);
 
+bool is_array_overlap(const void *const array1, const size_t size1,
+                      const void *const array2, const size_t size2);
+
 /* constants for a pseudo-random number generator, taken from
    Numerical Recipes in C book --- never trust the standard C random
    number generator */

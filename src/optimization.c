@@ -450,16 +450,16 @@ t_cost_delta lop_iter_impr(
 }
 
 t_cost_delta vnd_lop(
-    const t_mat_cell *const cost_mat_2d, size_t mat_cost_dim,
-    size_t *const sol_1d, enum pivot_enum pivot_rule,
+    const t_mat_cell *const cost_mat_2d, const size_t mat_cost_dim,
+    size_t *const sol_1d, const enum pivot_enum pivot_rule,
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_exploration,
-    const ushort n_neighb_vn) {
+    const ushort n_neighb_vnd) {
 
   t_cost_delta cost_delta = 0;
   ushort k_neighb = 0;
   // try all neighborhood methods in order and start again if there is
   // improvement.
-  while (k_neighb < n_neighb_vn) {
+  while (k_neighb < n_neighb_vnd) {
 
     t_cost_delta new_delta =
         lop_iter_impr(cost_mat_2d, mat_cost_dim, sol_1d, pivot_rule,
