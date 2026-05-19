@@ -34,7 +34,7 @@ static struct argp_option options[] = {
      "Default : 0"},
     {"meme_pop", KEY_MEMETIC_N_POPULATION, "SIZE_T", 0,
      "Number of individuals in the population based memetic algorithms. "
-     "Default:20"},
+     "Default:25"},
     {"meme_divers_try", KEY_MEMETIC_N_DIVERSI_TRY, "SIZE_T", 0,
      "Number of same mean population before diversification for the memetic "
      "algorithms. "
@@ -42,14 +42,14 @@ static struct argp_option options[] = {
     {"meme_mean_try", KEY_MEMETIC_N_MEAN_TRY, "SIZE_T", 0,
      "Number of diversification with no improvement before terminating the "
      "memetic algorithms. "
-     "Default:5"},
+     "Default:10"},
     {"meme_cross_mut", KEY_MEMETIC_OFFSPRING_CROSS_MUT, "FLOAT", 0,
      "Offspring crossover at each generation in the memetic algorithms. The "
      "rest of the offspring will be mutated."
      "Default:0.8"},
     {"meme_offspring", KEY_MEMETIC_N_OFFSPRING, "SIZE_T", 0,
      "Number of offspring in the memetic algorithms. "
-     "Default:10"},
+     "Default:11"},
     {"meme_mut_rate", KEY_MEMETIC_MUTATION_RATE, "FLOAT", 0,
      "Mutation rate in the memetic algorithms. Rate of random swap of a "
      "solution of LOP."
@@ -213,10 +213,10 @@ void init_arguments(struct arguments *args) {
   args->ils_n_try = 10;
   args->ils_worse = 0;
 
-  args->memetic_n_population = 20;
-  args->memetic_n_offspring = 10;
+  args->memetic_n_population = 25;
+  args->memetic_n_offspring = 11;
   args->memetic_n_diversi_try = 10;
-  args->memetic_n_mean_try = 5;
+  args->memetic_n_mean_try = 10;
   args->memetic_offspring_cross_mut = 0.8;
   args->memetic_mutation_rate = 0.1;
   args->memetic_cross_rate = 0.5;
