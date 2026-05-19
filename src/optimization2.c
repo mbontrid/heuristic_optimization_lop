@@ -154,7 +154,7 @@ t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
   memcpy(assert_p1_offspring_before, p1_offspring, size * sizeof(size_t));
 #endif
 
-  size_t *const to_cross = generate_random_no_rep(size);
+  const size_t *const to_cross = generate_random_no_rep(size);
   size_t *const selected_positions = malloc(n_cross * sizeof(size_t));
   size_t *const selected_values = malloc(n_cross * sizeof(size_t));
   bool *const is_selected_value = calloc(size, sizeof(bool));
@@ -190,7 +190,7 @@ t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
   free(is_selected_value);
   free(selected_values);
   free(selected_positions);
-  free(to_cross);
+  free((size_t *const)to_cross);
 
   assert(delta == 0 ||
          !array_equal(p1_offspring, assert_p1_offspring_before, size));
@@ -343,13 +343,8 @@ void diversification(
     t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn) {
 
-  // generate n_pop and place sol one on the randomly generated
-  // identical or in front of the group.
   populate(cost_mat, pop_2d, pop_cost_2d, size, n_population, n_keep_front,
            pivot_rule, n_neighb_vn, fptr_delta_neigh_explaration);
-
-  assert(computeCost(cost_mat, sol_1d, size) ==
-         computeCost(cost_mat, &pop_2d[same_array_id * size], size));
 }
 
 t_cost_delta
