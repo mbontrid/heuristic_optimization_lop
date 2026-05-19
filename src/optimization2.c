@@ -248,17 +248,46 @@ void crossover(
       DPRINTF("Selected parents %zu and %zu for crossover %zu\n", p1_index,
               p2_index, cross_id);
 
+#ifndef NDEBUG
+      for (size_t i = 0; i < n_population; i++) {
+        assert(pop_cost_1d[i] ==
+               computeCost(cost_mat, &pop_2d[i * size], size));
+      }
+#endif
       // retrieve parents and their cost
-      const size_t *const p1 = &pop_2d[p1_index * size];
-      const size_t *const p2 = &pop_2d[p2_index * size];
+      const size_t *const p1_1d = &pop_2d[p1_index * size];
+      const size_t *const p2_1d = &pop_2d[p2_index * size];
       p1_cost = pop_cost_1d[p1_index];
-      assert(pop_cost_1d[p2_index] == computeCost(cost_mat, p2, size));
-      assert(p1_cost == computeCost(cost_mat, p1, size));
+      assert(pop_cost_1d[p2_index] == computeCost(cost_mat, p2_1d, size));
+      assert(p1_cost == computeCost(cost_mat, p1_1d, size));
+      assert(!is_array_overlap(crossover_2d, n_crossover, p1_1d, size));
+      assert(!is_array_overlap(crossover_2d, n_crossover, p2_1d, size));
 
+#ifndef NDEBUG
+      for (size_t i = 0; i < n_population; i++) {
+        assert(pop_cost_1d[i] ==
+               computeCost(cost_mat, &pop_2d[i * size], size));
+      }
+#endif
       // crossover and local search
-      memcpy(&crossover_2d[cross_id * size], p1, size * sizeof(size_t));
+      assert(!is_array_overlap(crossover_2d, n_crossover, p1_1d, size));
+      memcpy(&crossover_2d[cross_id * size], p1_1d, size * sizeof(*p1_1d));
+      assert(computeCost(cost_mat, &crossover_2d[cross_id * size], size) ==
+             computeCost(cost_mat, p1_1d, size));
+#ifndef NDEBUG
+      for (size_t i = 0; i < n_population; i++) {
+        assert(pop_cost_1d[i] ==
+               computeCost(cost_mat, &pop_2d[i * size], size));
+      }
+#endif
       p1_cost +=
-          dpx_crossover(cost_mat, &crossover_2d[cross_id * size], p2, size);
+          dpx_crossover(cost_mat, &crossover_2d[cross_id * size], p2_1d, size);
+#ifndef NDEBUG
+      for (size_t i = 0; i < n_population; i++) {
+        assert(pop_cost_1d[i] ==
+               computeCost(cost_mat, &pop_2d[i * size], size));
+      }
+#endif
       assert(p1_cost ==
              computeCost(cost_mat, &crossover_2d[cross_id * size], size));
       p1_cost += vnd_lop(cost_mat, size, &crossover_2d[cross_id * size],
@@ -273,6 +302,11 @@ void crossover(
 
     assert(crossover_cost_2d[cross_id] ==
            computeCost(cost_mat, &crossover_2d[cross_id * size], size));
+#ifndef NDEBUG
+    for (size_t i = 0; i < n_population; i++) {
+      assert(pop_cost_1d[i] == computeCost(cost_mat, &pop_2d[i * size], size));
+    }
+#endif
   }
 }
 
@@ -320,6 +354,7 @@ void offspring(
     const ushort n_neighb_vn, float mutation_rate) {
 
   assert(offspring_cross_mut >= 0 && offspring_cross_mut <= 1);
+  assert(!is_array_overlap(pop_2d, n_population, offspring_2d, n_offspring));
 
   const size_t n_crossover = (size_t)(offspring_cross_mut * n_offspring);
   const size_t n_mutation = n_offspring - n_crossover;
@@ -327,9 +362,12 @@ void offspring(
 
   size_t *restrict const crossover_2d = &offspring_2d[0];
   size_t *restrict const mutation_2d = &offspring_2d[n_crossover * size];
+  assert(!is_array_overlap(crossover_2d, n_crossover, mutation_2d, n_mutation));
 
   t_cost *restrict const crossover_cost_2d = &offspring_cost_2d[0];
   t_cost *restrict const mutation_cost_2d = &offspring_cost_2d[n_crossover];
+  assert(!is_array_overlap(crossover_cost_2d, n_crossover, mutation_cost_2d,
+                           n_mutation));
 
 #ifndef NDEBUG
   for (size_t i = 0; i < n_population; i++) {
@@ -411,8 +449,22 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   size_t *const pop_2d = &pop_off_2d[0];
   t_cost *const pop_cost_1d = &pop_off_cost_2d[0];
 
-  size_t *const offspring_2d = &pop_off_2d[n_population];
+  size_t *const offspring_2d = &pop_off_2d[size * n_population];
   t_cost *const offspring_cost_2d = &pop_off_cost_2d[n_population];
+
+  for (size_t i = 0; i < n_population + n_offspring; i++) {
+    pop_off_2d[i] = 0;
+    pop_off_cost_2d[i] = 0;
+  }
+
+  assert(is_array_overlap(pop_off_2d, n_population + n_offspring, pop_2d,
+                          n_population));
+  assert(is_array_overlap(pop_off_cost_2d, n_population + n_offspring,
+                          pop_cost_1d, n_population));
+  assert(is_array_overlap(pop_off_2d, n_population + n_offspring, offspring_2d,
+                          n_offspring));
+  assert(is_array_overlap(pop_off_cost_2d, n_population + n_offspring,
+                          offspring_cost_2d, n_offspring));
 
   PVERB("Populating initial population\n");
   populate(cost_mat, pop_2d, pop_cost_1d, size, n_population, 0, pivot_rule,

@@ -270,18 +270,11 @@ double get_mean(const t_cost *restrict const array, const size_t size) {
 
 bool is_array_overlap(const void *const array1, const size_t size1,
                       const void *const array2, const size_t size2) {
-  // If either size is 0, they cannot overlap
-  if (size1 == 0 || size2 == 0) {
-    return false;
-  }
+  char *a_start = (char *)array1;
+  char *a_end = a_start + size1;
 
-  const char *char_array1 = (const char *)array1;
-  const char *char_array2 = (const char *)array2;
+  char *b_start = (char *)array2;
+  char *b_end = b_start + size2;
 
-  // Calculate end pointers (exclusive)
-  const char *end1 = char_array1 + size1;
-  const char *end2 = char_array2 + size2;
-
-  // Overlap condition: start1 < end2 AND start2 < end1
-  return (char_array1 < end2) && (char_array2 < end1);
+  return (a_start < b_end) && (b_start < a_end);
 }
