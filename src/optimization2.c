@@ -61,15 +61,18 @@ t_cost_delta ils(const t_cost *const cost_mat, size_t *const sol_1d,
 void populate(
     const t_cost *const cost_mat, size_t *const pop_2d,
     t_cost *const pop_cost_2d, const size_t size, const size_t n_population,
-    const enum pivot_enum pivot_rule, const ushort n_neighb_vn,
+    const size_t from, const enum pivot_enum pivot_rule,
+    const ushort n_neighb_vn,
     t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration) {
+
+  assert(from >= 0 && from <= n_population);
 
   // generating incremental solution and its cost as base for all individuals
   const size_t *const tmp_sol_1d = generate_incr_vector(size);
   t_cost incr_sol_cost = computeCost(cost_mat, tmp_sol_1d, size);
 
   // generating population
-  for (size_t i = 0; i < n_population; i++) {
+  for (size_t i = from; i < n_population; i++) {
     size_t *current = &pop_2d[i * size];
     t_cost *const current_cost = &pop_cost_2d[i];
 
@@ -305,34 +308,48 @@ void offspring(
 void select_best_pop(size_t *restrict const pop_2d,
                      const size_t *restrict const pop_off_2d,
                      const t_cost *restrict const pop_off_cost_2d,
-                     const size_t n_population, const size_t n_offspring,
+                     const size_t n_pop, const size_t n_pop_off,
                      const size_t size) {
-  const size_t *const best_pop_id =
-      get_n_best_sorted((size_t *restrict const)pop_off_cost_2d, n_population,
-                        n_population + n_offspring);
+  assert(n_pop < n_pop_off);
 
-  for (size_t i = 0; i < n_population; i++) {
+  // get the n best cost indices.
+  const size_t *const best_pop_id = get_n_best_sorted(
+      (size_t *restrict const)pop_off_cost_2d, n_pop, n_pop_off);
+
+  // populate pop_2d with the sortede best.
+  for (size_t i = 0; i < n_pop; i++) {
     pop_2d[i] = pop_off_2d[best_pop_id[i] * size];
   }
+
+#ifndef NDEBUG
+  for (size_t i = 0; i < n_pop - 1; i++) {
+    assert(pop_off_cost_2d[best_pop_id[i]] >=
+           pop_off_cost_2d[best_pop_id[i + 1]]); // check if sorted
+  }
+  for (size_t i = n_pop; i < n_pop_off - 1; i++) {
+    assert(pop_off_cost_2d[best_pop_id[n_pop - 1]] >=
+           pop_off_cost_2d[best_pop_id[i]]); // check if the rest is worse than
+                                             // the worst of the best
+  }
+#endif
+
   free((size_t *const)best_pop_id);
 }
 
 void diversification(
-    const t_cost *restrict const cost_mat, size_t *restrict const sol_1d,
-    size_t size, size_t *const pop_2d, t_cost *const pop_cost_2d,
-    const size_t n_population, const enum pivot_enum pivot_rule,
+    const t_cost *restrict const cost_mat, size_t size, size_t *const pop_2d,
+    t_cost *const pop_cost_2d, const size_t n_population,
+    const size_t n_keep_front, const enum pivot_enum pivot_rule,
     t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn) {
-  memcpy(sol_1d, pop_2d, size * sizeof(size_t));
-  populate(cost_mat, pop_2d, pop_cost_2d, size, n_population, pivot_rule,
-           n_neighb_vn, fptr_delta_neigh_explaration);
-  const size_t same_array_id =
-      find_array_in_arrays(sol_1d, pop_2d, size, n_population);
-  if (same_array_id == n_population) {
-    memcpy(&pop_2d[0], sol_1d, size * sizeof(size_t));
-  } else {
-    memcpy(sol_1d, &pop_2d[same_array_id * size], size * sizeof(size_t));
-  }
+
+  // generate n_pop and place sol one on the randomly generated
+  // identical or in front of the group.
+  populate(cost_mat, pop_2d, pop_cost_2d, size, n_population, n_keep_front,
+           pivot_rule, n_neighb_vn, fptr_delta_neigh_explaration);
+
+  assert(computeCost(cost_mat, sol_1d, size) ==
+         computeCost(cost_mat, &pop_2d[same_array_id * size], size));
 }
 
 t_cost_delta
@@ -340,9 +357,9 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
         const size_t n_population, const size_t n_diversi_try,
         const size_t n_mean_try, const float offspring_cross_mut,
         const size_t n_offspring, const float mutation_rate,
-        const float cross_rate, enum pivot_enum pivot_rule,
+        const float cross_rate, const enum pivot_enum pivot_rule,
         t_fptr_delta_neigh_exploration *fptr_delta_neigh_explaration,
-        ushort n_neighb_vn) {
+        const ushort n_neighb_vn) {
 
   size_t *const pop_off_2d =
       malloc(size * (n_population + n_offspring) * sizeof(*pop_off_2d));
@@ -355,7 +372,7 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   size_t *const offspring_2d = &pop_off_2d[n_population];
   t_cost *const offspring_cost_2d = &pop_off_cost_2d[n_population];
 
-  populate(cost_mat, pop_2d, pop_cost_2d, size, n_population, pivot_rule,
+  populate(cost_mat, pop_2d, pop_cost_2d, size, n_population, pivot_rule, 1,
            n_neighb_vn, fptr_delta_neigh_explaration);
 
   t_cost mean_pop_cost = 0;
@@ -369,7 +386,7 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
 
     // the best sols will be in descending order.
     select_best_pop(pop_2d, pop_off_2d, pop_off_cost_2d, n_population,
-                    n_offspring, size);
+                    n_offspring + n_population, size);
 
     const t_cost new_mean_pop_cost = get_mean(pop_cost_2d, n_population);
     if (new_mean_pop_cost <= mean_pop_cost) {
@@ -382,7 +399,7 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     if (mean_try >= n_mean_try) {
       mean_try = n_mean_try;
       diversi_try++;
-      diversification(cost_mat, sol_1d, size, pop_2d, pop_cost_2d, n_population,
+      diversification(cost_mat, size, pop_2d, pop_cost_2d, n_population, 1,
                       pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
     } else {
       diversi_try = 0;

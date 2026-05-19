@@ -33,7 +33,8 @@ t_cost_delta ils(const t_cost *const cost_mat, size_t *const sol_1d,
 void populate(
     const t_cost *const cost_mat, size_t *const pop_2d,
     t_cost *const pop_cost_2d, const size_t size, const size_t n_population,
-    const enum pivot_enum pivot_rule, const ushort n_neighb_vn,
+    const size_t from, const enum pivot_enum pivot_rule,
+    const ushort n_neighb_vn,
     t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration);
 
 t_cost_delta dpx_crossover(const t_cost *const cost_mat,
@@ -75,17 +76,17 @@ void select_best_pop(size_t *restrict const pop_2d,
                      const size_t size);
 
 void diversification(
-    const t_cost *restrict const cost_mat, size_t *restrict const sol_1d,
-    size_t size, size_t *const pop_2d, t_cost *const pop_cost_2d,
-    const size_t n_population, const enum pivot_enum pivot_rule,
+    const t_cost *restrict const cost_mat, size_t size, size_t *const pop_2d,
+    t_cost *const pop_cost_2d, const size_t n_population, const size_t n_best,
+    const enum pivot_enum pivot_rule,
     t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn);
 
 t_cost_delta
 memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
-        const size_t n_population, const size_t generation,
-        const size_t mean_try, const float offspring_cross_mut,
+        const size_t n_population, const size_t n_diversi_try,
+        const size_t n_mean_try, const float offspring_cross_mut,
         const size_t n_offspring, const float mutation_rate,
-        const float cross_rate, enum pivot_enum pivot_rule,
+        const float cross_rate, const enum pivot_enum pivot_rule,
         t_fptr_delta_neigh_exploration *fptr_delta_neigh_explaration,
-        ushort n_neighb_vn);
+        const ushort n_neighb_vn);
