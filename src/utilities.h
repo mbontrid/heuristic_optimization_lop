@@ -40,6 +40,8 @@ typedef long int t_cost_delta;
 #define max(A, B) ((A) > (B) ? (A) : (B))
 #define min(A, B) ((A) < (B) ? (A) : (B))
 
+#define ARRAY_BYTES(ptr, count) ((count) * sizeof(*(ptr)))
+
 typedef struct {
   int index;
   double value;
