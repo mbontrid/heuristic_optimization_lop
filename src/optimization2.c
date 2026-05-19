@@ -156,6 +156,7 @@ t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
   assert(!is_array_overlap(p1_offspring, size * sizeof(size_t), p2,
                            size * sizeof(size_t)));
 
+  const t_cost cost_before = computeCost(cost_mat, p1_offspring, size);
   t_cost_delta delta = 0;
 
   size_t n_cross = (size_t)(cross_rate * size);
@@ -196,12 +197,13 @@ t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
   free(is_selected_value);
   free(selected_positions);
 
+  const t_cost cost_after = computeCost(cost_mat, p1_offspring, size);
+  delta = (t_cost_delta)cost_after - (t_cost_delta)cost_before;
+
 #ifndef NDEBUG
   assert(delta == 0 ||
          !array_equal(p1_offspring, assert_p1_offspring_before, size));
-  assert(computeCost(cost_mat, p1_offspring, size) -
-             computeCost(cost_mat, assert_p1_offspring_before, size) ==
-         delta);
+  assert((t_cost_delta)cost_after - (t_cost_delta)cost_before == delta);
   free(assert_p1_offspring_before);
 #endif
   return delta;
