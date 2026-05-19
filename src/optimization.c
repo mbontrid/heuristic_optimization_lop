@@ -164,8 +164,9 @@ t_cost_delta cost_swap_delta(const t_mat_cell *const cost_mat_2d,
   return delta;
 }
 
-t_cost_delta rand_swaps(const t_cost *const cost_mat, size_t *const array,
-                        const size_t size, const float rate) {
+t_cost_delta rand_swaps(const t_cost *restrict const cost_mat,
+                        size_t *restrict const array, const size_t size,
+                        const float rate) {
   assert(rate <= 1 || rate >= 0);
   assert(array);
 #ifndef NDEBUG
@@ -183,10 +184,10 @@ t_cost_delta rand_swaps(const t_cost *const cost_mat, size_t *const array,
   }
 
   assert(get_max_array(array, size) < size);
+#ifndef NDEBUG
   assert(delta ==
          (t_cost_delta)computeCost(cost_mat, array, size) -
              (t_cost_delta)computeCost(cost_mat, assert_old_sol, size));
-#ifndef NDEBUG
   free(assert_old_sol);
 #endif
   return delta;

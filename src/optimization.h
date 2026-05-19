@@ -64,7 +64,7 @@ long int get_cost_diff_with_shuffle(const t_mat_cell *const cost_mat_2d,
                                     const size_t size);
 
 /**
- * @brief Compute efficiently the cost difference if a swap of two elemen of a
+ * @brief Compute efficiently the cost difference IF a swap of two elemen of a
  * solution of a lop is apllied.
  *
  * @param cost_mat_2d Cost matrix 2d  of size [size, size] flattened to 1d.
@@ -79,8 +79,9 @@ t_cost_delta cost_swap_delta(const t_mat_cell *const cost_mat_2d,
                              const size_t *const sol_1d, const size_t size,
                              const size_t i, const size_t j);
 
-t_cost_delta rand_swaps(const t_cost *const cost_mat, size_t *const array,
-                        const size_t size, const float rate);
+t_cost_delta rand_swaps(const t_cost *restrict const cost_mat,
+                        size_t *restrict const array, const size_t size,
+                        const float rate);
 
 /**
  * @brief Compute the prefix sum of each row of a matrix independently.

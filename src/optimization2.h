@@ -51,7 +51,7 @@ void crossover(
     const size_t *const pop_2d, const t_cost *const pop_cost_1d,
     const size_t n_population, size_t *const crossover_2d,
     t_cost *const crossover_cost_2d, const size_t n_crossover,
-    const enum pivot_enum pivot_rule,
+    const float cross_rate, const enum pivot_enum pivot_rule,
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn);
 
@@ -70,7 +70,7 @@ void offspring(
     const t_cost *restrict const pop_cost_1d, const size_t n_population,
     size_t *const offspring_2d, t_cost *const offspring_cost_2d,
     const size_t n_offspring, const float offspring_cross_mut,
-    const enum pivot_enum pivot_rule,
+    const float cross_rate, const enum pivot_enum pivot_rule,
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn, float mutation_rate);
 

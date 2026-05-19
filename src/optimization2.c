@@ -68,14 +68,16 @@ void populate(
 
   assert(from >= 0 && from <= n_population);
 
-  // generating incremental solution and its cost as base for all individuals
+  // generating incremental solution and its cost as base for all individuals.
+  // All individuals will be base on this with random swapes while keeping the
+  // cost delta history.
   const size_t *const tmp_sol_1d = generate_incr_vector(size);
   t_cost incr_sol_cost = computeCost(cost_mat, tmp_sol_1d, size);
 
   // generating population
   for (size_t i = from; i < n_population; i++) {
-    size_t *current = &pop_2d[i * size];
-    t_cost *const current_cost = &pop_cost_1d[i];
+    size_t *restrict const current = &pop_2d[i * size];
+    t_cost *restrict const current_cost = &pop_cost_1d[i];
 
     do {
       DPRINTF("Generating solution for individual %zu\n", i);
@@ -110,6 +112,8 @@ t_cost_delta dpx_crossover(const t_cost *const cost_mat,
   assert(indexes);
   size_t to_move = 0;
 
+  // make a indexes array with the first to_move elements that are not at the
+  // same position in the two parents.
   for (size_t i = 0; i < size; i++) {
     if (p1_offspring[i] != p2[i]) {
       indexes[to_move++] = i;
@@ -118,18 +122,20 @@ t_cost_delta dpx_crossover(const t_cost *const cost_mat,
 
   t_cost_delta delta = 0;
 
+  // im proud of this but don't understand it anymore.
+  //  select two random indexes to move and swap them.
   while (to_move > 2) {
     size_t mov1_index = randInt(0, to_move - 1);
     size_t mov1 = indexes[mov1_index];
-    assert(to_move > 0);
     indexes[mov1_index] = indexes[--to_move];
     size_t mov2_index = randInt(0, to_move - 1);
     size_t mov2 = indexes[mov2_index];
-    assert(to_move > 0);
     indexes[mov2_index] = indexes[--to_move];
 
     delta += cost_swap_delta(cost_mat, p1_offspring, size, mov1, mov2);
     swap(p1_offspring, mov1, mov2);
+    assert(delta == computeCost(cost_mat, p1_offspring, size) -
+                        computeCost(cost_mat, p2, size));
   }
 
   free(indexes);
@@ -147,6 +153,8 @@ t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
   assert(size > 1);
   assert(get_max_array(p1_offspring, size) < size);
   assert(get_max_array(p2, size) < size);
+  assert(!is_array_overlap(p1_offspring, size * sizeof(size_t), p2,
+                           size * sizeof(size_t)));
 
   t_cost_delta delta = 0;
 
@@ -216,7 +224,7 @@ void crossover(
     const size_t *const pop_2d, const t_cost *const pop_cost_1d,
     const size_t n_population, size_t *const crossover_2d,
     t_cost *const crossover_cost_2d, const size_t n_crossover,
-    const enum pivot_enum pivot_rule,
+    const float cross_rate, const enum pivot_enum pivot_rule,
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn) {
 
@@ -226,11 +234,13 @@ void crossover(
 
   for (size_t cross_id = 0; cross_id < n_crossover; cross_id++) {
     t_cost_delta p1_cost = 0;
+    ///////////////////////////////////////////////////////////
     // search for a non existing crossover solution until found
+    ///////////////////////////////////////////////////////////
     do {
       // select two different random parents
-      size_t p1_index = 0;
-      size_t p2_index = 0;
+      size_t p1_index;
+      size_t p2_index;
       do {
         p1_index = randInt(0, n_population - 1);
         p2_index = randInt(0, n_population - 1);
@@ -240,7 +250,6 @@ void crossover(
       const size_t *const p1_1d = &pop_2d[p1_index * size];
       const size_t *const p2_1d = &pop_2d[p2_index * size];
       p1_cost = pop_cost_1d[p1_index];
-      assert(pop_cost_1d[p2_index] == computeCost(cost_mat, p2_1d, size));
       assert(p1_cost == computeCost(cost_mat, p1_1d, size));
       assert(!is_array_overlap(crossover_2d,
                                ARRAY_BYTES(crossover_2d, size * n_crossover),
@@ -250,20 +259,15 @@ void crossover(
                                p2_1d, ARRAY_BYTES(p2_1d, size)));
 
       // crossover and local search
-      assert(!is_array_overlap(crossover_2d,
-                               ARRAY_BYTES(crossover_2d, size * n_crossover),
-                               p1_1d, ARRAY_BYTES(p1_1d, size)));
       memcpy(&crossover_2d[cross_id * size], p1_1d, size * sizeof(*p1_1d));
-      assert(computeCost(cost_mat, &crossover_2d[cross_id * size], size) ==
-             computeCost(cost_mat, p1_1d, size));
-      p1_cost +=
-          dpx_crossover(cost_mat, &crossover_2d[cross_id * size], p2_1d, size);
-      assert(p1_cost ==
-             computeCost(cost_mat, &crossover_2d[cross_id * size], size));
+      // p1_cost +=
+      //     dpx_crossover(cost_mat, &crossover_2d[cross_id * size], p2_1d,
+      //     size);
+      p1_cost += ob_crossover(cost_mat, &crossover_2d[cross_id * size], p2_1d,
+                              size, cross_rate);
       p1_cost += vnd_lop(cost_mat, size, &crossover_2d[cross_id * size],
                          pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
-      assert(p1_cost ==
-             computeCost(cost_mat, &crossover_2d[cross_id * size], size));
+
       DPRINTF("Crossover %zu with parents %zu and %zu has cost %ld\n", cross_id,
               p1_index, p2_index, p1_cost);
     } while (is_array_in_arrays(&crossover_2d[cross_id * size], crossover_2d,
@@ -316,7 +320,7 @@ void offspring(
     const t_cost *restrict const pop_cost_1d, const size_t n_population,
     size_t *const offspring_2d, t_cost *const offspring_cost_2d,
     const size_t n_offspring, const float offspring_cross_mut,
-    const enum pivot_enum pivot_rule,
+    const float cross_rate, const enum pivot_enum pivot_rule,
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn, float mutation_rate) {
 
@@ -337,7 +341,8 @@ void offspring(
       crossover_2d, ARRAY_BYTES(crossover_2d, size * n_crossover), mutation_2d,
       ARRAY_BYTES(mutation_2d, size * n_mutation)));
 
-  // same as above for cost arrays.
+  // attribute pointers to the offspring cost array between crossover cost and
+  // mutation cost.
   t_cost *restrict const crossover_cost_2d = &offspring_cost_2d[0];
   t_cost *restrict const mutation_cost_2d = &offspring_cost_2d[n_crossover];
   assert(!is_array_overlap(
@@ -347,8 +352,9 @@ void offspring(
   // populate the first n_crossover elements of offspring with crossover.
   PVERB("Generating %zu crossover offspring\n", n_crossover);
   crossover(cost_mat, size, pop_2d, pop_cost_1d, n_population, crossover_2d,
-            crossover_cost_2d, n_crossover, pivot_rule,
+            crossover_cost_2d, n_crossover, cross_rate, pivot_rule,
             fptr_delta_neigh_explaration, n_neighb_vn);
+
   // populate the rest of offspring with mutation.
   PVERB("Generating %zu mutation offspring\n", n_mutation);
   mutation(cost_mat, size, pop_2d, pop_cost_1d, n_population, mutation_2d,
@@ -461,8 +467,9 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
 
     PVERB("Generating offspring\n");
     offspring(cost_mat, size, pop_2d, pop_cost_1d, n_population, offspring_2d,
-              offspring_cost_2d, n_offspring, offspring_cross_mut, pivot_rule,
-              fptr_delta_neigh_explaration, n_neighb_vn, mutation_rate);
+              offspring_cost_2d, n_offspring, offspring_cross_mut, cross_rate,
+              pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn,
+              mutation_rate);
 
     PVERB("Selecting best population\n");
     // the best sols will be in descending order.
