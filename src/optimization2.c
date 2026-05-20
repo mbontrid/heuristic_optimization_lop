@@ -136,13 +136,13 @@ t_delta_cost dpx_crossover(const t_cost *const cost_mat,
 
     delta += cost_if_swap_delta(cost_mat, p1_offspring, size, mov1, mov2);
     swap(p1_offspring, mov1, mov2);
-    assert(delta == computeCost(cost_mat, p1_offspring, size) -
-                        computeCost(cost_mat, p2, size));
+    assert(delta == (t_delta_cost)computeCost(cost_mat, p1_offspring, size) -
+                        (t_delta_cost)computeCost(cost_mat, p2, size));
   }
 
   free(indexes);
-  assert(assert_cost_before + delta ==
-         computeCost(cost_mat, p1_offspring, size));
+  assert((t_delta_cost)assert_cost_before + delta ==
+         (t_delta_cost)computeCost(cost_mat, p1_offspring, size));
   return delta;
 }
 
@@ -199,11 +199,13 @@ t_delta_cost ob_crossover(const t_cost *restrict const cost_mat,
   // end ob_crossover
   /////////////////////////
 #ifndef NDEBUG
+  // delta == 0 => !array_equel
   assert(delta != 0 ||
          !array_equal(p1_offspring, assert_p1_offspring_before, size));
   assert(ordered_count == n_cross);
-  assert(delta == computeCost(cost_mat, p1_offspring, size) -
-                      computeCost(cost_mat, assert_p1_offspring_before, size));
+  assert(delta == (t_delta_cost)computeCost(cost_mat, p1_offspring, size) -
+                      (t_delta_cost)computeCost(
+                          cost_mat, assert_p1_offspring_before, size));
 
   free(assert_p1_offspring_before);
 #endif
@@ -510,12 +512,11 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     const double new_mean_pop_cost = get_mean(pop_cost_1d, n_population);
     if (new_mean_pop_cost <= mean_pop_cost) {
       mean_try++;
-      if (mean_try >= n_mean_try) {
+      if (mean_try >= n_mean_try && diversi_try++ < n_diversi_try) {
         /////////////////////////////////////////
         /// diversify
         ////////////////////////////////////////
         mean_try = 0;
-        diversi_try++;
         mean_pop_cost_before_diversi = mean_pop_cost;
 
         PVERB("Diversifying population\n");
