@@ -30,7 +30,7 @@
  * @param worse_bracket negative dalta accetpable.
  * @return Acceted or not.
  */
-bool accept_worse(const t_cost_delta delta, const t_cost worse_bracket);
+bool accept_worse(const t_delta_cost delta, const t_cost worse_bracket);
 
 /**
  * @brief Iteratid local search for the LOP.
@@ -50,7 +50,7 @@ bool accept_worse(const t_cost_delta delta, const t_cost worse_bracket);
  * neighborhood to explore in VND.
  * @return cost_delat of sol_1d before and after ILS.
  */
-t_cost_delta
+t_delta_cost
 ils(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     const float perturb_rate, const size_t n_try, const t_cost worse,
     enum pivot_enum pivot_rule,
@@ -64,11 +64,11 @@ void populate(
     const ushort n_neighb_vn,
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration);
 
-t_cost_delta dpx_crossover(const t_cost *const cost_mat,
+t_delta_cost dpx_crossover(const t_cost *const cost_mat,
                            size_t *const p1_offspring, const size_t *const p2,
                            size_t size);
 
-t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
+t_delta_cost ob_crossover(const t_cost *restrict const cost_mat,
                           size_t *const p1_offspring, const size_t *const p2,
                           const size_t size, const float cross_rate);
 
@@ -114,7 +114,7 @@ void diversification(
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn);
 
-t_cost_delta
+t_delta_cost
 memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
         const size_t n_population, const size_t n_diversi_try,
         const size_t n_mean_try, const float offspring_cross_mut,

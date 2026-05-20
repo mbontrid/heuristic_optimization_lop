@@ -31,7 +31,7 @@
 
 typedef unsigned int t_mat_cell;
 typedef unsigned int t_cost;
-typedef long int t_cost_delta;
+typedef long int t_delta_cost;
 
 #define MAX_COST UINT_MAX
 #define MAX_COST_CELL UINT_MAX
@@ -72,7 +72,7 @@ enum algo_enum {
 typedef size_t *(*t_fptr_sol_start)(const t_mat_cell *restrict const CostMat,
                                     size_t size);
 
-typedef t_cost_delta (*t_fptr_delta_neigh_exploration)(
+typedef t_delta_cost (*t_fptr_delta_neigh_exploration)(
     const t_mat_cell *const cost_mat_2d, size_t *const sol_1d, size_t size,
     bool is_first);
 

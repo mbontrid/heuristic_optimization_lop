@@ -7,19 +7,19 @@
 #include "optimization2.h"
 #include "utilities.h"
 
-bool accept_worse(const t_cost_delta delta, const t_cost worse_bracket) {
+bool accept_worse(const t_delta_cost delta, const t_cost worse_bracket) {
   assert(worse_bracket >= 0);
   return delta > worse_bracket;
 }
 
-t_cost_delta
+t_delta_cost
 ils(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     const float perturb_rate, const size_t n_try, const t_cost worse,
     enum pivot_enum pivot_rule,
     const t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
     ushort n_neighb_vn) {
 
-  t_cost_delta delta = vnd_lop(cost_mat, size, sol_1d, pivot_rule,
+  t_delta_cost delta = vnd_lop(cost_mat, size, sol_1d, pivot_rule,
                                fptr_delta_neigh_exploration, n_neighb_vn);
 #ifndef NDEBUG
   size_t *const assert_sol_1d_old = malloc(size * sizeof(size_t));
@@ -31,7 +31,7 @@ ils(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   memcpy(new_sol_1d, sol_1d, size * sizeof(size_t));
 
   while (try--) {
-    t_cost_delta new_delta = 0;
+    t_delta_cost new_delta = 0;
     new_delta +=
         rand_swaps_with_delta(cost_mat, new_sol_1d, size, perturb_rate);
     new_delta += vnd_lop(cost_mat, size, new_sol_1d, pivot_rule,
@@ -52,8 +52,8 @@ ils(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   }
 
   assert(delta ==
-         (t_cost_delta)computeCost(cost_mat, sol_1d, size) -
-             (t_cost_delta)computeCost(cost_mat, assert_sol_1d_old, size));
+         (t_delta_cost)computeCost(cost_mat, sol_1d, size) -
+             (t_delta_cost)computeCost(cost_mat, assert_sol_1d_old, size));
 #ifndef NDEBUG
   free(assert_sol_1d_old);
 #endif
@@ -80,9 +80,9 @@ void populate(
     size_t *restrict const current = &pop_2d[i * size];
     t_cost *restrict const current_cost = &pop_cost_1d[i];
 
+    memcpy(current, tmp_sol_1d, size * sizeof(size_t));
     do {
       DPRINTF("Generating solution for individual %zu\n", i);
-      memcpy(current, tmp_sol_1d, size * sizeof(size_t));
 
       randomize_vector(current, size);
       *current_cost = computeCost(cost_mat, current, size);
@@ -101,7 +101,7 @@ void populate(
 #endif
 }
 
-t_cost_delta dpx_crossover(const t_cost *const cost_mat,
+t_delta_cost dpx_crossover(const t_cost *const cost_mat,
                            size_t *const p1_offspring, const size_t *const p2,
                            size_t size) {
   assert(p1_offspring);
@@ -122,7 +122,7 @@ t_cost_delta dpx_crossover(const t_cost *const cost_mat,
     }
   }
 
-  t_cost_delta delta = 0;
+  t_delta_cost delta = 0;
 
   // im proud of this but don't understand it anymore.
   //  select two random indexes to move and swap them.
@@ -134,7 +134,7 @@ t_cost_delta dpx_crossover(const t_cost *const cost_mat,
     size_t mov2 = indexes[mov2_index];
     indexes[mov2_index] = indexes[--to_move];
 
-    delta += cost_swap_delta(cost_mat, p1_offspring, size, mov1, mov2);
+    delta += cost_if_swap_delta(cost_mat, p1_offspring, size, mov1, mov2);
     swap(p1_offspring, mov1, mov2);
     assert(delta == computeCost(cost_mat, p1_offspring, size) -
                         computeCost(cost_mat, p2, size));
@@ -146,7 +146,7 @@ t_cost_delta dpx_crossover(const t_cost *const cost_mat,
   return delta;
 }
 
-t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
+t_delta_cost ob_crossover(const t_cost *restrict const cost_mat,
                           size_t *const p1_offspring, const size_t *const p2,
                           const size_t size, const float cross_rate) {
   assert(p1_offspring);
@@ -159,56 +159,57 @@ t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
                            size * sizeof(size_t)));
 
 #ifndef NDEBUG
-  const t_cost cost_before = computeCost(cost_mat, p1_offspring, size);
   size_t *const assert_p1_offspring_before = malloc(size * sizeof(size_t));
   memcpy(assert_p1_offspring_before, p1_offspring, size * sizeof(size_t));
 #endif
 
-  t_cost_delta delta = 0;
+  t_delta_cost delta = 0;
 
   size_t n_cross = (size_t)(cross_rate * size);
-  if (n_cross == 0) {
-    n_cross = 1;
-  } else if (n_cross >= size) {
-    n_cross = size - 1;
-  }
+  assert(n_cross >= 0 && n_cross < size);
 
   size_t *const selected_positions = generate_rand_no_rep_array(size);
   bool *const is_selected_value = calloc(size, sizeof(bool));
   assert(selected_positions);
   assert(is_selected_value);
 
+  // mark the n_cross first indexe of selected_positions in is_selected
   for (size_t i = 0; i < n_cross; i++) {
     const size_t position = selected_positions[i];
     is_selected_value[p1_offspring[position]] = true;
   }
 
+  // sort the selected positions.
   ascending_sort(selected_positions, n_cross);
 
   size_t ordered_count = 0;
   for (size_t i = 0; i < size; i++) {
     const size_t value = p2[i];
     if (is_selected_value[value]) {
-      delta += cost_swap_delta(cost_mat, p1_offspring, size, i,
-                               selected_positions[ordered_count++]);
+      size_t j = selected_positions[ordered_count++];
+      delta += cost_if_swap_delta(cost_mat, p1_offspring, size, i, j);
+      swap(p1_offspring, i, j);
       if (ordered_count == n_cross) {
         break;
       }
     }
   }
-  assert(ordered_count == n_cross);
-  free(is_selected_value);
-  free(selected_positions);
 
+  ////////////////////////
+  // end ob_crossover
+  /////////////////////////
 #ifndef NDEBUG
-  const t_cost cost_after = computeCost(cost_mat, p1_offspring, size);
-  delta = (t_cost_delta)cost_after - (t_cost_delta)cost_before;
-
-  assert(delta == 0 ||
+  assert(delta != 0 ||
          !array_equal(p1_offspring, assert_p1_offspring_before, size));
-  assert((t_cost_delta)cost_after - (t_cost_delta)cost_before == delta);
+  assert(ordered_count == n_cross);
+  assert(delta == computeCost(cost_mat, p1_offspring, size) -
+                      computeCost(cost_mat, assert_p1_offspring_before, size));
+
   free(assert_p1_offspring_before);
 #endif
+
+  free(is_selected_value);
+  free(selected_positions);
   return delta;
 }
 
@@ -228,7 +229,7 @@ void crossover(
                            ARRAY_BYTES(crossover_2d, size * n_crossover)));
 
   for (size_t cross_id = 0; cross_id < n_crossover; cross_id++) {
-    t_cost_delta p1_cost = 0;
+    t_delta_cost p1_cost = 0;
     ///////////////////////////////////////////////////////////
     // search for a non existing crossover solution until found
     ///////////////////////////////////////////////////////////
@@ -294,7 +295,7 @@ void mutation(
     ushort n_neighb_vn) {
 
   for (size_t mut_id = 0; mut_id < n_mutation; mut_id++) {
-    t_cost_delta p1_cost = 0;
+    t_delta_cost p1_cost = 0;
     // make a random mutation on a random parent until a non existing solution
     // is found
     size_t replicate_count = 0;
@@ -428,7 +429,7 @@ void diversification(
            pivot_rule, n_neighb_vn, fptr_delta_neigh_explaration);
 }
 
-t_cost_delta
+t_delta_cost
 memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
         const size_t n_population, const size_t n_diversi_try,
         const size_t n_mean_try, const float offspring_cross_mut,

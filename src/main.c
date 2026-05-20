@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
   // generating first solution
   size_t *sol_1d = arguments.fptr_sol_start(cost_mat_2d, mat_cost_dim);
 
-  t_cost_delta cost = computeCost(cost_mat_2d, sol_1d, mat_cost_dim);
+  t_delta_cost cost = computeCost(cost_mat_2d, sol_1d, mat_cost_dim);
 
   /* starts time measurement */
   clock_t start = clock();

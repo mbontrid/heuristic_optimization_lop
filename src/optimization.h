@@ -75,11 +75,11 @@ long int get_cost_diff_with_shuffle(const t_mat_cell *const cost_mat_2d,
  * @return delta cost of the swap, i.e. cost of sol_1d with i and j swapped -
  * cost of sol_1d.
  */
-t_cost_delta cost_swap_delta(const t_mat_cell *const cost_mat_2d,
-                             const size_t *const sol_1d, const size_t size,
-                             const size_t i, const size_t j);
+t_delta_cost cost_if_swap_delta(const t_mat_cell *const cost_mat_2d,
+                                const size_t *const sol_1d, const size_t size,
+                                const size_t i, const size_t j);
 
-t_cost_delta rand_swaps_with_delta(const t_cost *restrict const cost_mat,
+t_delta_cost rand_swaps_with_delta(const t_cost *restrict const cost_mat,
                                    size_t *restrict const array,
                                    const size_t size, const float rate);
 
@@ -133,7 +133,7 @@ size_t get_n_exchange(const size_t size);
  * @return The cost difference between the initial solution and the new
  * solution.
  */
-t_cost_delta cost_delta_transpose(const t_mat_cell *const cost_mat_2d,
+t_delta_cost cost_delta_transpose(const t_mat_cell *const cost_mat_2d,
                                   size_t *const sol_1d, size_t size,
                                   bool is_first);
 /**
@@ -149,7 +149,7 @@ t_cost_delta cost_delta_transpose(const t_mat_cell *const cost_mat_2d,
  * @return The cost difference between the initial solution and the new
  * solution.
  */
-t_cost_delta cost_delta_exchange(const t_mat_cell *const cost_mat_2d,
+t_delta_cost cost_delta_exchange(const t_mat_cell *const cost_mat_2d,
                                  size_t *const sol_1d, size_t size,
                                  bool is_first);
 /**
@@ -165,7 +165,7 @@ t_cost_delta cost_delta_exchange(const t_mat_cell *const cost_mat_2d,
  * @return The cost difference between the initial solution and the new
  * solution.
  */
-t_cost_delta cost_delta_insert(const t_mat_cell *const cost_mat_2d,
+t_delta_cost cost_delta_insert(const t_mat_cell *const cost_mat_2d,
                                size_t *const sol_1d, size_t size,
                                bool is_first);
 
@@ -203,7 +203,7 @@ size_t *sol_start_cw(const t_mat_cell *const cost_mat_2d, size_t size);
  * @return difference in cost for sol_1d between the local optimum reached and
  * the initial solution.
  */
-t_cost_delta lop_iter_impr(
+t_delta_cost lop_iter_impr(
     const t_mat_cell *const cost_mat_2d, const size_t mat_cost_dim,
     size_t *const sol_1d, const enum pivot_enum pivot_rule,
     const t_fptr_delta_neigh_exploration fptr_delta_neigh_exploration);
@@ -223,13 +223,13 @@ t_cost_delta lop_iter_impr(
  * @param n_neighb_vnd lenght of fptr_delat_neigh_explaration
  * @return resulting lop cost of the the solution sol_1d
  */
-t_cost_delta vnd_lop(
+t_delta_cost vnd_lop(
     const t_mat_cell *const cost_mat_2d, const size_t cost_mat_dim,
     size_t *const sol_1d, const enum pivot_enum pivot_rule,
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_exploration,
     const ushort n_neighb_vnd);
 
-typedef t_cost_delta (*t_fptr_vnd_lop)(
+typedef t_delta_cost (*t_fptr_vnd_lop)(
     const t_mat_cell *const cost_mat_2d, size_t mat_cost_dim,
     size_t *const sol_1d, const enum pivot_enum pivot_rule,
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_exploration,
