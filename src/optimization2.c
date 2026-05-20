@@ -157,7 +157,12 @@ t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
   assert(!is_array_overlap(p1_offspring, size * sizeof(size_t), p2,
                            size * sizeof(size_t)));
 
+#ifndef NDEBUG
   const t_cost cost_before = computeCost(cost_mat, p1_offspring, size);
+  size_t *const assert_p1_offspring_before = malloc(size * sizeof(size_t));
+  memcpy(assert_p1_offspring_before, p1_offspring, size * sizeof(size_t));
+#endif
+
   t_cost_delta delta = 0;
 
   size_t n_cross = (size_t)(cross_rate * size);
@@ -166,11 +171,6 @@ t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
   } else if (n_cross >= size) {
     n_cross = size - 1;
   }
-
-#ifndef NDEBUG
-  size_t *const assert_p1_offspring_before = malloc(size * sizeof(size_t));
-  memcpy(assert_p1_offspring_before, p1_offspring, size * sizeof(size_t));
-#endif
 
   size_t *const selected_positions = generate_random_no_rep(size);
   bool *const is_selected_value = calloc(size, sizeof(bool));
@@ -188,7 +188,8 @@ t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
   for (size_t i = 0; i < size; i++) {
     const size_t value = p2[i];
     if (is_selected_value[value]) {
-      p1_offspring[selected_positions[ordered_count++]] = value;
+      delta += cost_swap_delta(cost_mat, p1_offspring, size, i,
+                               selected_positions[ordered_count++]);
       if (ordered_count == n_cross) {
         break;
       }
@@ -198,10 +199,10 @@ t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
   free(is_selected_value);
   free(selected_positions);
 
+#ifndef NDEBUG
   const t_cost cost_after = computeCost(cost_mat, p1_offspring, size);
   delta = (t_cost_delta)cost_after - (t_cost_delta)cost_before;
 
-#ifndef NDEBUG
   assert(delta == 0 ||
          !array_equal(p1_offspring, assert_p1_offspring_before, size));
   assert((t_cost_delta)cost_after - (t_cost_delta)cost_before == delta);
@@ -230,6 +231,7 @@ void crossover(
     ///////////////////////////////////////////////////////////
     // search for a non existing crossover solution until found
     ///////////////////////////////////////////////////////////
+    size_t replicate_count = 0;
     do {
       // select two different random parents
       size_t p1_index;
@@ -251,17 +253,20 @@ void crossover(
                                ARRAY_BYTES(crossover_2d, size * n_crossover),
                                p2_1d, ARRAY_BYTES(p2_1d, size)));
 
-      // crossover and local search
-      memcpy(&crossover_2d[cross_id * size], p1_1d, size * sizeof(*p1_1d));
       ///////////////////////////////////////////////
-      /// Do crossover and local search
+      /// Do crossover and local search.
+      /// The increasing rand_swap allow to avoid the generation of the same
+      /// solution over and over again.
       /////////////////////////////////////////////
+      memcpy(&crossover_2d[cross_id * size], p1_1d, size * sizeof(*p1_1d));
 
       // p1_cost +=
       //     dpx_crossover(cost_mat, &crossover_2d[cross_id * size], p2_1d,
       //     size);
       p1_cost += ob_crossover(cost_mat, &crossover_2d[cross_id * size], p2_1d,
                               size, cross_rate);
+      p1_cost += rand_swaps(cost_mat, &crossover_2d[cross_id * size], size,
+                            (float)replicate_count++ / size);
       p1_cost += vnd_lop(cost_mat, size, &crossover_2d[cross_id * size],
                          pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
 
@@ -289,6 +294,7 @@ void mutation(
     t_cost_delta p1_cost = 0;
     // make a random mutation on a random parent until a non existing solution
     // is found
+    size_t replicate_count = 0;
     do {
       const size_t rand_index = randInt(0, n_population - 1);
       // copy parent
@@ -297,7 +303,7 @@ void mutation(
       p1_cost = pop_cost_1d[rand_index];
       // apply mutation and local search
       p1_cost += rand_swaps(cost_mat, &mutation_2d[mut_id * size], size,
-                            mutation_rate);
+                            mutation_rate + 0.01 * replicate_count++);
       p1_cost += vnd_lop(cost_mat, size, &mutation_2d[mut_id * size],
                          pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
       DPRINTF("Mutation %zu with parent %zu has cost %ld\n", mut_id, rand_index,
@@ -470,6 +476,7 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   ////////////////////////////////////
   double mean_pop_cost = get_mean(pop_cost_1d, n_population);
   size_t mean_try = 0;
+  double mean_pop_cost_before_diversi = 0;
   size_t diversi_try = 0;
   do {
 
@@ -490,27 +497,31 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     const double new_mean_pop_cost = get_mean(pop_cost_1d, n_population);
     if (new_mean_pop_cost <= mean_pop_cost) {
       mean_try++;
+      if (mean_try >= n_mean_try) {
+        /////////////////////////////////////////
+        /// diversify
+        ////////////////////////////////////////
+        mean_try = 0;
+        diversi_try++;
+        mean_pop_cost_before_diversi = mean_pop_cost;
+
+        PVERB("Diversifying population\n");
+        diversification(cost_mat, size, pop_2d, pop_cost_1d, n_population, 1,
+                        pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
+      } else if (mean_pop_cost_before_diversi < mean_pop_cost) {
+        // did improve some time after last diversification.
+        diversi_try = 0;
+      }
     } else {
       mean_try = 0;
     }
     mean_pop_cost = new_mean_pop_cost;
 
-    /////////////////////////////////////////
-    /// diversify
-    ////////////////////////////////////////
-    if (mean_try >= n_mean_try) {
-      diversi_try++;
-      PVERB("Diversifying population with %zu tries left\n",
-            n_diversi_try - diversi_try);
-      diversification(cost_mat, size, pop_2d, pop_cost_1d, n_population, 1,
-                      pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
-      mean_try = 0;
-    }
-
-    PVERB("mean_pop_cost=%.2f | best_cost=%u | mean_try=%zu/%zu | "
+    PVERB("mean_pop_cost=%.2f | mean_pop_cost_before_diversi=%.2f | "
+          "best_cost=%u | mean_try=%zu/%zu | "
           "diversity_try=%zu/%zu\n",
-          mean_pop_cost, pop_cost_1d[0], mean_try, n_mean_try, diversi_try,
-          n_diversi_try);
+          mean_pop_cost, mean_pop_cost_before_diversi, pop_cost_1d[0], mean_try,
+          n_mean_try, diversi_try, n_diversi_try);
   } while (diversi_try < n_diversi_try);
   ////////////////////////////////////////////////////////////////////
   /// end of generations, return the first element of the population
