@@ -234,7 +234,7 @@ def parse_args() -> argparse.Namespace:
         "--k",
         type=int,
         default=1,
-        help="Number of runs per algo combination (instance, pivot, neighborhood, sol_start) and select the best time.",
+        help="Number of runs per algo combination and select the best time.",
     )
     parser.add_argument(
         "--output_it_imp",
@@ -283,10 +283,10 @@ def parse_args() -> argparse.Namespace:
         "-w",
         "--workers",
         type=int,
-        default=0,
+        default=-1,
         help=(
             "Number of workers used to run benchmark combinations in parallel processes. "
-            "Use 1 to disable parallel execution and 0 to use all CPUs minus one."
+            "Use 1 to disable parallel execution and -x to use all CPUs minus x."
             "Overloading the CPU may show slower time per test measurement but will be faster if only the result matter"
         ),
     )
@@ -359,13 +359,12 @@ def main() -> int:
         raise ValueError("--k must be greater than 0")
     if args.workers < 0:
         raise ValueError("--workers must be greater than or equal to 0")
-    if args.workers == 0:
-        args.workers = max(1, multiprocessing.cpu_count() - 1)
+    if args.workers <= 0:
+        args.workers = multiprocessing.cpu_count() - args.workers
     if args.workers > multiprocessing.cpu_count():
-        raise ValueError(
-            "--workers more workers specified than available on this system"
-        )
-    print(f"{args.workers} processors allocated")
+        args.workers = max(1, multiprocessing.cpu_count())
+
+    print(f"{args.workers} processes allocated")
     if not args.binary.is_file():
         run_compile_target()
         if not args.binary.is_file():
