@@ -1,0 +1,66 @@
+
+./build/bin/lop -i ./data/input/instances/N-tiw56r72_250 -s c_and_w -p first -n transpose -n exchange -n insert -a memetic --meme_pop=20 --meme_offspring=10 --meme_mut_rate=0.1 --meme_mean_try=5 --meme_divers_try=3 --meme_cross_rate=0.5 --meme_cross_mut=0.8 -v
+
+RESULT cost=7399550 time=20660.3 solution=74 230 137 100 174 13 31 86 233 15 111 35 165 191 135 1 5 197 56 145 47 78 66 212 164 129 207 193 201 10 99 83 203 216 90 53 194 138 202 34 131 177 143 146 38 7 92 68 224 55 242 208 82 108 2 62 204 156 149 52 43 98 199 173 79 163 238 170 40 245 180 70 24 123 32 225 176 234 4 9 60 148 229 217 39 77 72 3 84 102 46 76 119 154 195 75 91 107 44 93 16 57 246 71 169 80 8 19 214 188 112 21 36 128 243 81 134 63 162 27 118 153 206 64 94 0 45 61 219 150 211 67 69 185 160 114 157 88 59 236 49 172 215 101 227 85 237 223 168 226 103 104 97 113 126 228 6 95 220 50 232 187 48 25 190 73 184 89 198 240 249 213 147 33 248 41 11 132 133 239 58 218 142 23 178 120 182 205 241 122 158 42 171 26 18 65 110 117 54 196 130 235 244 166 221 136 106 87 159 231 167 186 116 121 96 140 127 192 28 183 139 181 14 37 161 209 109 17 175 189 222 124 151 247 20 30 200 29 179 210 141 125 144 115 155 51 105 22 152 12
+
+
+if no mutation at crossover:
+EBUG: crossover: Crossover 4 with parents 14 and 9 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 6 and 14 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 18 and 2 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 19 and 17 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 11 and 16 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 10 and 17 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 2 and 10 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 3 and 19 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 9 and 3 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 15 and 3 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 13 and 4 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 3 and 16 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 5 and 9 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 2 and 16 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 12 and 1 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 0 and 4 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 11 and 4 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 12 and 5 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 16 and 15 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 15 and 13 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 18 and 9 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 14 and 12 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 16 and 11 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 13 and 8 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 6 and 12 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 6 and 13 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 0 and 18 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 8 and 2 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 8 and 0 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 19 and 17 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 19 and 15 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 9 and 17 has cost 3470505
+DEBUG: crossover: Crossover 4 with parents 19 and 0 has cost 3470505
+
+
+DEBUG: crossover: Crossover 0 with parents 17 and 21 has cost 3459356
+DEBUG: crossover: Crossover 1 with parents 6 and 17 has cost 3459431
+DEBUG: crossover: Crossover 2 with parents 1 and 11 has cost 3459451
+DEBUG: crossover: Crossover 3 with parents 14 and 13 has cost 3459416
+DEBUG: crossover: Crossover 4 with parents 2 and 1 has cost 3459451
+DEBUG: crossover: Crossover 5 with parents 18 and 14 has cost 3459356
+DEBUG: crossover: Crossover 5 with parents 16 and 5 has cost 3459218
+DEBUG: crossover: Crossover 6 with parents 10 and 20 has cost 3459431
+DEBUG: crossover: Crossover 6 with parents 8 and 10 has cost 3452518
+DEBUG: crossover: Crossover 7 with parents 14 and 7 has cost 3459416
+DEBUG: crossover: Crossover 7 with parents 20 and 24 has cost 3459356
+DEBUG: crossover: Crossover 7 with parents 21 and 9 has cost 3458802
+
+
+
+it is the mutation that is taking more time as the vnp hat to calculate a sol farther the crossing
+
+possible speedup in mutation, crossover and populate : keep a hash of the generated sol befor the vnd. Avoid vnd if solution already tried and exist already in array.
+
+
+
+./build/bin/lop_debug -i ./data/input/instances/N-be75eec_150 -s c_and_w -p first -n transpose -n exchange -n insert -a memetic --meme_pop=25 --meme_offspring=11 --meme_mut_rate=0.1 --meme_mean_try=5 --meme_divers_try=2 --meme_cross_rate=0.5 --meme_cross_mut=0.8 -v
+
+RESULT cost=3476024 time=9255.25 solution=7 81 143 36 98 100 25 116 64 44 103 60 17 96 147 26 19 3 50 124 89 24 137 70 127 29 134 71 53 42 35 33 74 82 122 130 123 23 72 11 8 131 129 125 30 6 149 112 135 18 31 91 86 2 20 59 93 128 1 102 46 142 34 133 21 138 62 104 119 4 87 80 121 78 120 114 132 148 48 47 38 0 76 126 14 54 22 139 109 5 10 85 115 75 90 88 97 39 49 63 61 52 113 94 101 68 77 141 110 145 51 99 65 67 136 56 69 66 40 117 58 13 45 95 146 144 9 73 16 105 32 107 108 27 41 111 92 140 55 43 15 12 37 106 118 84 83 79 57 28 

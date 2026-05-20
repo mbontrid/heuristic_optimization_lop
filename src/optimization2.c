@@ -184,8 +184,7 @@ t_delta_cost ob_crossover(const t_cost *restrict const cost_mat,
 
   size_t ordered_count = 0;
   for (size_t i = 0; i < size; i++) {
-    const size_t value = p2[i];
-    if (is_selected_value[value]) {
+    if (is_selected_value[p2[i]]) {
       size_t j = selected_positions[ordered_count++];
       delta += cost_if_swap_delta(cost_mat, p1_offspring, size, i, j);
       swap(p1_offspring, i, j);
