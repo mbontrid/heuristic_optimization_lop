@@ -32,7 +32,8 @@ ils(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
 
   while (try--) {
     t_cost_delta new_delta = 0;
-    new_delta += rand_swaps(cost_mat, new_sol_1d, size, perturb_rate);
+    new_delta +=
+        rand_swaps_with_delta(cost_mat, new_sol_1d, size, perturb_rate);
     new_delta += vnd_lop(cost_mat, size, new_sol_1d, pivot_rule,
                          fptr_delta_neigh_exploration, n_neighb_vn);
 
@@ -73,7 +74,6 @@ void populate(
   // All individuals will be base on this with random swapes while keeping the
   // cost delta history.
   const size_t *const tmp_sol_1d = generate_incr_vector(size);
-  t_cost incr_sol_cost = computeCost(cost_mat, tmp_sol_1d, size);
 
   // generating population
   for (size_t i = from; i < n_population; i++) {
@@ -83,9 +83,10 @@ void populate(
     do {
       DPRINTF("Generating solution for individual %zu\n", i);
       memcpy(current, tmp_sol_1d, size * sizeof(size_t));
-      *current_cost = incr_sol_cost;
-      // random swap with rate 1 make a random solution
-      *current_cost += rand_swaps(cost_mat, current, size, 1);
+
+      randomize_vector(current, size);
+      *current_cost = computeCost(cost_mat, current, size);
+
       *current_cost += vnd_lop(cost_mat, size, current, pivot_rule,
                                fptr_delta_neigh_explaration, n_neighb_vn);
 
@@ -172,7 +173,7 @@ t_cost_delta ob_crossover(const t_cost *restrict const cost_mat,
     n_cross = size - 1;
   }
 
-  size_t *const selected_positions = generate_random_no_rep(size);
+  size_t *const selected_positions = generate_rand_no_rep_array(size);
   bool *const is_selected_value = calloc(size, sizeof(bool));
   assert(selected_positions);
   assert(is_selected_value);
@@ -265,8 +266,8 @@ void crossover(
       //     size);
       p1_cost += ob_crossover(cost_mat, &crossover_2d[cross_id * size], p2_1d,
                               size, cross_rate);
-      p1_cost += rand_swaps(cost_mat, &crossover_2d[cross_id * size], size,
-                            (float)replicate_count++ / size);
+      p1_cost += rand_swaps_with_delta(cost_mat, &crossover_2d[cross_id * size],
+                                       size, (float)replicate_count++ / size);
       p1_cost += vnd_lop(cost_mat, size, &crossover_2d[cross_id * size],
                          pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
 
@@ -304,8 +305,9 @@ void mutation(
       memcpy(&mutation_2d[mut_id * size], p1, size * sizeof(size_t));
       p1_cost = pop_cost_1d[rand_index];
       // apply mutation and local search
-      p1_cost += rand_swaps(cost_mat, &mutation_2d[mut_id * size], size,
-                            mutation_rate + 0.01 * replicate_count++);
+      p1_cost +=
+          rand_swaps_with_delta(cost_mat, &mutation_2d[mut_id * size], size,
+                                mutation_rate + 0.01 * replicate_count++);
       p1_cost += vnd_lop(cost_mat, size, &mutation_2d[mut_id * size],
                          pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
       DPRINTF("Mutation %zu with parent %zu has cost %ld\n", mut_id, rand_index,

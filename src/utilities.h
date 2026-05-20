@@ -88,7 +88,8 @@ extern int randInt(int minimum, int maximum);
 extern bool rand_bool();
 
 size_t *generate_incr_vector(size_t size);
-extern size_t *generate_random_no_rep(size_t dim);
+void randomize_vector(size_t *restrict const array, const size_t size);
+extern size_t *generate_rand_no_rep_array(size_t dim);
 size_t *gener_no_rep_rand(size_t min, size_t max);
 
 /**
@@ -130,7 +131,8 @@ void print_array_1d(const long int *const array, const size_t n_columns);
  * @param n_rows Number of rows in the array.
  * @param n_columns Number of columns in the array.
  */
-void print_array_2d(t_mat_cell *array_2d, size_t n_rows, size_t n_columns);
+void print_array_2d(const t_mat_cell *const array_2d, const size_t n_rows,
+                    const size_t n_columns);
 /**
  * @brief Print the elements of a 2d array storsd as a pointer array of pointer.
  *
@@ -138,7 +140,8 @@ void print_array_2d(t_mat_cell *array_2d, size_t n_rows, size_t n_columns);
  * @param n_rows Number of rows in the array.
  * @param n_columns Number of columns in the array.
  */
-void print_array_2d2(t_mat_cell **array_2d, size_t n_rows, size_t n_columns);
+void print_array_2d2(const t_mat_cell *const *const array_2d,
+                     const size_t n_rows, const size_t n_columns);
 
 unsigned int factorial(unsigned int N);
 

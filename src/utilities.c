@@ -84,29 +84,32 @@ size_t *generate_incr_vector(size_t size) {
   return new_vector;
 }
 
-size_t *generate_random_no_rep(size_t dim)
+void randomize_vector(size_t *restrict const array, const size_t size) {
+  int tot_assigned = 0;
+
+  for (size_t i = 0; i < size; i++) {
+    /* find (randomly) an index for a free unit */
+    const double rnd = ran01(&Seed);
+    const int node = (long int)(rnd * (size - tot_assigned++));
+    const int help = array[i];
+    array[i] = array[i + node];
+    array[i + node] = help;
+  }
+}
+
+size_t *generate_rand_no_rep_array(size_t size)
 /* Generates a random vector, quick and dirty */
 {
-  size_t *random_vector = generate_incr_vector(dim);
-  int i, help, node, tot_assigned = 0;
-  double rnd;
+  size_t *random_vector = generate_incr_vector(size);
 
-  for (i = 0; i < dim; i++) {
-    /* find (randomly) an index for a free unit */
-    rnd = ran01(&Seed);
-    node = (long int)(rnd * (dim - tot_assigned));
-    help = random_vector[i];
-    random_vector[i] = random_vector[i + node];
-    random_vector[i + node] = help;
-    tot_assigned++;
-  }
+  randomize_vector(random_vector, size);
 
-  assert(get_max_array(random_vector, dim) < dim);
+  assert(get_max_array(random_vector, size) < size);
   return random_vector;
 }
 
 size_t *gener_no_rep_rand(size_t min, size_t max) {
-  size_t *random_vector = generate_random_no_rep(max - min + 1);
+  size_t *random_vector = generate_rand_no_rep_array(max - min + 1);
   for (size_t i = 0; i < max - min + 1; i++) {
     random_vector[i] += min;
   }
@@ -161,7 +164,8 @@ void print_array_1d(const long int *const array, const size_t n_columns) {
   printf("\n");
 }
 
-void print_array_2d(t_mat_cell *array_2d, size_t n_rows, size_t n_columns) {
+void print_array_2d(const t_mat_cell *const array_2d, const size_t n_rows,
+                    const size_t n_columns) {
   for (size_t i = 0; i < n_rows; i++) {
     for (size_t j = 0; j < n_columns; j++) {
       t_mat_cell value = array_2d[n_columns * i + j];
@@ -171,7 +175,8 @@ void print_array_2d(t_mat_cell *array_2d, size_t n_rows, size_t n_columns) {
   }
 }
 
-void print_array_2d2(t_mat_cell **array_2d, size_t n_rows, size_t n_columns) {
+void print_array_2d2(const t_mat_cell *const *const array_2d,
+                     const size_t n_rows, const size_t n_columns) {
   for (size_t i = 0; i < n_rows; i++) {
     for (size_t j = 0; j < n_columns; j++) {
       t_mat_cell value = array_2d[i][j];
