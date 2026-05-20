@@ -19,7 +19,8 @@ ils(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     const t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
     ushort n_neighb_vn) {
 
-  t_cost_delta delta = 0;
+  t_cost_delta delta = vnd_lop(cost_mat, size, sol_1d, pivot_rule,
+                               fptr_delta_neigh_exploration, n_neighb_vn);
 #ifndef NDEBUG
   size_t *const assert_sol_1d_old = malloc(size * sizeof(size_t));
   memcpy(assert_sol_1d_old, sol_1d, size * sizeof(size_t));
@@ -218,6 +219,8 @@ void crossover(
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn) {
 
+  assert(n_population > 0);
+  assert(n_crossover == 0 || n_population > 1);
   assert(!is_array_overlap(pop_2d, ARRAY_BYTES(pop_2d, size * n_population),
                            crossover_2d,
                            ARRAY_BYTES(crossover_2d, size * n_crossover)));
@@ -251,7 +254,7 @@ void crossover(
       // crossover and local search
       memcpy(&crossover_2d[cross_id * size], p1_1d, size * sizeof(*p1_1d));
       ///////////////////////////////////////////////
-      ///Do crossover and local search
+      /// Do crossover and local search
       /////////////////////////////////////////////
 
       // p1_cost +=
@@ -416,6 +419,15 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
         const t_fptr_delta_neigh_exploration *fptr_delta_neigh_explaration,
         const ushort n_neighb_vn) {
 
+  assert(cost_mat);
+  assert(sol_1d);
+  assert(size > 1);
+  assert(n_population > 0);
+  assert(n_offspring > 0);
+  assert(offspring_cross_mut >= 0 && offspring_cross_mut <= 1);
+  assert(mutation_rate >= 0 && mutation_rate <= 1);
+  assert(cross_rate >= 0 && cross_rate <= 1);
+
   //////////////////////////////////
   /// assing overlaping memory
   //////////////////////////////////
@@ -423,6 +435,8 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
       malloc(size * (n_population + n_offspring) * sizeof(*pop_off_2d));
   t_cost *const pop_off_cost_2d =
       malloc((n_population + n_offspring) * sizeof(*pop_off_cost_2d));
+  assert(pop_off_2d);
+  assert(pop_off_cost_2d);
 
   size_t *const pop_2d = &pop_off_2d[0];
   t_cost *const pop_cost_1d = &pop_off_cost_2d[0];
@@ -454,7 +468,7 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   /////////////////////////////////////
   /// generations of individuals
   ////////////////////////////////////
-  t_cost mean_pop_cost = 0;
+  double mean_pop_cost = get_mean(pop_cost_1d, n_population);
   size_t mean_try = 0;
   size_t diversi_try = 0;
   do {
@@ -473,13 +487,13 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     ///////////////////////////
     /// is diversification needed?
     /////////////////////////////
-    const t_cost new_mean_pop_cost = get_mean(pop_cost_1d, n_population);
+    const double new_mean_pop_cost = get_mean(pop_cost_1d, n_population);
     if (new_mean_pop_cost <= mean_pop_cost) {
       mean_try++;
       PVERB("Mean cost of population is not improving for %zu/%zu tries with "
-            "mean "
-            "cost %ld\n",
-            mean_try, n_mean_try, new_mean_pop_cost);
+             "mean "
+            "cost %.2f\n",
+             mean_try, n_mean_try, new_mean_pop_cost);
     } else {
       mean_try = 0;
       mean_pop_cost = new_mean_pop_cost;
@@ -489,8 +503,8 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     /// diversify
     ////////////////////////////////////////
     if (mean_try >= n_mean_try) {
-      PVERB("Diversification try %zu/%zu with mean cost %ld\n", diversi_try + 1,
-            n_diversi_try, mean_pop_cost);
+      PVERB("Diversification try %zu/%zu with mean cost %.2f\n",
+            diversi_try + 1, n_diversi_try, mean_pop_cost);
       mean_try = n_mean_try;
       diversi_try++;
       diversification(cost_mat, size, pop_2d, pop_cost_1d, n_population, 1,
@@ -498,8 +512,8 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     } else {
       diversi_try = 0;
     }
-    PVERB("Mean cost of population is %ld with best cost %ld at diversity try "
-          "%ld/%ld\n",
+    PVERB("Mean cost of population is %.2f with best cost %u at diversity try "
+          "%zu/%zu\n",
           mean_pop_cost, pop_cost_1d[0], diversi_try, n_diversi_try);
   } while (diversi_try < n_diversi_try);
   ////////////////////////////////////////////////////////////////////
