@@ -128,6 +128,12 @@ The difference with iterative improvement is just the number of `-n` called.
  ./build/bin/lop -i ./data/input/instances/N-be75eec_150 -s c_and_w -p first -n transpose -n exchange -n insert -a ils -t 20 -r 0.1 -w 1000
 ```
 
+#### memetic algorithm
+
+```bash
+./build/bin/lop -i ./data/input/instances/N-be75eec_150 -s c_and_w -p first -n transpose -n exchange -n insert -a memetic --meme_pop=25 --meme_offspring=11 --meme_mut_rate=0.1 --meme_mean_try=5 --meme_divers_try=10 --meme_cross_rate=0.5 --meme_cross_mut=0.8 -v
+```
+
 ## development
 
 The debug target has flag and verbose compiled with it `(-Og)`. It is far more verbose and there is great number of high complexity asserts.
