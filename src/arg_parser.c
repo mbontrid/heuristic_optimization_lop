@@ -36,12 +36,11 @@ static struct argp_option options[] = {
      "Number of individuals in the population based memetic algorithms. "
      "Default:25"},
     {"meme_divers_try", KEY_MEMETIC_N_DIVERSI_TRY, "SIZE_T", 0,
+     "Number of diversification with no improvement before terminating the "
+     "memetic algorithms. Default: 10"},
+    {"meme_mean_try", KEY_MEMETIC_N_MEAN_TRY, "SIZE_T", 0,
      "Number of same mean population before diversification for the memetic "
      "algorithms. "
-     "Default:10"},
-    {"meme_mean_try", KEY_MEMETIC_N_MEAN_TRY, "SIZE_T", 0,
-     "Number of diversification with no improvement before terminating the "
-     "memetic algorithms. "
      "Default:10"},
     {"meme_cross_mut", KEY_MEMETIC_OFFSPRING_CROSS_MUT, "FLOAT", 0,
      "Offspring crossover at each generation in the memetic algorithms. The "

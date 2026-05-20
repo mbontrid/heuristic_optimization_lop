@@ -250,6 +250,10 @@ void crossover(
 
       // crossover and local search
       memcpy(&crossover_2d[cross_id * size], p1_1d, size * sizeof(*p1_1d));
+      ///////////////////////////////////////////////
+      ///Do crossover and local search
+      /////////////////////////////////////////////
+
       // p1_cost +=
       //     dpx_crossover(cost_mat, &crossover_2d[cross_id * size], p2_1d,
       //     size);
