@@ -479,7 +479,7 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
               pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn,
               mutation_rate);
 
-    PVERB("Selecting best population\n");
+    PVERB("Selecting %zu best\n", n_population);
     // the best sols will be in descending order.
     select_n_best(pop_2d, pop_cost_1d, pop_off_2d, pop_off_cost_2d,
                   n_population, n_offspring + n_population, size);
@@ -490,37 +490,35 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     const double new_mean_pop_cost = get_mean(pop_cost_1d, n_population);
     if (new_mean_pop_cost <= mean_pop_cost) {
       mean_try++;
-      PVERB("Mean cost of population is not improving for %zu/%zu tries with "
-             "mean "
-            "cost %.2f\n",
-             mean_try, n_mean_try, new_mean_pop_cost);
     } else {
       mean_try = 0;
-      mean_pop_cost = new_mean_pop_cost;
     }
+    mean_pop_cost = new_mean_pop_cost;
 
     /////////////////////////////////////////
     /// diversify
     ////////////////////////////////////////
     if (mean_try >= n_mean_try) {
-      PVERB("Diversification try %zu/%zu with mean cost %.2f\n",
-            diversi_try + 1, n_diversi_try, mean_pop_cost);
-      mean_try = n_mean_try;
       diversi_try++;
+      PVERB("Diversifying population with %zu tries left\n",
+            n_diversi_try - diversi_try);
       diversification(cost_mat, size, pop_2d, pop_cost_1d, n_population, 1,
                       pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
-    } else {
-      diversi_try = 0;
+      mean_try = 0;
     }
-    PVERB("Mean cost of population is %.2f with best cost %u at diversity try "
-          "%zu/%zu\n",
-          mean_pop_cost, pop_cost_1d[0], diversi_try, n_diversi_try);
+
+    PVERB("mean_pop_cost=%.2f | best_cost=%u | mean_try=%zu/%zu | "
+          "diversity_try=%zu/%zu\n",
+          mean_pop_cost, pop_cost_1d[0], mean_try, n_mean_try, diversi_try,
+          n_diversi_try);
   } while (diversi_try < n_diversi_try);
   ////////////////////////////////////////////////////////////////////
   /// end of generations, return the first element of the population
   //////////////////////////////////////////////////////////////////////
   memcpy(sol_1d, &pop_2d[0], size * sizeof(size_t));
   const t_cost best_cost = pop_cost_1d[0];
+  assert(best_cost ==
+         get_max_array_cost(pop_cost_1d, n_population + n_offspring));
   assert(best_cost == computeCost(cost_mat, sol_1d, size));
 
   free(pop_off_2d);
