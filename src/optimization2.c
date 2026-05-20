@@ -335,6 +335,11 @@ void offspring(
   assert(!is_array_overlap(pop_2d, ARRAY_BYTES(pop_2d, size * n_population),
                            offspring_2d,
                            ARRAY_BYTES(offspring_2d, size * n_offspring)));
+#ifndef NDEBUG
+  for (size_t i = 0; i < n_population; i++) {
+    assert(!is_array_in_arrays(&pop_2d[i * size], pop_2d, size, i));
+  }
+#endif
 
   // calculating number of crossover and muatation offsprnig.
   const size_t n_crossover = (size_t)(offspring_cross_mut * n_offspring);
@@ -357,13 +362,11 @@ void offspring(
       mutation_cost_2d, ARRAY_BYTES(mutation_cost_2d, n_mutation)));
 
   // populate the first n_crossover elements of offspring with crossover.
-  PVERB("Generating %zu crossover offspring\n", n_crossover);
   crossover(cost_mat, size, pop_2d, pop_cost_1d, n_population, crossover_2d,
             crossover_cost_2d, n_crossover, cross_rate, pivot_rule,
             fptr_delta_neigh_explaration, n_neighb_vn);
 
   // populate the rest of offspring with mutation.
-  PVERB("Generating %zu mutation offspring\n", n_mutation);
   mutation(cost_mat, size, pop_2d, pop_cost_1d, n_population, mutation_2d,
            mutation_cost_2d, n_mutation, mutation_rate, pivot_rule,
            fptr_delta_neigh_explaration, n_neighb_vn);
@@ -372,9 +375,9 @@ void offspring(
   for (size_t i = 0; i < n_offspring; i++) {
     assert(offspring_cost_2d[i] ==
            computeCost(cost_mat, &offspring_2d[i * size], size));
-    assert(is_array_in_arrays(&offspring_2d[i * size], pop_2d, size,
-                              n_population) ||
-           is_array_in_arrays(&offspring_2d[i * size], offspring_2d, size, i));
+    assert(!is_array_in_arrays(&offspring_2d[i * size], pop_2d, size,
+                               n_population) &&
+           !is_array_in_arrays(&offspring_2d[i * size], offspring_2d, size, i));
   }
 #endif
 }

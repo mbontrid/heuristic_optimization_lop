@@ -126,16 +126,14 @@ void rand_swap(size_t *restrict const array, const size_t size, size_t *i,
   swap(array, *i, *j);
 }
 
-bool array_equal(const size_t *const array_1d_1, const size_t *const array_1d_2,
-                 size_t size) {
+bool array_equal(const size_t *restrict const array_1d_1,
+                 const size_t *restrict const array_1d_2, const size_t size) {
 
-  int a = memcmp(array_1d_1, array_1d_2, size * sizeof(size_t));
-
-  return !a;
+  return !memcmp(array_1d_1, array_1d_2, size * sizeof(size_t));
 }
 
-size_t find_array_in_arrays(const size_t *const array,
-                            const size_t *const array_of_arrays,
+size_t find_array_in_arrays(const size_t *restrict const array,
+                            const size_t *restrict const array_of_arrays,
                             const size_t size, const size_t n_arrays) {
   for (size_t i = 0; i < n_arrays; i++) {
     if (array_equal(array, &array_of_arrays[i * size], size)) {
@@ -145,9 +143,9 @@ size_t find_array_in_arrays(const size_t *const array,
   return n_arrays;
 }
 
-bool is_array_in_arrays(const size_t *const array,
-                        const size_t *const array_of_arrays, const size_t size,
-                        const size_t n_arrays) {
+bool is_array_in_arrays(const size_t *restrict const array,
+                        const size_t *restrict const array_of_arrays,
+                        const size_t size, const size_t n_arrays) {
   return find_array_in_arrays(array, array_of_arrays, size, n_arrays) <
          n_arrays;
 }
