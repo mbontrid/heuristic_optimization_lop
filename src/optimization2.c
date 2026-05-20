@@ -272,7 +272,9 @@ void crossover(
 
       DPRINTF("Crossover %zu with parents %zu and %zu has cost %ld\n", cross_id,
               p1_index, p2_index, p1_cost);
-    } while (is_array_in_arrays(&crossover_2d[cross_id * size], crossover_2d,
+    } while (is_array_in_arrays(&crossover_2d[cross_id * size], pop_2d, size,
+                                n_population) ||
+             is_array_in_arrays(&crossover_2d[cross_id * size], crossover_2d,
                                 size, cross_id));
     crossover_cost_2d[cross_id] = p1_cost;
 
@@ -308,7 +310,9 @@ void mutation(
                          pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
       DPRINTF("Mutation %zu with parent %zu has cost %ld\n", mut_id, rand_index,
               p1_cost);
-    } while (is_array_in_arrays(&mutation_2d[mut_id * size], mutation_2d, size,
+    } while (is_array_in_arrays(&mutation_2d[mut_id * size], pop_2d, size,
+                                n_population) ||
+             is_array_in_arrays(&mutation_2d[mut_id * size], mutation_2d, size,
                                 mut_id));
     mutation_cost_2d[mut_id] = p1_cost;
 
@@ -368,6 +372,9 @@ void offspring(
   for (size_t i = 0; i < n_offspring; i++) {
     assert(offspring_cost_2d[i] ==
            computeCost(cost_mat, &offspring_2d[i * size], size));
+    assert(is_array_in_arrays(&offspring_2d[i * size], pop_2d, size,
+                              n_population) ||
+           is_array_in_arrays(&offspring_2d[i * size], offspring_2d, size, i));
   }
 #endif
 }
