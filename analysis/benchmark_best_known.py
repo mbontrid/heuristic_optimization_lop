@@ -596,8 +596,8 @@ def main() -> int:
         ils_neighborhoods = [["exchange"], ["transpose", "exchange", "insert"]]
         ils_param_grid = build_param_grid(
             {
-                "ils_perturb_rate": [0, 0.1, 0.2, 0.5, 0.8],
-                "ils_n_try": [0, 1, 10, 100],
+                "ils_perturb_rate": [0, 0.1, 0.2, 0.5, 0.8, 1.0],
+                "ils_n_try": [0, 1, 10, 20],
                 "ils_worst": [0, 100, 1000],
             }
         )
@@ -686,12 +686,14 @@ def main() -> int:
                 "meme_divers_try": [2],
                 "meme_mean_try": [5],
                 "meme_cross_rate_mut": [0, 0.5, 0.8, 1],
-                "meme_mut_rate": [0.1],
+                "meme_mut_rate": [0.1, 0.3],
                 "meme_cross_rate": [0.5],
             }
         )
 
-        combinations = list(itertools.product(["first"], vnd_neighborhoods, ["random"]))
+        combinations = list(
+            itertools.product(["first", "best"], vnd_neighborhoods, ["random"])
+        )
 
         run_info_list = build_run_info_list(
             args.binary,

@@ -231,10 +231,10 @@ void crossover(
 
   for (size_t cross_id = 0; cross_id < n_crossover; cross_id++) {
     t_delta_cost p1_cost = 0;
+    size_t replicate_count = 0;
     ///////////////////////////////////////////////////////////
     // search for a non existing crossover solution until found
     ///////////////////////////////////////////////////////////
-    size_t replicate_count = 0;
     do {
       // select two different random parents
       size_t p1_index;
@@ -452,9 +452,9 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   /// assing overlaping memory
   //////////////////////////////////
   size_t *const pop_off_2d =
-      malloc(size * (n_population + n_offspring) * sizeof(*pop_off_2d));
+      calloc(size * (n_population + n_offspring), sizeof(*pop_off_2d));
   t_cost *const pop_off_cost_2d =
-      malloc((n_population + n_offspring) * sizeof(*pop_off_cost_2d));
+      calloc((n_population + n_offspring), sizeof(*pop_off_cost_2d));
   assert(pop_off_2d);
   assert(pop_off_cost_2d);
 

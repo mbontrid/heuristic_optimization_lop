@@ -75,7 +75,7 @@ int randInt(int minimum, int maximum) {
 
 extern bool rand_bool() { return randInt(0, 1) == 1; }
 
-size_t *generate_incr_vector(size_t size) {
+size_t *generate_incr_vector(const size_t size) {
   size_t *new_vector = malloc(size * sizeof(*new_vector));
 
   for (size_t i = 0; i < size; i++) {
@@ -97,7 +97,7 @@ void randomize_vector(size_t *restrict const array, const size_t size) {
   }
 }
 
-size_t *generate_rand_no_rep_array(size_t size)
+size_t *generate_rand_no_rep_array(const size_t size)
 /* Generates a random vector, quick and dirty */
 {
   size_t *random_vector = generate_incr_vector(size);
@@ -108,7 +108,7 @@ size_t *generate_rand_no_rep_array(size_t size)
   return random_vector;
 }
 
-size_t *gener_no_rep_rand(size_t min, size_t max) {
+size_t *gener_no_rep_rand(const size_t min, const size_t max) {
   size_t *random_vector = generate_rand_no_rep_array(max - min + 1);
   for (size_t i = 0; i < max - min + 1; i++) {
     random_vector[i] += min;
@@ -116,14 +116,14 @@ size_t *gener_no_rep_rand(size_t min, size_t max) {
   return random_vector;
 }
 
-void swap(size_t *array_1d, size_t i, size_t j) {
+void swap(size_t *array_1d, const size_t i, const size_t j) {
   size_t tmp = array_1d[i];
   array_1d[i] = array_1d[j];
   array_1d[j] = tmp;
 }
 
-void rand_swap(size_t *restrict const array, const size_t size, size_t *i,
-               size_t *j) {
+void rand_swap(size_t *restrict const array, const size_t size, size_t *const i,
+               size_t *const j) {
   *i = randInt(0, size - 1);
   *j = randInt(0, size - 1);
   swap(array, *i, *j);

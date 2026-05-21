@@ -87,10 +87,10 @@ extern int randInt(int minimum, int maximum);
 
 extern bool rand_bool();
 
-size_t *generate_incr_vector(size_t size);
+size_t *generate_incr_vector(const size_t size);
 void randomize_vector(size_t *restrict const array, const size_t size);
-extern size_t *generate_rand_no_rep_array(size_t dim);
-size_t *gener_no_rep_rand(size_t min, size_t max);
+extern size_t *generate_rand_no_rep_array(const size_t dim);
+size_t *gener_no_rep_rand(const size_t min, const size_t max);
 
 /**
  * @brief Swap two element in a array
@@ -99,10 +99,10 @@ size_t *gener_no_rep_rand(size_t min, size_t max);
  * @param i First index to swap.
  * @param j Scond index to swap.
  */
-void swap(size_t *array_1d, size_t i, size_t j);
+void swap(size_t *array_1d, const size_t i, const size_t j);
 
-void rand_swap(size_t *restrict const array, const size_t size, size_t *i,
-               size_t *j);
+void rand_swap(size_t *restrict const array, const size_t size, size_t *const i,
+               size_t *const j);
 
 bool array_equal(const size_t *restrict const array_1d_1,
                  const size_t *restrict const array_1d_2, const size_t size);
