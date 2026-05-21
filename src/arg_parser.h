@@ -42,7 +42,7 @@ struct arguments {
 
 enum {
   KEY_VERBOSE = 'v',
-  KEY_INSTNACE = 'i',
+  KEY_INSTANCE = 'i',
   KEY_PIVOT = 'p',
   KEY_NEIGHB = 'n',
   KEY_SOL_START = 's',

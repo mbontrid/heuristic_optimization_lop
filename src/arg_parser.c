@@ -15,7 +15,7 @@ static struct argp_option options[] = {
     {"verbose", KEY_VERBOSE, 0, 0, "Returns verbose output."},
     // {"output", KEY_OUTPUT, "FILE", 0,
     // "Returns output to file instead of standard input"},
-    {"instance", KEY_INSTNACE, "FILE", 0,
+    {"instance", KEY_INSTANCE, "FILE", 0,
      "Instance file to use. Default=data/input/instances/N-be75eec_150"},
     {"pivot", KEY_PIVOT, "CHOICE", 0,
      "Pivoting rule: first|best. Default : first"},

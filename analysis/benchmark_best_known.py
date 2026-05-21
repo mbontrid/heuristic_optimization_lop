@@ -730,6 +730,7 @@ def main() -> int:
     #####################################################################################
 
     if args.bench in ("memetic", "all"):
+        memetic_instances = [(name, cost) for name, cost in instances if name.endswith("_150")]
         memetic_neighborhoods = [["transpose", "exchange", "insert"]]
         memetic_param_grid = build_param_grid({
             "meme_pop": [20],
@@ -748,7 +749,7 @@ def main() -> int:
         run_info_list = build_run_info_list(
             args.binary,
             args.instances_dir,
-            instances,
+            memetic_instances,
             combinations,
             algo="memetic",
             extra_params=memetic_param_grid,
