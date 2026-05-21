@@ -1,23 +1,25 @@
 # Heuristic Optimization: LOP
 
-The project is made of three executables: `analysis.ipynb`, `benchmark_best_known.py` and `lop`. The first analyse the benchmark results, the second is the benchmark and de last one is the main executable to run the algorithms.
+This project implement different algorithms to find good solutions to the linear ordering problem (LOP).
+available algorithms:
 
-`analysis.ipynb` call `benchmark_best_known.py` to run the benchmark and then analyze the results, but `benchmark_best_known.py can also be called without analysis. It is the most complete way to analyze the results of the benchmark.
+- iterative improvement
+- variable neighborhood descent
+- iterated local search with perturbation
+- memetic algorithm (population based with crossover and mutation)
 
-To run `anaylsis.ipynb` from the project directory, uv has to be installed.
+The project is made of three executables: `analysis.ipynb`, `benchmark_best_known.py` and `lop`.
+
+`analysis.ipynb` call `benchmark_best_known.py` to run the benchmark and then analyze the results.
+
+Dependencies: [cmake](https://cmake.org/download/) and [uv](https://uvlang.io/).
+
+Direct analysis:
+(this can take hours if there is no results csv in data/output/)
 
 ```bash
-uv sync
-uv run --with jupyter jupyter lab
+uv run --with jupyter jupyter-lab analysis/analysis.ipynb
 ```
-
-To run the full benchmark, only one command is needed (compilation included):
-
-```bash
-uv run tools/benchmark_best_known.py
-```
-
-Dependencies: [cmake](https://cmake.org/download/) and python
 
 Use `--workers <n>` to run benchmark combinations in parallel processes (default to all CPUs minus one; use `1` to run sequentially).
 If time measurement is important, run with the minimum number of workers.
