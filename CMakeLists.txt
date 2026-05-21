@@ -13,6 +13,8 @@ file(GLOB_RECURSE SOURCES "src/*.c")
 include_directories(src)
 
 find_package(OpenMP REQUIRED)
+include(CheckIPOSupported)
+check_ipo_supported(RESULT IPO_SUPPORTED OUTPUT IPO_ERROR)
 
 # Debug target with -Og and no -DNDEBUG
 add_executable(lop_debug ${SOURCES})
@@ -23,8 +25,17 @@ target_compile_definitions(lop_debug PRIVATE DEBUG)
 # Base/Release target with maximum optimization and -DNDEBUG
 add_executable(lop ${SOURCES})
 target_link_libraries(lop PRIVATE OpenMP::OpenMP_C)
-target_compile_options(lop PRIVATE -Ofast -Wall -fopenmp-simd -march=native)
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+  target_compile_options(lop PRIVATE -Ofast -Wall -fopenmp-simd -march=native -mtune=native -fomit-frame-pointer -funroll-loops)
+else()
+  target_compile_options(lop PRIVATE -Ofast -Wall -fopenmp-simd -march=native)
+endif()
 target_compile_definitions(lop PRIVATE NDEBUG)
+if(IPO_SUPPORTED)
+  set_property(TARGET lop PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+else()
+  message(WARNING "IPO/LTO not supported: ${IPO_ERROR}")
+endif()
 
 # Set output directory
 set_target_properties(lop lop_debug PROPERTIES
