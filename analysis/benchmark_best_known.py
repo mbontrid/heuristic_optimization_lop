@@ -609,11 +609,13 @@ def main() -> int:
     if args.bench in ("ils_param", "all"):
         param_instances = select_instances(instances, ["N-be75eec_150"])
         ils_neighborhoods = [["exchange"], ["transpose", "exchange", "insert"]]
-        ils_param_grid = build_param_grid({
-            "ils_perturb_rate": [0, 0.1, 0.2, 0.5, 0.8, 1.0],
-            "ils_n_try": [0, 1, 10, 20],
-            "ils_worst": [0, 100, 1000],
-        })
+        ils_param_grid = build_param_grid(
+            {
+                "ils_perturb_rate": [0, 0.1, 0.2, 0.5, 0.8, 1.0],
+                "ils_n_try": [0, 1, 10],
+                "ils_worst": [0, 100, 1000],
+            }
+        )
 
         ils_pivot = ["first", "best"]
         ils_start_sols = ["random", "c_and_w"]
@@ -647,11 +649,13 @@ def main() -> int:
 
     if args.bench in ("ils", "all"):
         ils_neighborhoods = [["exchange"], ["transpose", "exchange", "insert"]]
-        ils_param_grid = build_param_grid({
-            "ils_perturb_rate": [0, 0.1, 0.2, 0.5],
-            "ils_n_try": [0, 1, 10, 100],
-            "ils_worst": [0, 100, 1000, 10000],
-        })
+        ils_param_grid = build_param_grid(
+            {
+                "ils_perturb_rate": [0, 0.1, 0.2, 0.5],
+                "ils_n_try": [0, 1, 10, 100],
+                "ils_worst": [0, 100, 1000, 10000],
+            }
+        )
 
         ils_pivot = ["first", "best"]
         ils_start_sols = ["random", "c_and_w"]
@@ -690,15 +694,17 @@ def main() -> int:
             ["transpose", "exchange", "insert"],
         ]
 
-        memetic_param_grid = build_param_grid({
-            "meme_pop": [20],
-            "meme_offspring": [10],
-            "meme_divers_try": [2],
-            "meme_mean_try": [5],
-            "meme_cross_rate_mut": [0, 0.5, 0.8, 1],
-            "meme_mut_rate": [0.1, 0.3],
-            "meme_cross_rate": [0.5],
-        })
+        memetic_param_grid = build_param_grid(
+            {
+                "meme_pop": [20],
+                "meme_offspring": [10],
+                "meme_divers_try": [2],
+                "meme_mean_try": [5],
+                "meme_cross_rate_mut": [0, 0.5, 0.8, 1],
+                "meme_mut_rate": [0.1, 0.3],
+                "meme_cross_rate": [0.5],
+            }
+        )
 
         combinations = list(
             itertools.product(["first", "best"], vnd_neighborhoods, ["random"])
@@ -730,17 +736,21 @@ def main() -> int:
     #####################################################################################
 
     if args.bench in ("memetic", "all"):
-        memetic_instances = [(name, cost) for name, cost in instances if name.endswith("_150")]
+        memetic_instances = [
+            (name, cost) for name, cost in instances if name.endswith("_150")
+        ]
         memetic_neighborhoods = [["transpose", "exchange", "insert"]]
-        memetic_param_grid = build_param_grid({
-            "meme_pop": [20],
-            "meme_offspring": [10],
-            "meme_divers_try": [5],
-            "meme_mean_try": [10],
-            "meme_cross_rate_mut": [0.8],
-            "meme_mut_rate": [0.1],
-            "meme_cross_rate": [0.5],
-        })
+        memetic_param_grid = build_param_grid(
+            {
+                "meme_pop": [20],
+                "meme_offspring": [10],
+                "meme_divers_try": [2],
+                "meme_mean_try": [5],
+                "meme_cross_rate_mut": [0.8],
+                "meme_mut_rate": [0.1],
+                "meme_cross_rate": [0.5],
+            }
+        )
 
         combinations = list(
             itertools.product(["first"], memetic_neighborhoods, ["random"])
