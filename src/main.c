@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
     cost = memetic(
         cost_mat_2d, sol_1d, mat_cost_dim, arguments.memetic_n_population,
         arguments.memetic_n_diversi_try, arguments.memetic_n_mean_try,
-        arguments.memetic_offspring_cross_mut, arguments.memetic_n_offspring,
+        arguments.memetic_cross_rate_mut, arguments.memetic_n_offspring,
         arguments.memetic_mutation_rate, arguments.memetic_cross_rate,
         arguments.pivot_rule, arguments.fptr_neighb_exploration,
         arguments.n_neighb_vnd);

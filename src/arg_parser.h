@@ -34,7 +34,7 @@ struct arguments {
   size_t memetic_n_population;
   size_t memetic_n_diversi_try;
   ushort memetic_n_mean_try;
-  float memetic_offspring_cross_mut;
+  float memetic_cross_rate_mut;
   size_t memetic_n_offspring;
   float memetic_mutation_rate;
   float memetic_cross_rate;
@@ -55,7 +55,7 @@ enum {
   KEY_MEMETIC_N_POPULATION,
   KEY_MEMETIC_N_DIVERSI_TRY,
   KEY_MEMETIC_N_MEAN_TRY,
-  KEY_MEMETIC_OFFSPRING_CROSS_MUT,
+  KEY_MEMETIC_CROSS_RATE_MUT,
   KEY_MEMETIC_N_OFFSPRING,
   KEY_MEMETIC_MUTATION_RATE,
   KEY_MEMETIC_CROSS_RATE,

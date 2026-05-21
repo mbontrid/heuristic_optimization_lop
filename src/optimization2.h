@@ -95,7 +95,7 @@ void offspring(
     const size_t *restrict const pop_2d,
     const t_cost *restrict const pop_cost_1d, const size_t n_population,
     size_t *const offspring_2d, t_cost *const offspring_cost_2d,
-    const size_t n_offspring, const float offspring_cross_mut,
+    const size_t n_offspring, const float cross_rate_mut,
     const float cross_rate, const enum pivot_enum pivot_rule,
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn, float mutation_rate);
@@ -117,7 +117,7 @@ void diversification(
 t_delta_cost
 memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
         const size_t n_population, const size_t n_diversi_try,
-        const size_t n_mean_try, const float offspring_cross_mut,
+        const size_t n_mean_try, const float cross_rate_mut,
         const size_t n_offspring, const float mutation_rate,
         const float cross_rate, const enum pivot_enum pivot_rule,
         const t_fptr_delta_neigh_exploration *fptr_delta_neigh_explaration,

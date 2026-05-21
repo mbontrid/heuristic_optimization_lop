@@ -330,12 +330,12 @@ void offspring(
     const size_t *restrict const pop_2d,
     const t_cost *restrict const pop_cost_1d, const size_t n_population,
     size_t *const offspring_2d, t_cost *const offspring_cost_2d,
-    const size_t n_offspring, const float offspring_cross_mut,
+    const size_t n_offspring, const float cross_rate_mut,
     const float cross_rate, const enum pivot_enum pivot_rule,
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
     const ushort n_neighb_vn, float mutation_rate) {
 
-  assert(offspring_cross_mut >= 0 && offspring_cross_mut <= 1);
+  assert(cross_rate_mut >= 0 && cross_rate_mut <= 1);
   assert(!is_array_overlap(pop_2d, ARRAY_BYTES(pop_2d, size * n_population),
                            offspring_2d,
                            ARRAY_BYTES(offspring_2d, size * n_offspring)));
@@ -346,7 +346,7 @@ void offspring(
 #endif
 
   // calculating number of crossover and muatation offsprnig.
-  const size_t n_crossover = (size_t)(offspring_cross_mut * n_offspring);
+  const size_t n_crossover = (size_t)(cross_rate_mut * n_offspring);
   const size_t n_mutation = n_offspring - n_crossover;
   assert(n_crossover + n_mutation == n_offspring);
 
@@ -433,7 +433,7 @@ void diversification(
 t_delta_cost
 memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
         const size_t n_population, const size_t n_diversi_try,
-        const size_t n_mean_try, const float offspring_cross_mut,
+        const size_t n_mean_try, const float cross_rate_mut,
         const size_t n_offspring, const float mutation_rate,
         const float cross_rate, const enum pivot_enum pivot_rule,
         const t_fptr_delta_neigh_exploration *fptr_delta_neigh_explaration,
@@ -444,7 +444,7 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   assert(size > 1);
   assert(n_population > 0);
   assert(n_offspring > 0);
-  assert(offspring_cross_mut >= 0 && offspring_cross_mut <= 1);
+  assert(cross_rate_mut >= 0 && cross_rate_mut <= 1);
   assert(mutation_rate >= 0 && mutation_rate <= 1);
   assert(cross_rate >= 0 && cross_rate <= 1);
 
@@ -492,11 +492,12 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   size_t mean_try = 0;
   double mean_pop_cost_before_diversi = 0;
   size_t diversi_try = 0;
+  size_t gen = 0;
   do {
 
     PVERB("Generating offspring\n");
     offspring(cost_mat, size, pop_2d, pop_cost_1d, n_population, offspring_2d,
-              offspring_cost_2d, n_offspring, offspring_cross_mut, cross_rate,
+              offspring_cost_2d, n_offspring, cross_rate_mut, cross_rate,
               pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn,
               mutation_rate);
 
@@ -530,12 +531,12 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     }
     mean_pop_cost = new_mean_pop_cost;
 
-    PVERB("mean_pop_cost=%.2f | mean_pop_cost_before_diversi=%.2f | "
-          "best_cost=%u | mean_try=%zu/%zu | "
+    PVERB("gen=%zu | mean_pop_cost=%.2f | mean_pop_cost_before_diversi=%.2f | "
+          "current_cost=%u | mean_try=%zu/%zu | "
           "diversity_try=%zu/%zu\n",
-          mean_pop_cost, mean_pop_cost_before_diversi, pop_cost_1d[0], mean_try,
-          n_mean_try, diversi_try, n_diversi_try);
-  } while (diversi_try < n_diversi_try);
+          gen, mean_pop_cost, mean_pop_cost_before_diversi, pop_cost_1d[0],
+          mean_try, n_mean_try, diversi_try, n_diversi_try);
+  } while (diversi_try < n_diversi_try && ++gen);
   ////////////////////////////////////////////////////////////////////
   /// end of generations, return the first element of the population
   //////////////////////////////////////////////////////////////////////
