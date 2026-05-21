@@ -612,13 +612,13 @@ def main() -> int:
         ils_param_grid = build_param_grid(
             {
                 "ils_perturb_rate": [0, 0.2, 0.5, 0.8, 1.0],
-                "ils_n_try": [0, 1, 10],
-                "ils_worst": [0, 1000],
+                "ils_n_try": [0, 10, 100],
+                "ils_worst": [0, 10000],
             }
         )
 
         ils_pivot = ["first", "best"]
-        ils_start_sols = ["c_and_w"]
+        ils_start_sols = ["c_and_w", "random"]
 
         combinations = list(
             itertools.product(ils_pivot, ils_neighborhoods, ils_start_sols)
