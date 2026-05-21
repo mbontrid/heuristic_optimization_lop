@@ -28,6 +28,7 @@ MEME_OUTPUT_FILE = Path("meme_results.csv")
 ILS_OUTPUT_FILE = Path("ils_results.csv")
 ILS_PARAM_OUTPUT_FILE = Path("ils_param_results.csv")
 MEME_PARAM_OUTPUT_FILE = Path("meme_param_results.csv")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 RESULT_PATTERN = re.compile(
@@ -116,6 +117,15 @@ def parse_args() -> argparse.Namespace:
 def args_fix(args: argparse.Namespace) -> argparse.Namespace:
     if args.runs < 1:
         raise ValueError("--runs must be greater than 0")
+
+    if not args.output.is_absolute():
+        args.output = PROJECT_ROOT / args.output
+    if not args.binary.is_absolute():
+        args.binary = PROJECT_ROOT / args.binary
+    if not args.best_known_file.is_absolute():
+        args.best_known_file = PROJECT_ROOT / args.best_known_file
+    if not args.instances_dir.is_absolute():
+        args.instances_dir = PROJECT_ROOT / args.instances_dir
 
     print(f"this computer has {multiprocessing.cpu_count()} CPU cores")
     print(args.workers)
@@ -290,16 +300,19 @@ def parse_best_known(path: Path) -> list[tuple[str, int]]:
 
 
 def run_compile_target() -> Path:
+    build_dir = PROJECT_ROOT / "build"
     cmd_cmake_setup = [
         "cmake",
-        "-S.",
-        "-Bbuild",
+        "-S",
+        str(PROJECT_ROOT),
+        "-B",
+        str(build_dir),
     ]
 
     cmd_build = [
         "cmake",
         "--build",
-        "build",
+        str(build_dir),
     ]
 
     completed = subprocess.run(
@@ -307,6 +320,7 @@ def run_compile_target() -> Path:
         check=False,
         capture_output=True,
         text=True,
+        cwd=PROJECT_ROOT,
     )
 
     if completed.returncode != 0:
@@ -323,6 +337,7 @@ def run_compile_target() -> Path:
         check=False,
         capture_output=True,
         text=True,
+        cwd=PROJECT_ROOT,
     )
 
     if completed.returncode != 0:
@@ -335,7 +350,7 @@ def run_compile_target() -> Path:
         )
 
     print("binary built.")
-    return Path("build/bin/lop")
+    return build_dir / "bin" / "lop"
 
 
 def run_solver_once(
@@ -594,13 +609,11 @@ def main() -> int:
     if args.bench in ("ils_param", "all"):
         param_instances = select_instances(instances, ["N-be75eec_150"])
         ils_neighborhoods = [["exchange"], ["transpose", "exchange", "insert"]]
-        ils_param_grid = build_param_grid(
-            {
-                "ils_perturb_rate": [0, 0.1, 0.2, 0.5, 0.8, 1.0],
-                "ils_n_try": [0, 1, 10, 20],
-                "ils_worst": [0, 100, 1000],
-            }
-        )
+        ils_param_grid = build_param_grid({
+            "ils_perturb_rate": [0, 0.1, 0.2, 0.5, 0.8, 1.0],
+            "ils_n_try": [0, 1, 10, 20],
+            "ils_worst": [0, 100, 1000],
+        })
 
         ils_pivot = ["first", "best"]
         ils_start_sols = ["random", "c_and_w"]
@@ -634,13 +647,11 @@ def main() -> int:
 
     if args.bench in ("ils", "all"):
         ils_neighborhoods = [["exchange"], ["transpose", "exchange", "insert"]]
-        ils_param_grid = build_param_grid(
-            {
-                "ils_perturb_rate": [0, 0.1, 0.2, 0.5],
-                "ils_n_try": [0, 1, 10, 100],
-                "ils_worst": [0, 100, 1000, 10000],
-            }
-        )
+        ils_param_grid = build_param_grid({
+            "ils_perturb_rate": [0, 0.1, 0.2, 0.5],
+            "ils_n_try": [0, 1, 10, 100],
+            "ils_worst": [0, 100, 1000, 10000],
+        })
 
         ils_pivot = ["first", "best"]
         ils_start_sols = ["random", "c_and_w"]
@@ -679,17 +690,15 @@ def main() -> int:
             ["transpose", "exchange", "insert"],
         ]
 
-        memetic_param_grid = build_param_grid(
-            {
-                "meme_pop": [20],
-                "meme_offspring": [10],
-                "meme_divers_try": [2],
-                "meme_mean_try": [5],
-                "meme_cross_rate_mut": [0, 0.5, 0.8, 1],
-                "meme_mut_rate": [0.1, 0.3],
-                "meme_cross_rate": [0.5],
-            }
-        )
+        memetic_param_grid = build_param_grid({
+            "meme_pop": [20],
+            "meme_offspring": [10],
+            "meme_divers_try": [2],
+            "meme_mean_try": [5],
+            "meme_cross_rate_mut": [0, 0.5, 0.8, 1],
+            "meme_mut_rate": [0.1, 0.3],
+            "meme_cross_rate": [0.5],
+        })
 
         combinations = list(
             itertools.product(["first", "best"], vnd_neighborhoods, ["random"])
@@ -722,17 +731,15 @@ def main() -> int:
 
     if args.bench in ("memetic", "all"):
         memetic_neighborhoods = [["transpose", "exchange", "insert"]]
-        memetic_param_grid = build_param_grid(
-            {
-                "meme_pop": [20],
-                "meme_offspring": [10],
-                "meme_divers_try": [5],
-                "meme_mean_try": [10],
-                "meme_cross_rate_mut": [0.8],
-                "meme_mut_rate": [0.1],
-                "meme_cross_rate": [0.5],
-            }
-        )
+        memetic_param_grid = build_param_grid({
+            "meme_pop": [20],
+            "meme_offspring": [10],
+            "meme_divers_try": [5],
+            "meme_mean_try": [10],
+            "meme_cross_rate_mut": [0.8],
+            "meme_mut_rate": [0.1],
+            "meme_cross_rate": [0.5],
+        })
 
         combinations = list(
             itertools.product(["first"], memetic_neighborhoods, ["random"])
