@@ -64,3 +64,10 @@ possible speedup in mutation, crossover and populate : keep a hash of the genera
 ./build/bin/lop_debug -i ./data/input/instances/N-be75eec_150 -s c_and_w -p first -n transpose -n exchange -n insert -a memetic --meme_pop=25 --meme_offspring=11 --meme_mut_rate=0.1 --meme_mean_try=5 --meme_divers_try=2 --meme_cross_rate=0.5 --meme_cross_mut=0.8 -v
 
 RESULT cost=3476024 time=9255.25 solution=7 81 143 36 98 100 25 116 64 44 103 60 17 96 147 26 19 3 50 124 89 24 137 70 127 29 134 71 53 42 35 33 74 82 122 130 123 23 72 11 8 131 129 125 30 6 149 112 135 18 31 91 86 2 20 59 93 128 1 102 46 142 34 133 21 138 62 104 119 4 87 80 121 78 120 114 132 148 48 47 38 0 76 126 14 54 22 139 109 5 10 85 115 75 90 88 97 39 49 63 61 52 113 94 101 68 77 141 110 145 51 99 65 67 136 56 69 66 40 117 58 13 45 95 146 144 9 73 16 105 32 107 108 27 41 111 92 140 55 43 15 12 37 106 118 84 83 79 57 28 
+
+
+after fixign the non crossing problem
+./build/bin/lop -i ./data/input/instances/N-be75eec_150 -s c_and_w -p first -n transpose -n exchange -n insert -a memetic --meme_pop=25 --meme_offspring=11 --meme_mut_rate=0.1 --meme_mean_try=5 --meme_divers_try=2 --meme_cross_rate=0.5 --meme_cross_mut=0.8 -v
+
+RESULT cost=3478629 time=1641.23 solution=36 7 100 4 25 116 74 30 143 17 23 39 60 96 8 131 129 147 24 142 81 0 77 26 19 64 3 50 124 89 98 44 137 71 122 127 72 134 123 11 34 29 125 6 92 15 70 149 112 135 31 18 91 86 82 2 59 119 87 93 1 102 133 104 42 21 78 114 80 138 121 148 48 76 126 47 14 140 37 20 38 139 10 128 62 85 46 54 22 5 115 75 63 141 90 88 97 49 53 61 52 113 94 68 110 145 51 99 65 67 136 83 56 43 132 58 95 146 32 107 101 69 117 35 66 106 103 45 144 40 13 9 33 130 73 12 16 105 108 41 55 28 27 120 109 118 111 84 79 57 
+

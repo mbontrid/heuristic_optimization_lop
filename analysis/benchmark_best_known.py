@@ -611,14 +611,14 @@ def main() -> int:
         ils_neighborhoods = [["exchange"], ["transpose", "exchange", "insert"]]
         ils_param_grid = build_param_grid(
             {
-                "ils_perturb_rate": [0, 0.1, 0.2, 0.5, 0.8, 1.0],
+                "ils_perturb_rate": [0, 0.2, 0.5, 0.8, 1.0],
                 "ils_n_try": [0, 1, 10],
-                "ils_worst": [0, 100, 1000],
+                "ils_worst": [0, 1000],
             }
         )
 
         ils_pivot = ["first", "best"]
-        ils_start_sols = ["random", "c_and_w"]
+        ils_start_sols = ["c_and_w"]
 
         combinations = list(
             itertools.product(ils_pivot, ils_neighborhoods, ils_start_sols)
@@ -648,17 +648,20 @@ def main() -> int:
     #####################################################################################
 
     if args.bench in ("ils", "all"):
-        ils_neighborhoods = [["exchange"], ["transpose", "exchange", "insert"]]
+        instances_150 = [
+            (name, cost) for name, cost in instances if name.endswith("_150")
+        ]
+        ils_neighborhoods = [["transpose", "exchange", "insert"]]
         ils_param_grid = build_param_grid(
             {
-                "ils_perturb_rate": [0, 0.1, 0.2, 0.5],
-                "ils_n_try": [0, 1, 10, 100],
-                "ils_worst": [0, 100, 1000, 10000],
+                "ils_perturb_rate": [0.5],
+                "ils_n_try": [10],
+                "ils_worst": [0],
             }
         )
 
-        ils_pivot = ["first", "best"]
-        ils_start_sols = ["random", "c_and_w"]
+        ils_pivot = ["best"]
+        ils_start_sols = ["c_and_w"]
 
         combinations = list(
             itertools.product(ils_pivot, ils_neighborhoods, ils_start_sols)
@@ -667,7 +670,7 @@ def main() -> int:
         run_info_list = build_run_info_list(
             args.binary,
             args.instances_dir,
-            instances,
+            instances_150,
             combinations,
             algo="ils",
             extra_params=ils_param_grid,
@@ -736,7 +739,7 @@ def main() -> int:
     #####################################################################################
 
     if args.bench in ("memetic", "all"):
-        memetic_instances = [
+        instances_150 = [
             (name, cost) for name, cost in instances if name.endswith("_150")
         ]
         memetic_neighborhoods = [["transpose", "exchange", "insert"]]
@@ -753,13 +756,13 @@ def main() -> int:
         )
 
         combinations = list(
-            itertools.product(["first"], memetic_neighborhoods, ["random"])
+            itertools.product(["best"], memetic_neighborhoods, ["random"])
         )
 
         run_info_list = build_run_info_list(
             args.binary,
             args.instances_dir,
-            memetic_instances,
+            instances_150,
             combinations,
             algo="memetic",
             extra_params=memetic_param_grid,
