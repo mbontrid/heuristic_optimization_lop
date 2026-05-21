@@ -37,6 +37,8 @@ int main(int argc, char **argv) {
           "are running the debug version of this program. Performances will be "
           "greatly impacted.\n");
 
+  install_interrupt_handler();
+
   // ---argument parsing----
 
   init_arguments(&arguments);
@@ -96,13 +98,13 @@ int main(int argc, char **argv) {
   } else if (arguments.algo == MEMETIC) {
 
     PVERB("Running memetic algorithm\n");
-    cost = memetic(
-        cost_mat_2d, sol_1d, mat_cost_dim, arguments.memetic_n_population,
-        arguments.memetic_n_diversi_try, arguments.memetic_n_mean_try,
-        arguments.memetic_cross_rate_mut, arguments.memetic_n_offspring,
-        arguments.memetic_mutation_rate, arguments.memetic_cross_rate,
-        arguments.pivot_rule, arguments.fptr_neighb_exploration,
-        arguments.n_neighb_vnd);
+    cost =
+        memetic(cost_mat_2d, sol_1d, mat_cost_dim,
+                arguments.memetic_n_population, arguments.memetic_n_diversi_try,
+                arguments.memetic_n_mean_try, arguments.memetic_cross_rate_mut,
+                arguments.memetic_n_offspring, arguments.memetic_mutation_rate,
+                arguments.memetic_cross_rate, arguments.pivot_rule,
+                arguments.fptr_neighb_exploration, arguments.n_neighb_vnd);
   }
 
   const double elapsed_seconds = end_clock(start);

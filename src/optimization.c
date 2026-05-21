@@ -461,7 +461,7 @@ t_delta_cost vnd_lop(
   ushort k_neighb = 0;
   // try all neighborhood methods in order and start again if there is
   // improvement.
-  while (k_neighb < n_neighb_vnd) {
+  while (k_neighb < n_neighb_vnd && !is_interrupt_requested()) {
 
     t_delta_cost new_delta =
         lop_iter_impr(cost_mat_2d, mat_cost_dim, sol_1d, pivot_rule,

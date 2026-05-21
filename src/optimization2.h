@@ -30,7 +30,7 @@
  * @param worse_bracket negative dalta accetpable.
  * @return Acceted or not.
  */
-bool accept_worse(const t_delta_cost delta, const t_cost worse_bracket);
+bool is_accetp_worse(const t_delta_cost delta, const t_cost worse_bracket);
 
 /**
  * @brief Iteratid local search for the LOP.
@@ -53,9 +53,9 @@ bool accept_worse(const t_delta_cost delta, const t_cost worse_bracket);
 t_delta_cost
 ils(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     const float perturb_rate, const size_t n_try, const t_cost worse,
-    enum pivot_enum pivot_rule,
-    const t_fptr_delta_neigh_exploration *fptr_delta_neigh_exploration,
-    ushort n_neighb_vn);
+    const enum pivot_enum pivot_rule,
+    const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_exploration,
+    const ushort n_neighb_vn);
 
 void populate(
     const t_cost *const cost_mat, size_t *const pop_2d,

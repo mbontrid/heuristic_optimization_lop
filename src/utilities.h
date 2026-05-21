@@ -22,6 +22,7 @@
 #define _UTILITIES_H_
 
 #include <limits.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <time.h>
 #define PREV 0
@@ -86,6 +87,9 @@ extern double ran01(long *idum);
 extern int randInt(int minimum, int maximum);
 
 extern bool rand_bool();
+
+void install_interrupt_handler(void);
+bool is_interrupt_requested(void);
 
 size_t *generate_incr_vector(const size_t size);
 void randomize_vector(size_t *restrict const array, const size_t size);
@@ -159,8 +163,8 @@ double end_clock(clock_t start);
 void array_apply_shuffle(size_t *const modified, const size_t *const shuffle,
                          const size_t *const to_shuffle, const size_t size);
 
-size_t get_max_id(const size_t *restrict array, const size_t size);
-size_t get_min_id(const size_t *restrict array, const size_t size);
+size_t get_max_id(const size_t *restrict const array, const size_t size);
+size_t get_min_id(const size_t *restrict const array, const size_t size);
 size_t get_max_array(const size_t *const array, const size_t size);
 size_t get_min_array(const size_t *const array, const size_t size);
 

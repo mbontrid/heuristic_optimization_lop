@@ -83,13 +83,13 @@ The difference with iterative improvement is just the number of `-n` called.
 #### iterated local search
 
 ```bash
- ./build/bin/lop -i ./data/input/instances/N-be75eec_150 -s c_and_w -p first -n transpose -n exchange -n insert -a ils -t 20 -r 0.1 -w 1000
+./build/bin/lop -i ./data/input/instances/N-be75eec_150 -s c_and_w -p best -n transpose -n exchange -n insert --algo ils --ils_n_try=100 --ils_perturb_rate 0.1 --ils_worst 10 -v
 ```
 
 #### memetic algorithm
 
 ```bash
-./build/bin/lop -i ./data/input/instances/N-be75eec_150 -s c_and_w -p first -n transpose -n exchange -n insert -a memetic --meme_pop=25 --meme_offspring=11 --meme_mut_rate=0.1 --meme_mean_try=5 --meme_divers_try=10 --meme_cross_rate=0.5 --meme_cross_rate_mut=0.8 -v
+./build/bin/lop -i ./data/input/instances/N-be75eec_150 -s random -p first -n transpose -n exchange -n insert -a memetic --meme_pop=20 --meme_offspring=10 --meme_mut_rate=0.1 --meme_mean_try=5 --meme_divers_try=10 --meme_cross_rate=0.5 --meme_cross_rate_mut=0.8 -v
 ```
 
 ## development

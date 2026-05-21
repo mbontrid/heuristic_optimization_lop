@@ -19,6 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <assert.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +30,19 @@
 #include "utilities.h"
 
 long int Seed;
+static volatile sig_atomic_t g_interrupt_requested = 0;
+
+static void handle_interrupt(int signal_number) {
+  (void)signal_number;
+  g_interrupt_requested = 1;
+}
+
+void install_interrupt_handler(void) {
+  signal(SIGINT, handle_interrupt);
+  signal(SIGTERM, handle_interrupt);
+}
+
+bool is_interrupt_requested(void) { return g_interrupt_requested != 0; }
 
 t_mat_cell **createMatrixx(size_t dim) {
 
@@ -221,7 +235,7 @@ void array_apply_shuffle(size_t *const result, const size_t *const shuffle,
   }
 }
 
-size_t get_max_id(const size_t *restrict array, const size_t size) {
+size_t get_max_id(const size_t *restrict const array, const size_t size) {
   size_t max = 0;
   for (size_t i = 0; i < size; i++) {
     if (array[i] > array[max]) {
@@ -231,7 +245,7 @@ size_t get_max_id(const size_t *restrict array, const size_t size) {
   return max;
 }
 
-size_t get_min_id(const size_t *restrict array, const size_t size) {
+size_t get_min_id(const size_t *restrict const array, const size_t size) {
   size_t min = 0;
   for (size_t i = 0; i < size; i++) {
     if (array[i] < array[min]) {
