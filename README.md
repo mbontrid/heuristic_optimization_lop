@@ -131,7 +131,7 @@ The difference with iterative improvement is just the number of `-n` called.
 #### memetic algorithm
 
 ```bash
-./build/bin/lop -i ./data/input/instances/N-be75eec_150 -s c_and_w -p first -n transpose -n exchange -n insert -a memetic --meme_pop=25 --meme_offspring=11 --meme_mut_rate=0.1 --meme_mean_try=5 --meme_divers_try=10 --meme_cross_rate=0.5 --meme_cross_mut=0.8 -v
+./build/bin/lop -i ./data/input/instances/N-be75eec_150 -s c_and_w -p first -n transpose -n exchange -n insert -a memetic --meme_pop=25 --meme_offspring=11 --meme_mut_rate=0.1 --meme_mean_try=5 --meme_divers_try=10 --meme_cross_rate=0.5 --meme_cross_rate_mut=0.8 -v
 ```
 
 ## development

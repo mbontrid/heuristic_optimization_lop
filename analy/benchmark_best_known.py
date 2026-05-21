@@ -26,6 +26,7 @@ IT_IMP_OUTPUT_FILE = Path("it_im_results.csv")
 LOP_VND_OUTPUT_FILE = Path("lop_vnd_results.csv")
 MEME_OUTPUT_FILE = Path("meme_results.csv")
 ILS_OUTPUT_FILE = Path("ils_results.csv")
+ILS_PARAM_OUTPUT_FILE = Path("ils_param_results.csv")
 MEME_PARAM_OUTPUT_FILE = Path("meme_param_results.csv")
 
 
@@ -44,12 +45,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--bench",
         type=str,
-        choices=["it_imp", "vnd", "meme_param", "memetic", "ils", "all"],
+        choices=["it_imp", "vnd", "meme_param", "memetic", "ils", "ils_param", "all"],
         default="all",
         help=(
             "which benchmark to run: 'it_imp' for iterative improvement, 'vnd' for VND, "
             "'memetic' for memetic algorithm, 'meme_param' for memetic parameter sweep, "
-            "'ils' for iterated local search, 'all' for all benchmarks. Default: all"
+            "'ils' for iterated local search, 'ils_param' for ILS parameter sweep, 'all' for all benchmarks. Default: all"
         ),
     )
     parser.add_argument(
@@ -142,6 +143,7 @@ def args_fix(args: argparse.Namespace) -> argparse.Namespace:
     args.output_it_imp = args.output / IT_IMP_OUTPUT_FILE
     args.output_vnd = args.output / LOP_VND_OUTPUT_FILE
     args.output_ils = args.output / ILS_OUTPUT_FILE
+    args.output_ils_param = args.output / ILS_PARAM_OUTPUT_FILE
     args.output_memetic = args.output / MEME_OUTPUT_FILE
     args.output_meme_param = args.output / MEME_PARAM_OUTPUT_FILE
 
@@ -586,21 +588,65 @@ def main() -> int:
         print(f"Wrote VND benchmark results to: {args.output_vnd}")
 
     #####################################################################################
+    # iterated local search parameter benchmark
+    #####################################################################################
+
+    if args.bench in ("ils_param", "all"):
+        param_instances = select_instances(instances, ["N-be75eec_150"])
+        ils_neighborhoods = [["exchange"], ["transpose", "exchange", "insert"]]
+        ils_param_grid = build_param_grid(
+            {
+                "ils_perturb_rate": [0, 0.1, 0.2, 0.5, 0.8],
+                "ils_n_try": [0, 1, 10, 100],
+                "ils_worst": [0, 100, 1000],
+            }
+        )
+
+        ils_pivot = ["first", "best"]
+        ils_start_sols = ["random", "c_and_w"]
+
+        combinations = list(
+            itertools.product(ils_pivot, ils_neighborhoods, ils_start_sols)
+        )
+
+        run_info_list = build_run_info_list(
+            args.binary,
+            args.instances_dir,
+            param_instances,
+            combinations,
+            algo="ils",
+            extra_params=ils_param_grid,
+        )
+        benchmark(
+            run_info_list,
+            args.workers,
+            args.runs,
+            args.timeout,
+            args.solution,
+            args.output_ils_param,
+        )
+
+        print(f"Wrote ILS parameter benchmark results to: {args.output_ils_param}")
+
+    #####################################################################################
     # iterated local search benchmark
     #####################################################################################
 
     if args.bench in ("ils", "all"):
-        ils_neighborhoods = [["transpose", "exchange", "insert"]]
+        ils_neighborhoods = [["exchange"], ["transpose", "exchange", "insert"]]
         ils_param_grid = build_param_grid(
             {
-                "ils_perturb_rate": [0.1],
-                "ils_n_try": [10],
-                "ils_worst": [0],
+                "ils_perturb_rate": [0, 0.1, 0.2, 0.5],
+                "ils_n_try": [0, 1, 10, 100],
+                "ils_worst": [0, 100, 1000, 10000],
             }
         )
 
+        ils_pivot = ["first", "best"]
+        ils_start_sols = ["random", "c_and_w"]
+
         combinations = list(
-            itertools.product(["first"], ils_neighborhoods, ["c_and_w"])
+            itertools.product(ils_pivot, ils_neighborhoods, ils_start_sols)
         )
 
         run_info_list = build_run_info_list(
@@ -621,47 +667,6 @@ def main() -> int:
         )
 
         print(f"Wrote ILS benchmark results to: {args.output_ils}")
-
-    #####################################################################################
-    # memetic algorithm benchmark
-    #####################################################################################
-
-    if args.bench in ("memetic", "all"):
-        memetic_neighborhoods = [["transpose", "exchange", "insert"]]
-        memetic_param_grid = build_param_grid(
-            {
-                "meme_pop": [20],
-                "meme_offspring": [10],
-                "meme_divers_try": [5],
-                "meme_mean_try": [10],
-                "meme_cross_rate_mut": [0.8],
-                "meme_mut_rate": [0.1],
-                "meme_cross_rate": [0.5],
-            }
-        )
-
-        combinations = list(
-            itertools.product(["first"], memetic_neighborhoods, ["random"])
-        )
-
-        run_info_list = build_run_info_list(
-            args.binary,
-            args.instances_dir,
-            instances,
-            combinations,
-            algo="memetic",
-            extra_params=memetic_param_grid,
-        )
-        benchmark(
-            run_info_list,
-            args.workers,
-            args.runs,
-            args.timeout,
-            args.solution,
-            args.output_memetic,
-        )
-
-        print(f"Wrote memetic benchmark results to: {args.output_memetic}")
 
     #######################################################################################
     # memetic parameters algorithm benchmark
@@ -708,6 +713,47 @@ def main() -> int:
         print(
             f"Wrote memetic parameters benchmark results to: {args.output_meme_param}"
         )
+
+    #####################################################################################
+    # memetic algorithm benchmark
+    #####################################################################################
+
+    if args.bench in ("memetic", "all"):
+        memetic_neighborhoods = [["transpose", "exchange", "insert"]]
+        memetic_param_grid = build_param_grid(
+            {
+                "meme_pop": [20],
+                "meme_offspring": [10],
+                "meme_divers_try": [5],
+                "meme_mean_try": [10],
+                "meme_cross_rate_mut": [0.8],
+                "meme_mut_rate": [0.1],
+                "meme_cross_rate": [0.5],
+            }
+        )
+
+        combinations = list(
+            itertools.product(["first"], memetic_neighborhoods, ["random"])
+        )
+
+        run_info_list = build_run_info_list(
+            args.binary,
+            args.instances_dir,
+            instances,
+            combinations,
+            algo="memetic",
+            extra_params=memetic_param_grid,
+        )
+        benchmark(
+            run_info_list,
+            args.workers,
+            args.runs,
+            args.timeout,
+            args.solution,
+            args.output_memetic,
+        )
+
+        print(f"Wrote memetic benchmark results to: {args.output_memetic}")
 
     print("All done !")
 
