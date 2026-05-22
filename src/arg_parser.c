@@ -256,6 +256,7 @@ void print_result(const t_cost cost, const float elapsed_seconds,
 
 inline const bool is_print_result() { return arguments.result; }
 
+static clock_t result_clock = 0;
 void set_result_clock() { result_clock = clock(); }
 
 void result_printer(const t_cost cost, const size_t *const sol,

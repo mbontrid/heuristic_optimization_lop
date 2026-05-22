@@ -72,7 +72,6 @@ void verbose_printf(const char *func_name, const char *fmt, ...);
 void print_result(const t_cost cost, const float elapsed_seconds,
                   const size_t *const sol, const size_t sol_size);
 const bool is_print_result();
-static clock_t result_clock;
 void set_result_clock();
 void result_printer(const t_cost cost, const size_t *const sol,
                     const size_t sol_size, const bool force);
