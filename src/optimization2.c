@@ -18,6 +18,10 @@ ils(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     const enum pivot_enum pivot_rule,
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_exploration,
     const ushort n_neighb_vn) {
+  if (perturb_rate <= 0 || perturb_rate > 1) {
+    fprintf(stderr, "Error: perturb_rate must be in ]0 ,1]\n");
+    exit(EXIT_FAILURE);
+  }
 
   t_delta_cost delta = vnd_lop(cost_mat, size, sol_1d, pivot_rule,
                                fptr_delta_neigh_exploration, n_neighb_vn);
@@ -35,6 +39,7 @@ ils(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   size_t *const new_sol_1d = malloc(size * sizeof(size_t));
   memcpy(new_sol_1d, sol_1d, size * sizeof(size_t));
 
+  set_result_clock();
   while (try++ < n_try && !is_interrupt_requested()) {
 
     t_delta_cost delta_delta =
@@ -48,6 +53,7 @@ ils(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
       // copy the new sol to sol
       memcpy(sol_1d, new_sol_1d, size * sizeof(size_t));
       delta += delta_delta;
+      result_printer(delta, sol_1d, size, false);
       try = 0;
     } else {
       // revert new_sol to old sol
@@ -502,7 +508,9 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   double mean_pop_cost_before_diversi = 0;
   size_t diversi_try = 0;
   size_t gen = 0;
+  set_result_clock();
   while (diversi_try < n_diversi_try && !is_interrupt_requested()) {
+    result_printer(best_cost, best_sol_1d, size, false);
 
     PVERB("Generating offspring\n");
     offspring(cost_mat, size, pop_2d, pop_cost_1d, n_population, offspring_2d,

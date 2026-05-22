@@ -220,8 +220,8 @@ int cmp_desc(const void *a, const void *b) {
 
 int cmp_asc(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
 
-double end_clock(clock_t start) {
-  clock_t end = clock();
+double get_elapsed_s(clock_t start) {
+  const clock_t end = clock();
   return (double)(end - start) / CLOCKS_PER_SEC;
 }
 

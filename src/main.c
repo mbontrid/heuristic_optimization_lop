@@ -69,13 +69,12 @@ int main(int argc, char **argv) {
   // lop measurement
   // ------------------------------------------------------------
 
+  //////////////////////////////////////
   // generating first solution
+  //////////////////////////////////////
   size_t *sol_1d = arguments.fptr_sol_start(cost_mat_2d, mat_cost_dim);
 
   t_delta_cost cost = computeCost(cost_mat_2d, sol_1d, mat_cost_dim);
-
-  /* starts time measurement */
-  clock_t start = clock();
 
   if (arguments.algo == VND) {
 
@@ -84,6 +83,7 @@ int main(int argc, char **argv) {
           arguments.pivot_rule == FIRST ? "first" : "best",
           arguments.n_neighb_vnd);
 
+    set_result_clock();
     cost += vnd_lop(cost_mat_2d, mat_cost_dim, sol_1d, arguments.pivot_rule,
                     arguments.fptr_neighb_exploration, arguments.n_neighb_vnd);
 
@@ -91,6 +91,7 @@ int main(int argc, char **argv) {
 
     PVERB("Running iterated local search algorithm\n");
 
+    set_result_clock();
     cost += ils(cost_mat_2d, sol_1d, mat_cost_dim, arguments.ils_perturb_rate,
                 arguments.ils_n_try, arguments.ils_worse, arguments.pivot_rule,
                 arguments.fptr_neighb_exploration, arguments.n_neighb_vnd);
@@ -98,6 +99,7 @@ int main(int argc, char **argv) {
   } else if (arguments.algo == MEMETIC) {
 
     PVERB("Running memetic algorithm\n");
+    set_result_clock();
     cost =
         memetic(cost_mat_2d, sol_1d, mat_cost_dim,
                 arguments.memetic_n_population, arguments.memetic_n_diversi_try,
@@ -107,16 +109,13 @@ int main(int argc, char **argv) {
                 arguments.fptr_neighb_exploration, arguments.n_neighb_vnd);
   }
 
-  const double elapsed_seconds = end_clock(start);
-  /* stop time measurement */
-
-  assert(cost == computeCost(cost_mat_2d, sol_1d, mat_cost_dim));
-
   //////////////////////////////////////////////////////////////////////////////
   // print results
   //////////////////////////////////////////////////////////////////////////////
-  printf("RESULT cost=%ld time=%g solution=", cost, elapsed_seconds);
-  print_array_1d((long int *)sol_1d, mat_cost_dim);
+  result_printer(cost, sol_1d, mat_cost_dim, true);
+
+  // most important assert
+  assert(cost == computeCost(cost_mat_2d, sol_1d, mat_cost_dim));
 
   free(sol_1d);
   free((size_t *const)cost_mat_2d);

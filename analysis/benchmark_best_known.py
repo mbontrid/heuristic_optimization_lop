@@ -3,6 +3,7 @@ import csv
 import itertools
 import multiprocessing
 import re
+import signal
 import subprocess
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
@@ -96,7 +97,7 @@ def parse_args() -> argparse.Namespace:
         "--timeout",
         type=int,
         default=0,
-        help="Timeout in seconds for each solver run. 0 means no timeout.",
+        help="Timeout in seconds for each solver run. 0 means no timeout. The result will be retrieved.",
     )
     parser.add_argument(
         "-w",
@@ -162,7 +163,6 @@ def args_fix(args: argparse.Namespace) -> argparse.Namespace:
 
 class RunArgs:
     def __init__(self):
-        self.verbose = False
         self.instance_path: Path
         self.pivot = "first"
         self.neighborhoods = ["exchange"]
@@ -216,8 +216,7 @@ class RunArgs:
 
             cmd_args.extend([f"--{key}", str(value)])
 
-        if self.verbose:
-            cmd_args.append("--verbose")
+        cmd_args.append("--result")
 
         return cmd_args
 
@@ -237,9 +236,9 @@ class RunInfo:
 
         self.best_known_cost: int = best_known_cost
 
-        self.elapsed_seconds: float | None = None
-        self.cost: int | None = None
-        self.solution: list[int] | None = None
+        self.elapsed_seconds_list: list[float] = []
+        self.cost_list: list[int] = []
+        self.solution_list: list[list[int] | None] = []
 
     @property
     def instance_name(self) -> str:
@@ -248,19 +247,25 @@ class RunInfo:
     def get_cmd_list(self) -> list[str]:
         return [str(self.binary_path)] + self.run_args.get_arg_list()
 
-    def get_info_result(self) -> dict[str, object]:
-        results = {}
-        results["instance"] = self.instance_name
-        results["best_known_cost"] = self.best_known_cost
-        results["cost"] = self.cost
-        results["elapsed_seconds"] = self.elapsed_seconds
-        for key, value in self.run_args.get_args_dict().items():
-            if key not in results.keys():
-                results[key] = value
+    def get_info_results(self) -> list[dict[str, object]]:
+        results_list = []
+        for cost, elapsed, solution in zip(
+            self.cost_list, self.elapsed_seconds_list, self.solution_list
+        ):
+            results = {}
+            results["instance"] = self.instance_name
+            results["best_known_cost"] = self.best_known_cost
+            results["cost"] = cost
+            results["elapsed_seconds"] = elapsed
+            for key, value in self.run_args.get_args_dict().items():
+                if key not in results.keys():
+                    results[key] = value
 
-        results["solution"] = self.solution
+            results["solution"] = solution
 
-        return results
+            results_list.append(results)
+
+        return results_list
 
 
 def parse_best_known(path: Path) -> list[tuple[str, int]]:
@@ -357,44 +362,60 @@ def run_solver_once(
     cmd_list: list[str],
     timeout_seconds: float,
     is_solution: bool,
-) -> tuple[int, float, list[int] | None]:
+) -> tuple[list[int], list[float], list[list[int] | None]]:
+    """Run solver once and return final cost, time, solution"""
 
-    # print(f"Running command: {' '.join(cmd)}", file=sys.stderr)
-
-    completed = subprocess.run(
+    timeout_hit = False
+    proc = subprocess.Popen(
         cmd_list,
-        check=False,
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
-        timeout=timeout_seconds if timeout_seconds > 0 else None,
     )
+    try:
+        stdout, stderr = proc.communicate(
+            timeout=timeout_seconds if timeout_seconds > 0 else None
+        )
+    except subprocess.TimeoutExpired:
+        timeout_hit = True
+        proc.send_signal(signal.SIGINT)
+        try:
+            stdout, stderr = proc.communicate(timeout=2)
+        except subprocess.TimeoutExpired:
+            proc.terminate()
+            try:
+                stdout, stderr = proc.communicate(timeout=2)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                stdout, stderr = proc.communicate()
 
-    if completed.returncode != 0:
+    if proc.returncode != 0 and not timeout_hit:
         raise RuntimeError(
             "Solver run failed\n"
             f"Command: {' '.join(cmd_list)}\n"
-            f"Exit code: {completed.returncode}\n"
-            f"STDOUT:\n{completed.stdout}\n"
-            f"STDERR:\n{completed.stderr}"
+            f"Exit code: {proc.returncode}\n"
+            f"STDOUT:\n{stdout}\n"
+            f"STDERR:\n{stderr}"
         )
 
-    match = RESULT_PATTERN.search(completed.stdout)
-    if match is None:
+    # Extract all RESULT lines
+    all_matches = list(RESULT_PATTERN.finditer(stdout))
+    if not all_matches:
         raise RuntimeError(
             "Could not parse solver result line\n"
             f"Command: {' '.join(cmd_list)}\n"
-            f"STDOUT:\n{completed.stdout}\n"
-            f"STDERR:\n{completed.stderr}"
+            f"STDOUT:\n{stdout}\n"
+            f"STDERR:\n{stderr}"
         )
 
-    cost = int(match.group("cost"))
-    elapsed_seconds = float(match.group("time"))
-    solution = (
-        [int(i) for i in match.group("solution").strip().split(" ")]
-        if is_solution
-        else None
-    )
-    return cost, elapsed_seconds, solution
+    costs = [int(i.group("cost")) for i in all_matches]
+    elapsed_seconds = [float(i.group("time")) for i in all_matches]
+    solutions = [
+        [int(i) for i in sol.strip().split(" ")] if is_solution else None
+        for sol in [match.group("solution") for match in all_matches]
+    ]
+
+    return costs, elapsed_seconds, solutions
 
 
 def run_benchmark_job(
@@ -402,33 +423,28 @@ def run_benchmark_job(
     runs_per_job: int,
     timeout_seconds: float,
     is_solution: bool,
-) -> dict[str, object]:
+) -> list[dict[str, object]]:
 
     costs: list[int] = []
-    times: list[float] = []
-    solutions: list[list[int] | None] = []
+    elapsed_second: list[float] = []
+    solutions: list[list[int] | None] = [[]]
 
     cmd_list = run_info.get_cmd_list()
 
     for _ in range(runs_per_job):
-        cost, elapsed, solution = run_solver_once(
+        costs, elapsed_second, solutions = run_solver_once(
             cmd_list=cmd_list,
             timeout_seconds=timeout_seconds,
             is_solution=is_solution,
         )
-        costs.append(cost)
-        times.append(elapsed)
-        solutions.append(solution)
 
-    cost = max(costs)
-    time = min(times)
-    solution = solutions[costs.index(cost)] if is_solution else None
+    run_info.cost_list = costs
+    run_info.elapsed_seconds_list = elapsed_second
+    run_info.solution_list = solutions
 
-    run_info.cost = cost
-    run_info.elapsed_seconds = time
-    run_info.solution = solution
+    result_info = run_info.get_info_results()
 
-    return run_info.get_info_result()
+    return result_info
 
 
 def benchmark(
@@ -442,16 +458,27 @@ def benchmark(
     total_runs = len(run_info_list) * n_runs
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Collect all fieldnames first
+    tmp = RunInfo(Path("dummy"), 0)
+    tmp.elapsed_seconds_list = [0.0]
+    tmp.cost_list = [0]
+    tmp.solution_list = [[0]]
+    fieldnames = set(tmp.get_info_results()[0].keys())
+    del tmp
+    fieldnames = sorted(list(fieldnames))
+
     with output_path.open("w", encoding="utf-8", newline="") as csv_file:
         writer = csv.DictWriter(
             csv_file,
-            fieldnames=run_info_list[0].get_info_result().keys(),
+            fieldnames=fieldnames,
+            restval="",
         )
         writer.writeheader()
 
         with tqdm(total=total_runs, unit="run", desc="benchmark") as progress:
             with ProcessPoolExecutor(max_workers=workers) as executor:
-                for row in executor.map(
+                for rows in executor.map(
                     run_benchmark_job,
                     run_info_list,
                     itertools.repeat(n_runs),
@@ -460,9 +487,10 @@ def benchmark(
                 ):
                     progress.update(n_runs)
                     progress.set_postfix_str(
-                        format_progress_details(row), refresh=False
+                        format_progress_details(rows[-1]), refresh=False
                     )
-                    writer.writerow(row)
+                    for row in rows:
+                        writer.writerow(row)
 
 
 def build_run_info_list(
@@ -550,6 +578,7 @@ def main() -> int:
     # iterative improvement benchmark with all pivot/neighborhood/sol_start combinations
     #####################################################################################
     if args.bench in ("it_imp", "all"):
+        print("Running iterative improvement benchmark...")
         combinations = list(itertools.product(PIVOTS, NEIGHBORHOODS, START_SOLS))
 
         run_info_list = build_run_info_list(
@@ -575,6 +604,7 @@ def main() -> int:
     #####################################################################################
 
     if args.bench in ("vnd", "all"):
+        print("Running VND benchmark...")
         vnd_neighborhoods = [
             ["transpose", "exchange", "insert"],
             ["transpose", "insert", "exchange"],
@@ -607,13 +637,14 @@ def main() -> int:
     #####################################################################################
 
     if args.bench in ("ils_param", "all"):
+        print("Running iterated local search parameter benchmark...")
         param_instances = select_instances(instances, ["N-be75eec_150"])
         ils_neighborhoods = [["exchange"], ["transpose", "exchange", "insert"]]
         ils_param_grid = build_param_grid(
             {
-                "ils_perturb_rate": [0, 0.2, 0.5, 0.8, 1.0],
-                "ils_n_try": [0, 10, 100],
-                "ils_worst": [0, 10000],
+                "ils_perturb_rate": [0.2, 0.5, 0.8],
+                "ils_n_try": [10, 100],
+                "ils_worst": [0, 10],
             }
         )
 
@@ -648,19 +679,20 @@ def main() -> int:
     #####################################################################################
 
     if args.bench in ("ils", "all"):
+        print("Running iterated local search benchmark...")
         instances_150 = [
             (name, cost) for name, cost in instances if name.endswith("_150")
         ]
         ils_neighborhoods = [["transpose", "exchange", "insert"]]
         ils_param_grid = build_param_grid(
             {
-                "ils_perturb_rate": [0.5],
-                "ils_n_try": [10],
+                "ils_perturb_rate": [0.2],
+                "ils_n_try": [100],
                 "ils_worst": [0],
             }
         )
 
-        ils_pivot = ["best"]
+        ils_pivot = ["first"]
         ils_start_sols = ["c_and_w"]
 
         combinations = list(
@@ -691,6 +723,7 @@ def main() -> int:
     #######################################################################################
 
     if args.bench in ("meme_param", "all"):
+        print("Running memetic parameter benchmark...")
         param_instances = select_instances(instances, ["N-be75eec_150"])
         vnd_neighborhoods = [
             ["exchange"],
@@ -739,6 +772,7 @@ def main() -> int:
     #####################################################################################
 
     if args.bench in ("memetic", "all"):
+        print("Running memetic benchmark...")
         instances_150 = [
             (name, cost) for name, cost in instances if name.endswith("_150")
         ]
@@ -747,8 +781,8 @@ def main() -> int:
             {
                 "meme_pop": [20],
                 "meme_offspring": [10],
-                "meme_divers_try": [2],
-                "meme_mean_try": [5],
+                "meme_divers_try": [3],
+                "meme_mean_try": [10],
                 "meme_cross_rate_mut": [0.8],
                 "meme_mut_rate": [0.1],
                 "meme_cross_rate": [0.5],

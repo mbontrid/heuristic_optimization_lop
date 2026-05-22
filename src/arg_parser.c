@@ -12,9 +12,8 @@
 struct arguments arguments;
 
 static struct argp_option options[] = {
-    {"verbose", KEY_VERBOSE, 0, 0, "Returns verbose output."},
-    // {"output", KEY_OUTPUT, "FILE", 0,
-    // "Returns output to file instead of standard input"},
+    {"verbose", KEY_VERBOSE, 0, 0, "Stdout verbose."},
+    {"result", KEY_RESULT, 0, 0, "Stdout the result at each improvement."},
     {"instance", KEY_INSTANCE, "FILE", 0,
      "Instance file to use. Default=data/input/instances/N-be75eec_150"},
     {"pivot", KEY_PIVOT, "CHOICE", 0,
@@ -66,6 +65,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
   switch (key) {
   case KEY_VERBOSE:
     args->verbose = true;
+    break;
+  case KEY_RESULT:
+    args->result = true;
     break;
   // case 'o':
   //   args->out_file = arg;
@@ -200,6 +202,7 @@ void init_arguments(struct arguments *args) {
   args->is_pos_arg = false;
   args->pos_args[0] = NULL;
   args->verbose = false;
+  args->result = false;
   args->instance_file = "data/input/instances/N-be75eec_150";
   // args->out_file = "data/output/benchmark.csv";
   args->n_neighb_vnd = 0;
@@ -243,4 +246,21 @@ void verbose_printf(const char *func_name, const char *fmt, ...) {
   va_start(args, fmt);
   vprintf(fmt, args);
   va_end(args);
+}
+
+void print_result(const t_cost cost, const float elapsed_seconds,
+                  const size_t *const sol, const size_t sol_size) {
+  printf("RESULT cost=%u time=%f solution=", cost, elapsed_seconds);
+  print_array_1d((const long int *const)sol, sol_size);
+}
+
+inline const bool is_print_result() { return arguments.result; }
+
+void set_result_clock() { result_clock = clock(); }
+
+void result_printer(const t_cost cost, const size_t *const sol,
+                    const size_t sol_size, const bool force) {
+  if (is_print_result() || force) {
+    print_result(cost, get_elapsed_s(result_clock), sol, sol_size);
+  }
 }

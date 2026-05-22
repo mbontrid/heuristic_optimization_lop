@@ -16,6 +16,7 @@ struct arguments {
   char *instance_file;
   char *out_file;
   bool verbose;
+  bool result;
 
   unsigned short n_neighb_vnd;
   enum pivot_enum pivot_rule;
@@ -42,6 +43,7 @@ struct arguments {
 
 enum {
   KEY_VERBOSE = 'v',
+  KEY_RESULT = 'r',
   KEY_INSTANCE = 'i',
   KEY_PIVOT = 'p',
   KEY_NEIGHB = 'n',
@@ -66,6 +68,14 @@ extern struct arguments arguments;
 void init_arguments(struct arguments *args);
 void parse_arguments(int argc, char **argv, struct arguments *args);
 void verbose_printf(const char *func_name, const char *fmt, ...);
+
+void print_result(const t_cost cost, const float elapsed_seconds,
+                  const size_t *const sol, const size_t sol_size);
+const bool is_print_result();
+static clock_t result_clock;
+void set_result_clock();
+void result_printer(const t_cost cost, const size_t *const sol,
+                    const size_t sol_size, const bool force);
 
 #define PVERB(...)                                                             \
   do {                                                                         \

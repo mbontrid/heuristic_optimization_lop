@@ -22,7 +22,6 @@
 #define _UTILITIES_H_
 
 #include <limits.h>
-#include <signal.h>
 #include <stdbool.h>
 #include <time.h>
 #define PREV 0
@@ -154,7 +153,7 @@ int cmp_desc(const void *a, const void *b);
 // Comparator for ascending order
 int cmp_asc(const void *a, const void *b);
 
-double end_clock(clock_t start);
+double get_elapsed_s(clock_t start);
 
 /**
  * @brief reorder an array based on the indice of another array. The resulting
