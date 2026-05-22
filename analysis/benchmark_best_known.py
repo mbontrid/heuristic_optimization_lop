@@ -464,9 +464,9 @@ def benchmark(
     tmp.elapsed_seconds_list = [0.0]
     tmp.cost_list = [0]
     tmp.solution_list = [[0]]
-    fieldnames = set(tmp.get_info_results()[0].keys())
+    fieldnames = tmp.get_info_results()[0].keys()
     del tmp
-    fieldnames = sorted(list(fieldnames))
+    fieldnames = list(fieldnames)
 
     with output_path.open("w", encoding="utf-8", newline="") as csv_file:
         writer = csv.DictWriter(
@@ -781,7 +781,7 @@ def main() -> int:
             {
                 "meme_pop": [20],
                 "meme_offspring": [10],
-                "meme_divers_try": [3],
+                "meme_divers_try": [5],
                 "meme_mean_try": [10],
                 "meme_cross_rate_mut": [0.8],
                 "meme_mut_rate": [0.1],

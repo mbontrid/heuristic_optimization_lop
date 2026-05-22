@@ -71,3 +71,5 @@ after fixign the non crossing problem
 
 RESULT cost=3478629 time=1641.23 solution=36 7 100 4 25 116 74 30 143 17 23 39 60 96 8 131 129 147 24 142 81 0 77 26 19 64 3 50 124 89 98 44 137 71 122 127 72 134 123 11 34 29 125 6 92 15 70 149 112 135 31 18 91 86 82 2 59 119 87 93 1 102 133 104 42 21 78 114 80 138 121 148 48 76 126 47 14 140 37 20 38 139 10 128 62 85 46 54 22 5 115 75 63 141 90 88 97 49 53 61 52 113 94 68 110 145 51 99 65 67 136 83 56 43 132 58 95 146 32 107 101 69 117 35 66 106 103 45 144 40 13 9 33 130 73 12 16 105 108 41 55 28 27 120 109 118 111 84 79 57 
 
+cross rate of 0 is not interesting to test as it's equivalent with cross_mut=0.
+best pivot and vnd algo is faster as vnd take less time if base solution already better and best pivot has the same consequences.

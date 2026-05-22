@@ -510,7 +510,6 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   size_t gen = 0;
   set_result_clock();
   while (diversi_try < n_diversi_try && !is_interrupt_requested()) {
-    result_printer(best_cost, best_sol_1d, size, false);
 
     PVERB("Generating offspring\n");
     offspring(cost_mat, size, pop_2d, pop_cost_1d, n_population, offspring_2d,
@@ -522,8 +521,12 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     // the best sols will be in descending order.
     select_n_best(pop_2d, pop_cost_1d, pop_off_2d, pop_off_cost_2d,
                   n_population, n_offspring + n_population, size);
-    memcpy(best_sol_1d, &pop_2d[0], size * sizeof(*best_sol_1d));
-    best_cost = pop_cost_1d[0];
+
+    if (best_cost < pop_cost_1d[0]) { // will always be best or equal.
+      best_cost = pop_cost_1d[0];
+      memcpy(best_sol_1d, &pop_2d[0], size * sizeof(*best_sol_1d));
+      result_printer(best_cost, best_sol_1d, size, false);
+    }
 
     ///////////////////////////
     /// is diversification needed?
