@@ -495,11 +495,10 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   populate(cost_mat, pop_2d, pop_cost_1d, size, n_population, 1, pivot_rule,
            n_neighb_vn, fptr_delta_neigh_explaration);
 
-  memcpy(best_sol_1d, &pop_2d[best_id * size], size * sizeof(*best_sol_1d));
-
   /////////////////////////////////////
   /// generations of individuals
   ////////////////////////////////////
+  t_cost best_cost = pop_cost_1d[0];
   float mean_cost_pop = get_mean(pop_cost_1d, n_population);
   float best_mean_pop_cost = mean_cost_pop;
   size_t mean_try = 0;
@@ -521,8 +520,7 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
 
     if (best_cost < pop_cost_1d[0]) { // will never be inferior.
       best_cost = pop_cost_1d[0];
-      memcpy(best_sol_1d, &pop_2d[0], size * sizeof(*best_sol_1d));
-      result_printer(best_cost, best_sol_1d, size, false);
+      result_printer(best_cost, &pop_2d[0], size, false);
       diversi_try = 0;
       mean_try = 0;
     }
@@ -561,11 +559,10 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   ////////////////////////////////////////////////////////////////////
   /// end of generations, return the first element of the population
   //////////////////////////////////////////////////////////////////////
-  memcpy(sol_1d, best_sol_1d, size * sizeof(size_t));
+  memcpy(sol_1d, &pop_2d[0], size * sizeof(size_t));
   assert(best_cost == get_max_array_cost(pop_cost_1d, n_population));
   assert(best_cost == computeCost(cost_mat, sol_1d, size));
 
-  free(best_sol_1d);
   free(pop_off_2d);
   free(pop_off_cost_2d);
   return best_cost;
