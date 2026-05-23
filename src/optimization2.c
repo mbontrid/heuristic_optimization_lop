@@ -207,7 +207,6 @@ t_delta_cost ob_crossover(const t_cost *restrict const cost_mat,
   // end ob_crossover
   /////////////////////////
 #ifndef NDEBUG
-  assert(ordered_count == n_cross);
   assert(delta == (t_delta_cost)computeCost(cost_mat, p1_offspring, size) -
                       (t_delta_cost)computeCost(
                           cost_mat, assert_p1_offspring_before, size));

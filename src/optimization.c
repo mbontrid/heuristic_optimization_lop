@@ -367,6 +367,7 @@ t_delta_cost cost_delta_insert(const t_mat_cell *restrict const cost_mat_2d,
                            (t_delta_cost)assert_cost_before);
 
   free(constructive_sol_1d);
+  free(best_sol_1d);
 
   return best_delta;
 }
@@ -434,7 +435,7 @@ t_delta_cost lop_iter_impr(
       computeCost(cost_mat_2d, sol_1d, mat_cost_dim);
 #endif
 
-  size_t *new_sol_1d = malloc(mat_cost_dim * sizeof(size_t));
+  size_t *const new_sol_1d = malloc(mat_cost_dim * sizeof(size_t));
   memcpy(new_sol_1d, sol_1d, mat_cost_dim * sizeof(size_t));
 
   t_delta_cost delta_total = 0;

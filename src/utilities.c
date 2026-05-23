@@ -102,7 +102,7 @@ void randomize_vector(size_t *restrict const array, const size_t size) {
   // -2 because the if -1 the laset swap is always happening -> no randomness in
   // that
   for (size_t i = 0; i < size - 2; i++) {
-    const size_t j = randInt(i + 1, size);
+    const size_t j = randInt(i + 1, size - 1);
     swap(array, i, j);
   }
 }
@@ -110,7 +110,8 @@ void randomize_vector(size_t *restrict const array, const size_t size) {
 size_t *generate_rand_no_rep_array(const size_t size)
 /* Generates a random vector, quick and dirty */
 {
-  size_t *random_vector = generate_incr_vector(size);
+  size_t *const random_vector = generate_incr_vector(size);
+  assert(get_max_array(random_vector, size) < size);
 
   randomize_vector(random_vector, size);
 
