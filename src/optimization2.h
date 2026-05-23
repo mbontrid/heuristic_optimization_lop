@@ -51,9 +51,9 @@ bool is_accetp_worse(const t_delta_cost delta, const t_cost worse_bracket);
  * @return cost_delat of sol_1d before and after ILS.
  */
 t_delta_cost
-ils(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
-    const float perturb_rate, const size_t n_try, const t_cost worse,
-    const enum pivot_enum pivot_rule,
+ils(const t_cost *const cost_mat, size_t *const sol_1d, const t_cost start_cost,
+    size_t size, const float perturb_rate, const size_t n_try,
+    const t_cost worse, const enum pivot_enum pivot_rule,
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_exploration,
     const ushort n_neighb_vn);
 

@@ -13,15 +13,17 @@ bool is_accetp_worse(const t_delta_cost delta, const t_cost worse) {
 }
 
 t_delta_cost
-ils(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
-    const float perturb_rate, const size_t n_try, const t_cost worse,
-    const enum pivot_enum pivot_rule,
+ils(const t_cost *const cost_mat, size_t *const sol_1d, const t_cost start_cost,
+    size_t size, const float perturb_rate, const size_t n_try,
+    const t_cost worse, const enum pivot_enum pivot_rule,
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_exploration,
     const ushort n_neighb_vn) {
   if (perturb_rate <= 0 || perturb_rate > 1) {
     fprintf(stderr, "Error: perturb_rate must be in ]0 ,1]\n");
     exit(EXIT_FAILURE);
   }
+
+  assert(start_cost == computeCost(cost_mat, sol_1d, size));
 
   t_delta_cost delta = vnd_lop(cost_mat, size, sol_1d, pivot_rule,
                                fptr_delta_neigh_exploration, n_neighb_vn);
@@ -53,7 +55,7 @@ ils(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
       // copy the new sol to sol
       memcpy(sol_1d, new_sol_1d, size * sizeof(size_t));
       delta += delta_delta;
-      result_printer(delta, sol_1d, size, false);
+      result_printer(delta + start_cost, sol_1d, size, false);
       try = 0;
     } else {
       // revert new_sol to old sol
@@ -92,10 +94,10 @@ void populate(
       DPRINTF("Generating solution for individual %zu\n", i);
 
       randomize_vector(current, size);
-      *current_cost = computeCost(cost_mat, current, size);
 
-      *current_cost += vnd_lop(cost_mat, size, current, pivot_rule,
-                               fptr_delta_neigh_explaration, n_neighb_vn);
+      vnd_lop(cost_mat, size, current, pivot_rule, fptr_delta_neigh_explaration,
+              n_neighb_vn);
+      *current_cost = computeCost(cost_mat, current, size);
 
     } while (is_array_in_arrays(current, pop_2d, size, i));
   }
@@ -205,9 +207,6 @@ t_delta_cost ob_crossover(const t_cost *restrict const cost_mat,
   // end ob_crossover
   /////////////////////////
 #ifndef NDEBUG
-  // delta == 0 => !array_equel
-  assert(delta != 0 ||
-         !array_equal(p1_offspring, assert_p1_offspring_before, size));
   assert(ordered_count == n_cross);
   assert(delta == (t_delta_cost)computeCost(cost_mat, p1_offspring, size) -
                       (t_delta_cost)computeCost(
@@ -408,7 +407,8 @@ void select_n_best(size_t *restrict const best_2d,
   size_t *restrict const new_pop_2d =
       malloc(size_elem * n_best * sizeof(size_t));
   t_cost *restrict const new_pop_cost_1d = malloc(n_best * sizeof(t_cost));
-  // populate pop_2d with the sortede best.
+// populate pop_2d with the sortede best.
+#pragma omp simd
   for (size_t i = 0; i < n_best; i++) {
     memcpy(&new_pop_2d[i * size_elem], &all_2d[best_pop_id[i] * size_elem],
            size_elem * sizeof(*new_pop_2d));
@@ -465,9 +465,6 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
   assert(pop_off_2d);
   assert(pop_off_cost_2d);
 
-  size_t *const best_sol_1d = malloc(size * sizeof(*best_sol_1d));
-  assert(best_sol_1d);
-
   size_t *const pop_2d = &pop_off_2d[0];
   t_cost *const pop_cost_1d = &pop_off_cost_2d[0];
 
@@ -489,23 +486,23 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
 
   ///////////////////////////////
   /// populating initial population
+  /// keep sol_1d at 1st place of population
   ///////////////////////////////
 
   PVERB("Populating initial population\n");
-  populate(cost_mat, pop_2d, pop_cost_1d, size, n_population, 0, pivot_rule,
+  memcpy(&pop_2d[0], sol_1d, size);
+  pop_cost_1d[0] = computeCost(cost_mat, sol_1d, size);
+  populate(cost_mat, pop_2d, pop_cost_1d, size, n_population, 1, pivot_rule,
            n_neighb_vn, fptr_delta_neigh_explaration);
 
-  size_t best_id =
-      get_max_id((const size_t *restrict const)pop_cost_1d, n_population);
-  t_cost best_cost = pop_cost_1d[best_id];
   memcpy(best_sol_1d, &pop_2d[best_id * size], size * sizeof(*best_sol_1d));
 
   /////////////////////////////////////
   /// generations of individuals
   ////////////////////////////////////
-  double mean_pop_cost = get_mean(pop_cost_1d, n_population);
+  float mean_cost_pop = get_mean(pop_cost_1d, n_population);
+  float best_mean_pop_cost = mean_cost_pop;
   size_t mean_try = 0;
-  double mean_pop_cost_before_diversi = 0;
   size_t diversi_try = 0;
   size_t gen = 0;
   set_result_clock();
@@ -522,42 +519,43 @@ memetic(const t_cost *const cost_mat, size_t *const sol_1d, size_t size,
     select_n_best(pop_2d, pop_cost_1d, pop_off_2d, pop_off_cost_2d,
                   n_population, n_offspring + n_population, size);
 
-    if (best_cost < pop_cost_1d[0]) { // will always be best or equal.
+    if (best_cost < pop_cost_1d[0]) { // will never be inferior.
       best_cost = pop_cost_1d[0];
       memcpy(best_sol_1d, &pop_2d[0], size * sizeof(*best_sol_1d));
       result_printer(best_cost, best_sol_1d, size, false);
+      diversi_try = 0;
+      mean_try = 0;
     }
 
     ///////////////////////////
     /// is diversification needed?
     /////////////////////////////
-    const double new_mean_pop_cost = get_mean(pop_cost_1d, n_population);
-    if (new_mean_pop_cost <= mean_pop_cost) {
-      mean_try++;
-      if (mean_try >= n_mean_try && diversi_try++ < n_diversi_try) {
-        /////////////////////////////////////////
-        /// diversify
-        ////////////////////////////////////////
-        mean_try = 0;
-        mean_pop_cost_before_diversi = mean_pop_cost;
+    const float new_mean = get_mean(pop_cost_1d, n_population);
+    const bool is_better = (mean_cost_pop < new_mean);
+    mean_cost_pop = new_mean;
 
-        PVERB("Diversifying population\n");
-        diversification(cost_mat, size, pop_2d, pop_cost_1d, n_population, 1,
-                        pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
-      } else if (mean_pop_cost_before_diversi < mean_pop_cost) {
-        // did improve some time after last diversification.
+    if (is_better) {
+      mean_try = 0;
+      if (best_mean_pop_cost < mean_cost_pop) { // the mean improved
+        best_mean_pop_cost = mean_cost_pop;
         diversi_try = 0;
       }
-    } else {
+    } else if (mean_try++ >= n_mean_try) {
+      /////////////////////////////////////////
+      /// diversify
+      ////////////////////////////////////////
       mean_try = 0;
+      diversi_try++;
+      PVERB("Diversifying population\n");
+      diversification(cost_mat, size, pop_2d, pop_cost_1d, n_population, 1,
+                      pivot_rule, fptr_delta_neigh_explaration, n_neighb_vn);
     }
-    mean_pop_cost = new_mean_pop_cost;
 
-    PVERB("gen=%zu | mean_pop_cost=%.2f | mean_pop_cost_before_diversi=%.2f | "
-          "current_cost=%u | mean_try=%zu/%zu | "
+    PVERB("gen=%zu | mean_pop_cost=%f | best_mean_pop_cost=%f | "
+          "best_cost=%u | mean_try=%zu/%zu | "
           "diversity_try=%zu/%zu\n",
-          gen, mean_pop_cost, mean_pop_cost_before_diversi, pop_cost_1d[0],
-          mean_try, n_mean_try, diversi_try, n_diversi_try);
+          gen, mean_cost_pop, best_mean_pop_cost, best_cost, mean_try,
+          n_mean_try, diversi_try, n_diversi_try);
     gen++;
   }
   ////////////////////////////////////////////////////////////////////

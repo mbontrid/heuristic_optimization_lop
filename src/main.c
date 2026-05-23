@@ -92,9 +92,10 @@ int main(int argc, char **argv) {
     PVERB("Running iterated local search algorithm\n");
 
     set_result_clock();
-    cost += ils(cost_mat_2d, sol_1d, mat_cost_dim, arguments.ils_perturb_rate,
-                arguments.ils_n_try, arguments.ils_worse, arguments.pivot_rule,
-                arguments.fptr_neighb_exploration, arguments.n_neighb_vnd);
+    cost +=
+        ils(cost_mat_2d, sol_1d, cost, mat_cost_dim, arguments.ils_perturb_rate,
+            arguments.ils_n_try, arguments.ils_worse, arguments.pivot_rule,
+            arguments.fptr_neighb_exploration, arguments.n_neighb_vnd);
 
   } else if (arguments.algo == MEMETIC) {
 
@@ -113,6 +114,12 @@ int main(int argc, char **argv) {
   // print results
   //////////////////////////////////////////////////////////////////////////////
   result_printer(cost, sol_1d, mat_cost_dim, true);
+
+  if (cost != computeCost(cost_mat_2d, sol_1d, mat_cost_dim)) {
+    fprintf(stderr,
+            "Error: the cost of the solution found is not consistent with the "
+            "cost matrix.\n");
+  }
 
   // most important assert
   assert(cost == computeCost(cost_mat_2d, sol_1d, mat_cost_dim));
