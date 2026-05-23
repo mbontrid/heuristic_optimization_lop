@@ -99,15 +99,9 @@ size_t *generate_incr_vector(const size_t size) {
 }
 
 void randomize_vector(size_t *restrict const array, const size_t size) {
-  int tot_assigned = 0;
-
-  for (size_t i = 0; i < size; i++) {
-    /* find (randomly) an index for a free unit */
-    const double rnd = ran01(&Seed);
-    const int node = (long int)(rnd * (size - tot_assigned++));
-    const int help = array[i];
-    array[i] = array[i + node];
-    array[i + node] = help;
+  for (size_t i = 0; i < size - 1; i++) {
+    const size_t j = randInt(i + 1, size);
+    swap(array, i, j);
   }
 }
 
