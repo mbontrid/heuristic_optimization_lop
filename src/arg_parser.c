@@ -87,7 +87,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     }
     break;
   case KEY_NEIGHB:
-    assert(args->n_neighb_vnd < MAXSHORT * 2);
+    assert(args->n_neighb_vnd < 10);
     if (strcmp(arg, "transpose") == 0) {
       args->neighb_exploration[args->n_neighb_vnd] = TRANSPOSE;
       args->fptr_neighb_exploration[args->n_neighb_vnd++] =

@@ -25,7 +25,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <values.h>
 
 #include "utilities.h"
 

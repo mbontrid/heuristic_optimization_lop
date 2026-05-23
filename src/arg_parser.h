@@ -5,7 +5,6 @@
 #include <argp.h>
 #include <stdbool.h>
 #include <sys/types.h>
-#include <values.h>
 
 static const char doc[] = "Variable neighborhood descent LOP instance resolver";
 static const char args_doc[] = "";
@@ -20,10 +19,10 @@ struct arguments {
 
   unsigned short n_neighb_vnd;
   enum pivot_enum pivot_rule;
-  enum neighb_enum neighb_exploration[MAXSHORT * 2];
+  enum neighb_enum neighb_exploration[10];
   enum start_enum start_rule;
 
-  t_fptr_delta_neigh_exploration fptr_neighb_exploration[MAXSHORT * 2];
+  t_fptr_delta_neigh_exploration fptr_neighb_exploration[10];
   t_fptr_sol_start fptr_sol_start;
 
   enum algo_enum algo;
