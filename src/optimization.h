@@ -43,8 +43,8 @@ extern t_mat_cell **cost_mat_2d;
  * @param size Lenght of sol_1d and shape of cost_mat_2d (size, size).
  * @return Sum of the uper left triangle with the sol_1d applied.
  */
-t_cost computeCost(const t_mat_cell *const cost_mat_2d,
-                   const size_t *const sol_1d, size_t size);
+t_cost computeCost(const t_mat_cell *restrict const cost_mat_2d,
+                   const size_t *const lo, const size_t size);
 
 /**
  * @brief get the cost difference if a neithberhood modification is applied to a
@@ -133,9 +133,9 @@ size_t get_n_exchange(const size_t size);
  * @return The cost difference between the initial solution and the new
  * solution.
  */
-t_delta_cost cost_delta_transpose(const t_mat_cell *const cost_mat_2d,
-                                  size_t *const sol_1d, size_t size,
-                                  bool is_first);
+t_delta_cost cost_delta_transpose(const t_mat_cell *restrict const cost_mat_2d,
+                                  size_t *const sol_1d, const size_t size,
+                                  const bool is_first);
 /**
  * @brief Compute the best or first cost difference in all possible neighborhood
  * modifications by exchange. the initial solution is directly modified accoding
@@ -149,9 +149,9 @@ t_delta_cost cost_delta_transpose(const t_mat_cell *const cost_mat_2d,
  * @return The cost difference between the initial solution and the new
  * solution.
  */
-t_delta_cost cost_delta_exchange(const t_mat_cell *const cost_mat_2d,
-                                 size_t *const sol_1d, size_t size,
-                                 bool is_first);
+t_delta_cost cost_delta_exchange(const t_mat_cell *restrict const cost_mat_2d,
+                                 size_t *const sol_1d, const size_t size,
+                                 const bool is_first);
 /**
  * @brief Compute the best or first cost difference in all possible neighborhood
  * modifications by exchange. the initial solution is directly modified accoding
@@ -165,9 +165,9 @@ t_delta_cost cost_delta_exchange(const t_mat_cell *const cost_mat_2d,
  * @return The cost difference between the initial solution and the new
  * solution.
  */
-t_delta_cost cost_delta_insert(const t_mat_cell *const cost_mat_2d,
-                               size_t *const sol_1d, size_t size,
-                               bool is_first);
+t_delta_cost cost_delta_insert(const t_mat_cell *restrict const cost_mat_2d,
+                               size_t *const sol_1d, const size_t size,
+                               const bool is_first);
 
 /**
  * @brief Generate a random ordering (solution) for the lop problem.

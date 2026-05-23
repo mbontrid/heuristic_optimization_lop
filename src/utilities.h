@@ -102,7 +102,7 @@ size_t *gener_no_rep_rand(const size_t min, const size_t max);
  * @param i First index to swap.
  * @param j Scond index to swap.
  */
-void swap(size_t *array_1d, const size_t i, const size_t j);
+void swap(size_t *const array_1d, const size_t i, const size_t j);
 
 void rand_swap(size_t *restrict const array, const size_t size, size_t *const i,
                size_t *const j);

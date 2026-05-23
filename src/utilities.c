@@ -126,8 +126,8 @@ size_t *gener_no_rep_rand(const size_t min, const size_t max) {
   return random_vector;
 }
 
-void swap(size_t *array_1d, const size_t i, const size_t j) {
-  size_t tmp = array_1d[i];
+void swap(size_t *const array_1d, const size_t i, const size_t j) {
+  const size_t tmp = array_1d[i];
   array_1d[i] = array_1d[j];
   array_1d[j] = tmp;
 }
