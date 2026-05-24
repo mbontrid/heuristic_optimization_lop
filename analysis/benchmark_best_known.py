@@ -163,7 +163,7 @@ def args_fix(args: argparse.Namespace) -> argparse.Namespace:
 
 class RunArgs:
     def __init__(self):
-        self.instance_path: Path
+        self.instance_path: Path = PATH_TO_INSTANCES / Path("N-be75eec_150")
         self.pivot = "first"
         self.neighborhoods = ["exchange"]
         self.sol_start = "c_and_w"
@@ -230,8 +230,6 @@ class RunInfo:
     ):
         self.run_args = RunArgs()
 
-        self.run_args.instance_path = instance_path
-
         self.binary_path: Path = binary_path
 
         self.best_known_cost: int = best_known_cost
@@ -248,10 +246,12 @@ class RunInfo:
         return [str(self.binary_path)] + self.run_args.get_arg_list()
 
     def get_info_results_dict_field(self) -> list[str]:
-        namefield = ["instance", "best_known_cost", "cost", "elapsed_seconds"]
-
+        namefield = []
         namefield.extend(self.run_args.get_args_dict().keys())
-        namefield.append("solution")
+        namefield.remove("instance")
+        namefield.extend(
+            ["instance", "best_known_cost", "cost", "elapsed_seconds", "solution"]
+        )
         return namefield
 
     def get_info_results(self) -> list[dict[str, object]]:
@@ -260,14 +260,14 @@ class RunInfo:
             self.cost_list, self.elapsed_seconds_list, self.solution_list
         ):
             results = {}
-            results["instance"] = self.instance_name
-            results["best_known_cost"] = self.best_known_cost
-            results["cost"] = cost
-            results["elapsed_seconds"] = elapsed
             for key, value in self.run_args.get_args_dict().items():
                 if key not in results.keys():
                     results[key] = value
 
+            results.update({"instance": self.instance_name})
+            results["best_known_cost"] = self.best_known_cost
+            results["cost"] = cost
+            results["elapsed_seconds"] = elapsed
             results["solution"] = solution
 
             results_list.append(results)
