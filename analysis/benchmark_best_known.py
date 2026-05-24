@@ -247,6 +247,13 @@ class RunInfo:
     def get_cmd_list(self) -> list[str]:
         return [str(self.binary_path)] + self.run_args.get_arg_list()
 
+    def get_info_results_dict_field(self) -> list[str]:
+        namefield = ["instance", "best_known_cost", "cost", "elapsed_seconds"]
+
+        namefield.extend(self.run_args.get_args_dict().keys())
+        namefield.append("solution")
+        return namefield
+
     def get_info_results(self) -> list[dict[str, object]]:
         results_list = []
         for cost, elapsed, solution in zip(
@@ -460,12 +467,7 @@ def benchmark(
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Collect all fieldnames first
-    tmp = RunInfo(Path("dummy"), 0)
-    tmp.elapsed_seconds_list = [0.0]
-    tmp.cost_list = [0]
-    tmp.solution_list = [[0]]
-    fieldnames = tmp.get_info_results()[0].keys()
-    del tmp
+    fieldnames = run_info_list[0].get_info_results_dict_field()
     fieldnames = list(fieldnames)
 
     with output_path.open("w", encoding="utf-8", newline="") as csv_file:
@@ -734,8 +736,8 @@ def main() -> int:
             {
                 "meme_pop": [20],
                 "meme_offspring": [10],
-                "meme_divers_try": [2],
-                "meme_mean_try": [5],
+                "meme_divers_try": [3],
+                "meme_mean_try": [10],
                 "meme_cross_rate_mut": [0, 0.5, 0.8, 1],
                 "meme_mut_rate": [0.1, 0.3],
                 "meme_cross_rate": [0.5],
@@ -779,10 +781,10 @@ def main() -> int:
         memetic_neighborhoods = [["transpose", "exchange", "insert"]]
         memetic_param_grid = build_param_grid(
             {
-                "meme_pop": [20],
-                "meme_offspring": [10],
+                "meme_pop": [25],
+                "meme_offspring": [11],
                 "meme_divers_try": [5],
-                "meme_mean_try": [10],
+                "meme_mean_try": [30],
                 "meme_cross_rate_mut": [0.8],
                 "meme_mut_rate": [0.1],
                 "meme_cross_rate": [0.5],
