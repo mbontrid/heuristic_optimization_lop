@@ -1,0 +1,3 @@
+algorithm,avg_gap_pct,std_gap_pct,total_time_s
+transpose -> exchange -> insert,2.476909568890568,0.142698708028586,2210.949424
+exchange,3.1737427171252786,0.5187653958220262,1660.922517

@@ -1,0 +1,2 @@
+algorithm_a,algorithm_b,n_instances,mean_gap_a,mean_gap_b,ttest_p_value,wilcoxon_p_value,significant_5pct_wilcoxon
+exchange,transpose -> exchange -> insert,1,3.1737427171252786,2.476909568890568,,1.0,False

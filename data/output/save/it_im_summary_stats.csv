@@ -1,0 +1,13 @@
+sol_start,pivot,neighborhood,algorithm,avg_gap_pct,std_gap_pct,total_time_s
+random,first,exchange,random | first | exchange,67.14050607584714,3.9090409652104166,1085.16662
+random,best,insert,random | best | insert,67.83555017642435,3.8685681913997225,322.951767
+random,best,exchange,random | best | exchange,67.94211152982366,3.976425253838307,172.945653
+random,first,insert,random | first | insert,68.3960388376654,3.9575746957209668,331.787503
+c_and_w,first,exchange,c_and_w | first | exchange,79.81101328057078,2.2298507308504867,954.98386
+c_and_w,best,insert,c_and_w | best | insert,80.1913926147549,2.2060983403395698,303.321188
+c_and_w,best,exchange,c_and_w | best | exchange,80.69332698532264,2.2119690984344453,163.582154
+c_and_w,first,insert,c_and_w | first | insert,81.11292299235842,2.2163052240545857,347.190431
+random,best,transpose,random | best | transpose,98.45179163404447,0.6976030711576598,0.036714
+random,first,transpose,random | first | transpose,98.56487627775176,0.8440190087157348,0.014746
+c_and_w,best,transpose,c_and_w | best | transpose,98.71364388826737,0.5056251723680788,0.037563
+c_and_w,first,transpose,c_and_w | first | transpose,98.80556306765172,0.5231400619429482,0.014735
