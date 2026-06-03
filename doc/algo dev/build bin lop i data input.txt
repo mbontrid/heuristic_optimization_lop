@@ -73,3 +73,7 @@ RESULT cost=3478629 time=1641.23 solution=36 7 100 4 25 116 74 30 143 17 23 39 6
 
 cross rate of 0 is not interesting to test as it's equivalent with cross_mut=0.
 best pivot and vnd algo is faster as vnd take less time if base solution already better and best pivot has the same consequences.
+
+
+./build/bin/lop -i ./data/input/instances/N-be75eec_150 -s random -p first -n transpose -n exchange -n insert -a memetic --meme_pop=100 --meme_offspring=50 --meme_mut_rate=0.2 --meme_mean_try=100 --meme_divers_try=10 --meme_cross_rate=0.5 --meme_cross_rate_mut=0.8 -v
+RESULT cost=3480147 time=27373.880859 solution=36 100 7 4 25 116 74 143 30 17 23 39 60 8 96 131 129 147 142 24 0 81 77 26 19 64 3 50 124 89 98 44 137 71 122 127 72 134 123 11 70 125 6 149 112 135 18 91 34 29 86 82 2 93 59 1 102 21 138 53 62 132 31 119 87 114 133 47 78 80 76 42 121 20 139 75 10 148 38 35 104 105 48 83 126 14 128 85 46 54 22 5 115 63 141 90 88 97 49 61 52 113 94 103 68 110 67 40 56 58 145 95 51 9 101 33 109 130 73 99 136 65 69 13 66 16 108 55 117 146 27 32 41 111 144 43 106 84 45 92 140 15 37 118 12 79 107 57 28 120

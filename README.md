@@ -12,11 +12,12 @@ Available algorithms:
 The project is made of three executables: `analysis.ipynb`, `benchmark_best_known.py` and `lop`.
 
 `analysis.ipynb` call `benchmark_best_known.py` to run the benchmark and then analyze the results.
+`benchmark_best_known.py` runs the `lop` executable and save the results in a csv file in `data/output/`. The results of `lop` are retrieved by regex on stdout.
 
 Dependencies: [cmake](https://cmake.org/download/) and [uv](https://uvlang.io/).
 
 Direct analysis:
-(this can take hours if there is no results csv in data/output/)
+(this can take hours if there is not already results csv in data/output/)
 
 ```bash
 uv run --with jupyter jupyter-lab analysis/analysis.ipynb
