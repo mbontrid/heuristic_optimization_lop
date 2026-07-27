@@ -79,6 +79,17 @@ t_delta_cost cost_if_swap_delta(const t_mat_cell *const cost_mat_2d,
                                 const size_t *const sol_1d, const size_t size,
                                 const size_t i, const size_t j);
 
+/**
+ * @brief Apply random swops on a solution of a lop. The numpber of swops
+ * applied is proportional to the rate. The delta cost is kept up to date.
+ *
+ * @param cost_mat lop matrix.
+ * @param array solution of the lop.
+ * @param size size of the array and shape of the lop matrix.
+ * @param rate rate of swaps occupring in the sol. Proportional to the size of
+ * the sol.
+ * @return Delta of cost after all swaps.
+ */
 t_delta_cost rand_swaps_with_delta(const t_cost *restrict const cost_mat,
                                    size_t *restrict const array,
                                    const size_t size, const float rate);
@@ -211,6 +222,13 @@ t_delta_cost lop_iter_impr(
 /**
  * @brief Apply the variables neighborhood descent (VND) algorithm to a solution
  * of the lop, with the given neighborhood exploration function and pivot rule.
+ *
+ * In detials, it apply the lo_iter_impr function with the given neighborhood
+ * exploration function until local optimum is reached. Then, it apply the next
+ * neighborhood exploration function until local optimum is reached. If a new
+ * local optimum is found, it start again with the first neighborhood
+ * exploration function. The process is repeated until all neighborhood
+ * exploration functions have been applied without finding a new local optimum.
  *
  * @param cost_mat_2d matrix of costs for the lop instance of shape
  * (cost_mat_dim, cost_mat_dim).

@@ -120,3 +120,8 @@ To run the debug:
 ```
 
 ## Documentation
+
+## TODO
+
+- [ ] refactor: Make struct to reduce the insane number of parameters of some functions.
+- [ ] documentation : Explain the source code files structure.

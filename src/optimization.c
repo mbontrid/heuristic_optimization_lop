@@ -167,7 +167,8 @@ t_delta_cost cost_if_swap_delta(const t_mat_cell *restrict const cost_mat_2d,
 t_delta_cost rand_swaps_with_delta(const t_cost *restrict const cost_mat,
                                    size_t *restrict const array,
                                    const size_t size, const float rate) {
-  assert(rate <= 1 || rate >= 0);
+  assert(rate >= 0); // rate can be greater than 1. But it would be wise to just
+                     // generate a new solution.
   assert(array);
 #ifndef NDEBUG
   size_t *const assert_old_sol = malloc(size * sizeof(size_t));

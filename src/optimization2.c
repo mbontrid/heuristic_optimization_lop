@@ -44,8 +44,10 @@ ils(const t_cost *const cost_mat, size_t *const sol_1d, const t_cost start_cost,
   set_result_clock();
   while (try++ < n_try && !is_interrupt_requested()) {
 
+    // swap some value of the solution.
     t_delta_cost delta_delta =
         rand_swaps_with_delta(cost_mat, new_sol_1d, size, perturb_rate);
+    // local search on the modified solution.
     delta_delta += vnd_lop(cost_mat, size, new_sol_1d, pivot_rule,
                            fptr_delta_neigh_exploration, n_neighb_vn);
 
@@ -80,7 +82,7 @@ void populate(
   assert(from >= 0 && from <= n_population);
 
   // generating incremental solution and its cost as base for all individuals.
-  // All individuals will be base on this with random swapes while keeping the
+  // All individuals will be based on this with random swapes while keeping the
   // cost delta history.
   const size_t *const tmp_sol_1d = generate_incr_vector(size);
 
@@ -90,6 +92,8 @@ void populate(
     t_cost *restrict const current_cost = &pop_cost_1d[i];
 
     memcpy(current, tmp_sol_1d, size * sizeof(size_t));
+    // try to generate a new local optimum solution that is not already in the
+    // population.
     do {
       DPRINTF("Generating solution for individual %zu\n", i);
 
@@ -236,7 +240,7 @@ void crossover(
 
   for (size_t cross_id = 0; cross_id < n_crossover; cross_id++) {
     t_delta_cost p1_cost = 0;
-    size_t replicate_count = 0;
+    size_t replicate_count = 0; //
     ///////////////////////////////////////////////////////////
     // search for a non existing crossover solution until found
     ///////////////////////////////////////////////////////////
@@ -292,18 +296,20 @@ void crossover(
 }
 
 void mutation(
-    const t_cost *restrict const cost_mat, size_t size,
+    const t_cost *restrict const cost_mat, const size_t size,
     const size_t *const pop_2d, const t_cost *const pop_cost_1d,
     const size_t n_population, size_t *const mutation_2d,
     t_cost *const mutation_cost_2d, const size_t n_mutation,
-    float mutation_rate, enum pivot_enum pivot_rule,
+    const float mutation_rate, const enum pivot_enum pivot_rule,
     const t_fptr_delta_neigh_exploration *const fptr_delta_neigh_explaration,
-    ushort n_neighb_vn) {
+    const ushort n_neighb_vn) {
 
   for (size_t mut_id = 0; mut_id < n_mutation; mut_id++) {
     t_delta_cost p1_cost = 0;
     // make a random mutation on a random parent until a non existing solution
-    // is found
+    // is found. replicate_count allow to accelerate the generation of different
+    // solution by starting with a hiher mutation rate if the same solution is
+    // generated multiple times.
     size_t replicate_count = 0;
     do {
       const size_t rand_index = randInt(0, n_population - 1);
