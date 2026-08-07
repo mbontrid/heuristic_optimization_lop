@@ -99,6 +99,8 @@ void populate(
 
       randomize_vector(current, size);
 
+      // notice that the vnd_lop is applied without an ititilaization method
+      // (Cenery and Watanabe).
       vnd_lop(cost_mat, size, current, pivot_rule, fptr_delta_neigh_explaration,
               n_neighb_vn);
       *current_cost = computeCost(cost_mat, current, size);

@@ -28,7 +28,7 @@ If time measurement is important, run with the minimum number of workers.
 
 ## Project structure
 
-- Instances are preferably places in `data/input/instances/`.
+- Instances are preferably placed in `data/input/instances/`.
 - `best_known.txt` associates each instance with its best known solution. It is used in the benchmark to compute the gap of the solutions found by the algorithms.
 
 ## Compile
@@ -121,7 +121,32 @@ To run the debug:
 
 ## Documentation
 
+### files
+
+#### src
+
+All Iterative improvement and variable neighborhood descent algorithms are in `optimization.c` and `optimazation.h`. All SLS implementations are in `optimization2.c` and `optimization2.h`. The main function is in `main.c`. The source code files are fully documented with headers and comments.
+
+#### analysis
+
+Benchmark and graph generation scripts are written in python and jupyter.
+
+#### data
+
+Input is where the instances and best known solutoin are stored. Output is where the benchmark results are stored.
+
+### Output
+
+All output of the executables are in stdout. The results is printed at the end of the execution unless the '--result' flag is set. In this case, all improving results and time are printed in stdout. Ideal for benchmarking.
+
+The result can be exctracted with the regex:
+
+```regex
+r"RESULT\s+cost=(?P<cost>\d+)\s+time=(?P<time>[0-9.eE+-]+)\s+solution=(?P<solution>[\d+\s]+)"
+```
+
 ## TODO
 
+- [x] documentation : document the code in headers source code files.
 - [ ] refactor: Make struct to reduce the insane number of parameters of some functions.
 - [ ] documentation : Explain the source code files structure.
