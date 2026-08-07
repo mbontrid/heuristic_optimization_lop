@@ -10,7 +10,7 @@
 
 = Abstract
 
-This report presents the implementation and analysis of local-search, local-search with perturbation and population search methods for the Linear Ordering Problem (LOP). This report analyse the implementation of iterative improvement with first- and best-improvement pivot rules on three neighborhoods (transpose, exchange, insert), each combined with two initialization methods (random and Chenery-Watanabe, CW). There is 12 combination of algorithm variants. Variable Neighborhood Descent (VND) with two neighborhood orders is also studied.
+This report presents the implementation and analysis of four methods of resolution for the linear ordering problem (LOP). Two In the local-search family: iterative improvement and variable neighborhood descend, and two stochastic local search : Iterated local search (ILS) and a population based memetic algorithm.
 
 Across the 78 benchmark instances, exchange and insert neighborhoods clearly dominate transpose in solution quality. The best average deviation among the 12 iterative-improvement variants is obtained by random-first-exchange (67.141% average deviation). For VND, the order transpose-exchange-insert performs better than transpose-insert-exchange (79.417% vs 80.617% average deviation). Statistical tests (paired Student t-test and Wilcoxon signed-rank test) show a great differences for 65 out of 66 iterative-improvement comparisons.
 
@@ -18,7 +18,7 @@ Across the 78 benchmark instances, exchange and insert neighborhoods clearly dom
 
 The Linear Ordering Problem is a NP-hard combinatorial optimization problem. Given a matrix of weights, the goal is to find a row/column sequence to maximize the sum of the upper-right triangle of the permuted matrix.
 Because exact methods are expensive on large instances, local-search heuristics are commonly used.
-
+implementation of iterative improvement with first- and best-improvement pivot rules on three neighborhoods (transpose, exchange, insert), each combined with two initialization methods (random and Chenery-Watanabe, CW). There is 12 combination of algorithm variants. Variable Neighborhood Descent (VND) with two neighborhood orders is also studied.
 = Problem description
 
 To find a maximum linear ordering, we seek a permutation $\pi$ of $n$ items maximized with the following algorithm category:
@@ -49,24 +49,48 @@ Lower values indicate better performance (0% would match the best-known solution
 
 == Implemented algorithms
 
+Iterative imprevement and variable neighborhood descent (VND) are local search algorithms. Iteratde local search and the population-based memetic algorithm are stochatic local search algorithms. Both uses VND.
+
+=== local search
+
+Local search are deterministic and prone to reaching local optimma.
+
 === Iterative improvement lop
 
-For iterative improvement:
+For iterative improvement, the following methods were implemented:
 - pivot rules: first-improvement and best-improvement,
 - neighborhoods: transpose, exchange, insert,
 - initial solutions: random and Chenery-Watanabe (CW).
 
 
 
-=== VND
+==== VND
 
 Two VND variants were implemented with first-improvement local search and CW initialization:
 - transpose -> exchange -> insert
 - transpose -> insert -> exchange
 
-=== Iterated local search
+VND is exactly the same implementation as iterative imprevement. The neighborhoods search is not just one method but a vector of methods to apply in order until there is an improvement. In which case the first method of the function vector is applied again.
 
-=== Memetic algorithm
+=== Stochastic local search
+
+As the search space of lop is far too large to be explored exhaustively, stochastic local search proved to be quite successful in finding good local optima.
+
+parameters:
+
+- pivot rule
+- vector of neighborhods search method.
+
+==== Iterated local search
+
+parameters:
+
+- perturbation rate:
+- improvement try:
+- worse acceptance:
+
+
+==== Memetic algorithm
 
 ```bash
 verbose: memetic: gen=162 | mean_pop_cost=3466069.000000 | best_mean_pop_cost=3466069.000000 | best_cost=3466069 | mean_try=9/10 | diversity_try=0/3
@@ -83,11 +107,6 @@ verbose: memetic: gen=165 | mean_pop_cost=3406517.750000 | best_mean_pop_cost=34
 ```
 
 
-== Speedup implementation
-
-Two VND variants were implemented with first-improvement local search and CW initialization:
-- transpose -> exchange -> insert
-- transpose -> insert -> exchange
 
 === Iterated local search
 
@@ -126,31 +145,27 @@ The memetic algorithm is has theses parameters:
 - pivot rule
 - local search vector (VND)
 
-
-
-
-
-
-```bash
-verbose: memetic: gen=162 | mean_pop_cost=3466069.000000 | best_mean_pop_cost=3466069.000000 | best_cost=3466069 | mean_try=9/10 | diversity_try=0/3
-verbose: memetic: Generating offspring
-verbose: memetic: Selecting 20 best
-verbose: memetic: gen=163 | mean_pop_cost=3466069.000000 | best_mean_pop_cost=3466069.000000 | best_cost=3466069 | mean_try=10/10 | diversity_try=0/3
-verbose: memetic: Generating offspring
-verbose: memetic: Selecting 20 best
-verbose: memetic: Diversifying population
-verbose: memetic: gen=164 | mean_pop_cost=3466069.000000 | best_mean_pop_cost=3466069.000000 | best_cost=3466069 | mean_try=0/10 | diversity_try=1/3
-verbose: memetic: Generating offspring
-verbose: memetic: Selecting 20 best
-verbose: memetic: gen=165 | mean_pop_cost=3406517.750000 | best_mean_pop_cost=3466069.000000 | best_cost=3466069 | mean_try=1/10 | diversity_try=1/3
-```
-
-
 == Speedup implementation
 
-Spedups were implemented to accelerate the computation. For some instances he first version took a day to compute. After multiple speedup (mainly the sum of cost), the total benchmark take five minutes.
+Speedups were implemented to accelerate the computation. For some instances the first version took a day to compute. After multiple speedup (mainly the sum of cost), the same instances take five minutes. A non exaustive list of speedupsu is decribed below.
 
 === sum of cost
+
+All algorithm implemented use the principe of delta-cost. When a candidate is modified, it is returned with de differences in cost. As such, a sum of all the matrix is computed only once and each opperation (optimization, randomization, ...) return the difference in cost (delta-cost) to add to the previously calculated cost. This allow to consider each modification as a swap and reduce complexity of the cost computation. This is the most important speedup implemented.
+
+=== Chenery-Watanabe initialization
+
+By computing the prefix sums of the matrix the cost calculation can avoid redundant computation. The perfix sum being each row computed like so :
+$c_j = sum_(j=0)^n$
+This speedup is not significant as the Chenery-Watanabe is a initialization method and is called only once in the runtime.
+
+=== insert
+
+The first implementation calculated every possible insert on an index and kept them in memory. This was not efficient as the memory access was slower than calculating few opperation with the cost-delta method.
+
+
+= results
+
 The order transpose -> exchange -> insert is statistically better in quality, while transpose -> insert -> exchange is faster. This is a clear quality-time trade-off.
 
 #figure(
@@ -166,3 +181,5 @@ The order transpose -> exchange -> insert is statistically better in quality, wh
 - for VND, transpose -> exchange -> insert improves quality significantly but costs more runtime.
 
 To conclude, exchange/insert-based methods give the best quality and for VND, transpose → exchange → insert has the best quality.
+
+#bibliography("heuristique.bib")
